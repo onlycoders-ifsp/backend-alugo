@@ -1,0 +1,22 @@
+language: java
+jdk:
+- openjdk8
+services:
+- postgresql
+addons:
+  postgresql: '11.2'
+env:
+  global:
+  - PGPORT=5433
+script:
+- "./mvnw clean test -P test"
+after_script:
+- "./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT"
+deploy:
+  provider: heroku
+  api_key:
+    secure: EebQGjweP+BQ/ilkUIzGADsaE8Ao0LFLrdLePMFb3ml/jbIAaXhtxJ8N8hiZnRZlG1n2T75b4Q7pAF99t9Hzw6bpc+QJ+i9hy2udH/KEnBI97NgEkiWtSz3/j/x8iajfMowpW/aGRQsRjRjT7GoKtstLCzbROmcllwzTX4Sifw68DmkoftOGJKw2AZsY4l0YxOpCfODypWVygQQWIf3aiaiVR1n0riMXRySMS2Q/e52CD3raqNqRJvE5pHhElnby1dI0pljsjBpn89bxYMOLo0yCYt12g/txMO0ewvayQwCudZldbrz5j4XEH2FhDDvmfoJpZIkuO+oHqMGuYsAhX1qLkkUiTzovjwQ+DqQppn1apdYmX0yE+/yCB6qSRUInwg/OdlURRDsultVBwaJ4zjeBG3BGXs68FU9b4L0z7K4JrehBto3ghinV9GtLbsufK9Y6BNL6x+UedBPUnxKP7iSdYWW0U71W/v+naEXRaIwlKrHCfWl2p/xqJK2AOxmuOsDd/AP7PHWlfFgKvLiWa1byGIpQ80uogYPhRicsB/zuVv1hTQEz1DQ6MAWxsb2ClG27PcUUnavW5A8TsVOBln+UxNzYmCJNLbWWkQdAdEke7EAor5yL0xR4yf5RvT6Td6nqtZyz5CcAGbQvkSJIqFe7qd68ECi7uYOed8vEhAo=
+  app: backend-alugo
+  on:
+    repo: onlycoders-ifsp/backend-alugo
+  skip_cleanup: 'true'
