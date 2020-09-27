@@ -1,5 +1,5 @@
-# alugo-camada-Adm [![Build Status](https://travis-ci.org/onlycoders-ifsp/alugo-camada-Adm.svg?branch=master)](https://travis-ci.org/onlycoders-ifsp/alugo-camada-Adm)
-Micro serviço que cuida de todo o processo de cadastro de usuários na ferramenta aluGO
+# alugo backend
+Serviço que irá fornecer informações ao backend.
 
 ## Banco de dados:
 Atualmente, existem três perfis de banco de dados: 
