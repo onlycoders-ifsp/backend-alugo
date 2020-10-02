@@ -6,18 +6,24 @@
  */
 package com.onlycoders.backendalugo.api.rest;
 
-import com.onlycoders.backendalugo.model.entity.Usuario;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.onlycoders.backendalugo.model.entity.usuario.templates.CadAtuUsuario;
+import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
+import javassist.Modifier;
 import lombok.RequiredArgsConstructor;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 @RestController
 @Api(value = "Usuarios")
@@ -26,37 +32,67 @@ import java.util.Optional;
 @CrossOrigin("*")
 public class UsuarioController {
 
-    private final UsuarioRepository repository;
+    @Autowired
+    private  UsuarioRepository repository;
+
+    Gson gson = new GsonBuilder()
+            .excludeFieldsWithModifiers(Modifier.FINAL, Modifier.STATIC) //Modifier.FINAL, Modifier.TRANSIENT, Modifier.Static,
+            .serializeNulls()
+            .setPrettyPrinting()
+            .create();
+    public UsuarioController(UsuarioRepository repository) {
+        this.repository = repository;
+    }
+
+    //private final UsuarioCustomRepository repository;
 
     @ApiOperation(value = "Seleciona unico usuário pelo id")
     @GetMapping("{id}")
     @ResponseStatus(HttpStatus.OK)
-    public Usuario selecionaUm(@PathVariable Integer id) {
-        return repository.getById(id);
-    }
+    public List<RetornaUsuario> retornaUsuario(@PathVariable String id) {
+        //List<RetornaUsuario> listUsuario;
+        //listUsuario = repository.findUsuario();
+        //return listUsuario;
+        //Map<String, ArrayList<RetornaUsuario>> map = new HashMap<String, ArrayList<RetornaUsuario>>();
 
+        //Map<String, List<RetornaUsuario>> result =
+        //      listUsuario.stream().collect(Collectors.groupingBy(a -> a.getIdUsuario()));
+
+        //JSONObject jsonData = new JSONObject();
+
+        //jsonData = getJsonFromMap(result);
+
+        return repository.findUsuario(id);
+    }
 
     @ApiOperation(value = "Cria novo usuário")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Usuario salvar(@RequestBody Usuario usuario) {
-        return repository.save(usuario);
+    public Boolean salvar(@RequestBody CadAtuUsuario usuario) {
+        //System.out.println(usuario.sexo);
+        return repository
+                .createUsuario(usuario.nome, usuario.cpf,usuario.email,usuario.sexo,
+                        usuario.dataNascimento, usuario.senha, usuario.login,
+                        usuario.telefone, usuario.celular);
+        //return usuario;
     }
 
     @ApiOperation(value = "Deleta usuário")
     @DeleteMapping("{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deletar(@PathVariable Integer id) {
-        repository.deleteById(id);
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean deletar(@PathVariable String id) {
+        return repository.deleteUserById(id);
     }
-
+/*
     @ApiOperation(value = "Lista usuário")
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<Usuario> list() {
-        return repository.findAll();
+    public List<RetornaUsuario> list() {
+        return repository.findUsuario("0");
     }
+*/
 
+/*
     @ApiOperation(value = "Muda senha usuário")
     @PatchMapping("{id}/muda-senha")
     @ResponseStatus(HttpStatus.OK)
@@ -67,14 +103,17 @@ public class UsuarioController {
             repository.save(c);
         });
     }
-
+*/
     @ApiOperation(value = "Muda dados usuário")
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public Usuario mudaDado(@RequestBody Usuario usuario) {
-        return repository.save(usuario);
+    public Boolean mudaDado(@RequestBody CadAtuUsuario usuario) {
+        System.out.println(usuario.idUsuario);
+        return repository.updateUserById(usuario.idUsuario,usuario.nome, usuario.cpf,usuario.email,usuario.sexo,
+                usuario.dataNascimento, usuario.senha, usuario.login,
+                usuario.telefone, usuario.celular);
     }
-
+/*
     @ApiOperation(value = "Pega o nome do usuário pelo id")
     @GetMapping("{id}/nome")
     @ResponseStatus(HttpStatus.OK)
@@ -105,6 +144,16 @@ public class UsuarioController {
 
         return usuarioOp.get().getAtivo();
     }
-
-
+*/
+private JSONObject getJsonFromMap(Map<String, List<RetornaUsuario>> result) throws JSONException {
+    JSONObject jsonData = new JSONObject();
+    for (String key : result.keySet()) {
+        Object value = result.get(key);
+        if (value instanceof Map<?, ?>) {
+            value = getJsonFromMap((Map<String,List<RetornaUsuario>>) value);
+        }
+        jsonData.put(key, value);
+    }
+    return jsonData;
+}
 }

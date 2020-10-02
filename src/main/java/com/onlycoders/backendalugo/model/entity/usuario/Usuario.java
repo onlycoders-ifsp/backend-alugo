@@ -5,14 +5,12 @@
  * #########################################################################
  */
 
-package com.onlycoders.backendalugo.model.entity;
+package com.onlycoders.backendalugo.model.entity.usuario;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import javax.persistence.*;
-import java.util.Date;
-import java.util.UUID;
 
 /*o @Entity diz que esta classe é uma entidade*/
 /*o @Getter e @Setter gera automaticamente os métodos básicos em tempo de execução*/
@@ -22,8 +20,9 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 public class Usuario {
+
     @Id
-    private String id_usuario = null;
+    private String id_usuario;
 
     @Column
     private String nome;
@@ -44,10 +43,8 @@ public class Usuario {
     private Boolean isDeletado;
 
     @Column
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date data_inclusao;
+    private String data_inclusao;
 
     @Column
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date data_modificacao;
+    private String data_modificacao;
 }
