@@ -2,10 +2,7 @@ package com.onlycoders.backendalugo.model.entity.usuario.templates;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.google.gson.annotations.SerializedName;
-import com.sun.xml.internal.ws.developer.Serialization;
 
 @JsonPropertyOrder({"idUsuario","Id_Usuario","nome"})
 public interface RetornaUsuario{
