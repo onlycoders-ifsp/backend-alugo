@@ -1,4 +1,4 @@
-package com.onlycoders.backendalugo.model.entity.Aluguel;
+package com.onlycoders.backendalugo.model.entity.aluguel;
 
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
 import com.onlycoders.backendalugo.model.entity.usuario.Usuario;
