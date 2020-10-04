@@ -6,12 +6,13 @@ import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
+
 
 import java.util.List;
-import java.util.Optional;
+
 
 @RestController
 @Api(value = "Produtos")
@@ -20,6 +21,7 @@ import java.util.Optional;
 @CrossOrigin("*")
 public class ProdutoController {
 
+    @Autowired
     private ProdutoRepository repository;
 
     @ApiOperation(value = "Retorna todos produtos ou por id")

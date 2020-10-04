@@ -1,4 +1,4 @@
-package com.onlycoders.backendalugo.model.entity.Templates;
+package com.onlycoders.backendalugo.model.entity.templates;
 
 import com.google.gson.annotations.SerializedName;
 
