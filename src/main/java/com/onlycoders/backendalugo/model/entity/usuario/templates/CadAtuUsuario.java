@@ -1,6 +1,6 @@
 package com.onlycoders.backendalugo.model.entity.usuario.templates;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,51 +8,43 @@ import lombok.Setter;
 @Setter
 public class CadAtuUsuario {
 
-    @SerializedName("id_Usuario")
+    //@JsonIgnore
+    @JsonAlias({"id_Usuario","id_usuario"})
     public String idUsuario;
 
-    @SerializedName("Nome")
+    @JsonAlias({"nome"})
     public String nome;
 
-    @SerializedName("Cpf")
-    public String cpf;
-
-    @SerializedName("Email")
+    @JsonAlias({"email"})
     public String email;
 
-    @SerializedName("Sexo")
-    public String sexo;
-
-    @SerializedName("Data_Nascimento")
-    public String dataNascimento;
-
-    @SerializedName("Senha")
-    public String senha;
-
-    @SerializedName("Login")
+    @JsonAlias({"login"})
     public String login;
 
-    @SerializedName("Telefone")
-    public String telefone;
+    @JsonAlias({"senha"})
+    public String senha;
 
-    @SerializedName("Celular")
+    @JsonAlias({"phoneNumber","numero_Celular","numeroCelular","celular"})
     public String celular;
 
-//@SerializedName("Estado")
-    //public String getEstado;
+    @JsonAlias({"cpf","Cpf"})
+    public String cpf;
 
-    //@SerializedName("Cidade")
-    //public String getCidade;
+    @JsonAlias({"data_Nascimento","Data_nascimento","data_nascimento"})
+    public String dataNascimento;
 
-    //@SerializedName("Cep")
-    //public String getCep;
+    @JsonAlias({"cep","Cep"})
+    public String cep;
 
-    //@SerializedName("Logradouro")
-    //public String getLogradouro;
+    @JsonAlias({"logradouro"})
+    public String logradouro;
 
-    //@SerializedName("Numero")
-    //public String getNumero;
+    @JsonAlias({"complemento"})
+    public String complemento;
 
-    //@SerializedName("Bairro")
-    //public String getBairro;
+    @JsonAlias({"bairro"})
+    public String bairro;
+
+    @JsonAlias({"numero"})
+    public String numero;
 }

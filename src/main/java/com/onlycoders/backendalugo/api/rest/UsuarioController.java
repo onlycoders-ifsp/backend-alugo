@@ -8,6 +8,7 @@ package com.onlycoders.backendalugo.api.rest;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.onlycoders.backendalugo.model.entity.usuario.Usuario;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.CadAtuUsuario;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
@@ -47,71 +48,48 @@ public class UsuarioController {
     //private final UsuarioCustomRepository repository;
 
     @ApiOperation(value = "Seleciona unico usuário pelo id")
-    @GetMapping("{id}")
+    @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<RetornaUsuario> retornaUsuario(@PathVariable String id) {
-        //List<RetornaUsuario> listUsuario;
-        //listUsuario = repository.findUsuario();
-        //return listUsuario;
-        //Map<String, ArrayList<RetornaUsuario>> map = new HashMap<String, ArrayList<RetornaUsuario>>();
-
-        //Map<String, List<RetornaUsuario>> result =
-        //      listUsuario.stream().collect(Collectors.groupingBy(a -> a.getIdUsuario()));
-
-        //JSONObject jsonData = new JSONObject();
-
-        //jsonData = getJsonFromMap(result);
-
-        return repository.findUsuario(id);
+    public List<RetornaUsuario> retornaUsuario(@RequestBody CadAtuUsuario id) {
+        //System.out.println(id.idUsuario);
+        return repository.findUsuario(id.idUsuario);
     }
 
     @ApiOperation(value = "Cria novo usuário")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Boolean salvar(@RequestBody CadAtuUsuario usuario) {
-        //System.out.println(usuario.sexo);
+    public List<RetornaUsuario> salvar(@RequestBody CadAtuUsuario usuario) {
+        //System.out.println(usuario.nome);
         return repository
-                .createUsuario(usuario.nome, usuario.cpf,usuario.email,usuario.sexo,
-                        usuario.dataNascimento, usuario.senha, usuario.login,
-                        usuario.telefone, usuario.celular);
+                .createUsuarioMin(usuario.nome, usuario.email,usuario.login,
+                        usuario.senha,usuario.cpf, usuario.celular);
         //return usuario;
     }
 
     @ApiOperation(value = "Deleta usuário")
-    @DeleteMapping("{id}")
+    @DeleteMapping
     @ResponseStatus(HttpStatus.OK)
-    public Boolean deletar(@PathVariable String id) {
-        return repository.deleteUserById(id);
+    public Boolean deletar(@RequestBody CadAtuUsuario id) {
+        return repository.deleteUserById(id.idUsuario);
     }
-/*
-    @ApiOperation(value = "Lista usuário")
-    @GetMapping
-    @ResponseStatus(HttpStatus.OK)
-    public List<RetornaUsuario> list() {
-        return repository.findUsuario("0");
-    }
-*/
 
-/*
     @ApiOperation(value = "Muda senha usuário")
-    @PatchMapping("{id}/muda-senha")
+    @PutMapping("/alterasenha")
     @ResponseStatus(HttpStatus.OK)
-    public void mudaSenha(@PathVariable Integer id, @RequestBody String nome) {
-        Optional<Usuario> usuario = repository.findById(id);
-        usuario.ifPresent(c -> {
-            c.setNome(nome);
-            repository.save(c);
-        });
+    public Boolean alteraSenha(@RequestBody CadAtuUsuario id) {
+        System.out.println(id.idUsuario + "," + id.senha);
+        return repository.alteraSenha(id.idUsuario, id.senha);
     }
-*/
+
     @ApiOperation(value = "Muda dados usuário")
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public Boolean mudaDado(@RequestBody CadAtuUsuario usuario) {
+    public List <RetornaUsuario>  mudaDado(@RequestBody CadAtuUsuario usuario) {
         System.out.println(usuario.idUsuario);
-        return repository.updateUserById(usuario.idUsuario,usuario.nome, usuario.cpf,usuario.email,usuario.sexo,
-                usuario.dataNascimento, usuario.senha, usuario.login,
-                usuario.telefone, usuario.celular);
+        System.out.println(usuario.nome);
+        return repository.updateUserById(usuario.idUsuario,usuario.nome,usuario.email, usuario.login,
+                usuario.cpf, usuario.celular,usuario.dataNascimento, usuario.cep,usuario.logradouro,
+                usuario.complemento, usuario.bairro, usuario.numero);
     }
 /*
     @ApiOperation(value = "Pega o nome do usuário pelo id")

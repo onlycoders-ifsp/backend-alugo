@@ -1,49 +1,54 @@
 package com.onlycoders.backendalugo.model.entity.usuario.templates;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.google.gson.annotations.SerializedName;
+import com.sun.xml.internal.ws.developer.Serialization;
 
+@JsonPropertyOrder({"idUsuario","Id_Usuario","nome"})
 public interface RetornaUsuario{
 
     //@Transient
-    @SerializedName("IdUsuario")
+    @JsonGetter("id_usuario")
+    @JsonAlias({"Id_Usuario","Id_usuario","idUsuario"})
     public String getIdUsuario();
 
-    @SerializedName("Nome")
+    @JsonGetter("nome")
     public String getNome();
 
-    @SerializedName("Cpf")
-    public String getCpf();
-
-    @SerializedName("Email")
+    @JsonGetter("email")
     public String getEmail();
 
-    @SerializedName("Sexo")
-    public String getSexo();
+    @JsonGetter("login")
+    public String getLogin();
 
-    @SerializedName("Data_Nascimento")
-    public String getDataNascimento();
+    @JsonGetter("cpf")
+    public String getCpf();
 
-    @SerializedName("Telefone")
-    public String getTelefone();
-
-    @SerializedName("Celular")
+    @JsonGetter("celular")
     public String getCelular();
 
-    @SerializedName("Data_Inclusao")
-    public String getDataInclusao();
+    @JsonGetter("data_nascimento")
+    @JsonAlias({"Data_Nascimento","data_nascimento","DataNascimento"})
+    public String getDataNascimento();
 
-    @SerializedName("Estado")
-    public String getEstado();
+    @JsonGetter("cep")
+    public String getCep();
 
-    @SerializedName("Cidade")
-    public String getCidade();
-
-    @SerializedName("Logradouro")
+    @JsonGetter("logradouro")
     public String getLogradouro();
 
-    @SerializedName("Numero")
+    @JsonGetter("complemento")
+    public String getComplemento();
+
+    @JsonGetter("bairro")
+    public String getBairro();
+
+    @JsonGetter("numero")
     public String getNumero();
 
-    @SerializedName("Bairro")
-    public String getBairro();
+    @JsonGetter("ativo")
+    public Boolean getAtivo();
 }
