@@ -30,7 +30,6 @@ public class ProdutoController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<UsuarioProduto> retornaProduto(@RequestBody CadAtuProduto id) {
-        //System.out.println(id.idUsuario + " - " + id.produto.idProduto);
         List<Produto> p = repository.findProduto(id.idUsuario, id.produto.idProduto);
         List<UsuarioProduto> listaProdutos = new ArrayList<UsuarioProduto>();
 
