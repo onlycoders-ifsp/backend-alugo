@@ -34,7 +34,7 @@ import java.util.Map;
 @CrossOrigin("*")
 public class LoginController {
     @Autowired
-    private  UsuarioRepository repository;
+    private UsuarioRepository repository;
 
     @ApiOperation(value = "Verifica login")
     @GetMapping
