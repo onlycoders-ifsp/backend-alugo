@@ -1,11 +1,8 @@
 package com.onlycoders.backendalugo.model.repository;
 
-import com.onlycoders.backendalugo.model.entity.Usuario;
-import lombok.var;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
-import java.util.Date;
 import java.util.List;
 
 @Repository
@@ -18,13 +15,13 @@ public class UsuarioCustomRepository {
         this.em = em;
     }
 
-    public List<Usuario> list(){
-        String query = "SELECT * from usuario";
+    public List<String> list(String usuario){
 
-        var q = em.createQuery(query, Usuario.class);
-        return q.getResultList();
+        String function = "Select FN_RETORNA_USUARIO('".concat((usuario == "0") ? "0'":usuario + "'");
+
+        return this.em.createNativeQuery(function).getResultList();
     }
-
+/*
     public void salvar(String nome, String cpf, String rua, String numero, String cep,
                        String email, String codSexo, Date dataNasc, String senha, String telefone, String cel){
 
@@ -45,5 +42,5 @@ public class UsuarioCustomRepository {
         q.setParameter("cel", cel);
 
         q.getResultList();
-    }
+    }*/
 }

@@ -1,5 +1,7 @@
-package com.onlycoders.backendalugo.model.entity;
+package com.onlycoders.backendalugo.model.entity.aluguel;
 
+import com.onlycoders.backendalugo.model.entity.produto.Produto;
+import com.onlycoders.backendalugo.model.entity.usuario.Usuario;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

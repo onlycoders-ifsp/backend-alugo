@@ -5,13 +5,11 @@
  * #########################################################################
  */
 
-package com.onlycoders.backendalugo.model.entity;
+package com.onlycoders.backendalugo.model.entity.usuario;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import javax.persistence.*;
 
 /*o @Entity diz que esta classe é uma entidade*/
@@ -22,16 +20,9 @@ import javax.persistence.*;
 @Setter
 @NoArgsConstructor
 public class Usuario {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-
-    @Column
-    private String login;
-
-    @Column
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private String senha;
+    private String id_usuario;
 
     @Column
     private String nome;
@@ -40,21 +31,20 @@ public class Usuario {
     private String cpf;
 
     @Column
-    private String logradouro;
-
-    @Column
-    private String numero;
-
-    @Column
-    private String cep;
-
-    @Column
     private String email;
 
     @Column
-    private Boolean ativo;
+    private String sexo;
 
     @Column
-    private String codigo;
+    private String data_nascimento;
 
+    @Column
+    private Boolean isDeletado;
+
+    @Column
+    private String data_inclusao;
+
+    @Column
+    private String data_modificacao;
 }

@@ -6,18 +6,25 @@
  */
 package com.onlycoders.backendalugo.api.rest;
 
-import com.onlycoders.backendalugo.model.entity.Usuario;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.onlycoders.backendalugo.model.entity.usuario.Usuario;
+import com.onlycoders.backendalugo.model.entity.usuario.templates.CadAtuUsuario;
+import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
+import javassist.Modifier;
 import lombok.RequiredArgsConstructor;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 @RestController
 @Api(value = "Usuarios")
@@ -26,55 +33,65 @@ import java.util.Optional;
 @CrossOrigin("*")
 public class UsuarioController {
 
-    private final UsuarioRepository repository;
+    @Autowired
+    private  UsuarioRepository repository;
 
-    @ApiOperation(value = "Seleciona unico usuário pelo id")
-    @GetMapping("{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public Usuario selecionaUm(@PathVariable Integer id) {
-        return repository.getById(id);
+    Gson gson = new GsonBuilder()
+            .excludeFieldsWithModifiers(Modifier.FINAL, Modifier.STATIC) //Modifier.FINAL, Modifier.TRANSIENT, Modifier.Static,
+            .serializeNulls()
+            .setPrettyPrinting()
+            .create();
+    public UsuarioController(UsuarioRepository repository) {
+        this.repository = repository;
     }
 
+    //private final UsuarioCustomRepository repository;
+
+    @ApiOperation(value = "Seleciona unico usuário pelo id")
+    @GetMapping
+    @ResponseStatus(HttpStatus.OK)
+    public List<RetornaUsuario> retornaUsuario(@RequestBody CadAtuUsuario id) {
+        //System.out.println(id.idUsuario);
+        return repository.findUsuario(id.idUsuario);
+    }
 
     @ApiOperation(value = "Cria novo usuário")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Usuario salvar(@RequestBody Usuario usuario) {
-        return repository.save(usuario);
+    public List<RetornaUsuario> salvar(@RequestBody CadAtuUsuario usuario) {
+        //System.out.println(usuario.nome);
+        return repository
+                .createUsuarioMin(usuario.nome, usuario.email,usuario.login,
+                        usuario.senha,usuario.cpf, usuario.celular);
+        //return usuario;
     }
 
     @ApiOperation(value = "Deleta usuário")
-    @DeleteMapping("{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deletar(@PathVariable Integer id) {
-        repository.deleteById(id);
-    }
-
-    @ApiOperation(value = "Lista usuário")
-    @GetMapping
+    @DeleteMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<Usuario> list() {
-        return repository.findAll();
+    public Boolean deletar(@RequestBody CadAtuUsuario id) {
+        return repository.deleteUserById(id.idUsuario);
     }
 
     @ApiOperation(value = "Muda senha usuário")
-    @PatchMapping("{id}/muda-senha")
+    @PutMapping("/alterasenha")
     @ResponseStatus(HttpStatus.OK)
-    public void mudaSenha(@PathVariable Integer id, @RequestBody String nome) {
-        Optional<Usuario> usuario = repository.findById(id);
-        usuario.ifPresent(c -> {
-            c.setNome(nome);
-            repository.save(c);
-        });
+    public Boolean alteraSenha(@RequestBody CadAtuUsuario id) {
+        System.out.println(id.idUsuario + "," + id.senha);
+        return repository.alteraSenha(id.idUsuario, id.senha);
     }
 
     @ApiOperation(value = "Muda dados usuário")
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public Usuario mudaDado(@RequestBody Usuario usuario) {
-        return repository.save(usuario);
+    public List <RetornaUsuario>  mudaDado(@RequestBody CadAtuUsuario usuario) {
+        System.out.println(usuario.idUsuario);
+        System.out.println(usuario.nome);
+        return repository.updateUserById(usuario.idUsuario,usuario.nome,usuario.email, usuario.login,
+                usuario.cpf, usuario.celular,usuario.dataNascimento, usuario.cep,usuario.logradouro,
+                usuario.complemento, usuario.bairro, usuario.numero);
     }
-
+/*
     @ApiOperation(value = "Pega o nome do usuário pelo id")
     @GetMapping("{id}/nome")
     @ResponseStatus(HttpStatus.OK)
@@ -105,6 +122,5 @@ public class UsuarioController {
 
         return usuarioOp.get().getAtivo();
     }
-
-
+*/
 }
