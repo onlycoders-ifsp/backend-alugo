@@ -19,8 +19,7 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
                         " VALOR_BASE_DIARIA NUMERIC(16,2), VALOR_BASE_MENSAL NUMERIC(16,2)," +
                         " VALOR_PRODUTO NUMERIC(16,2), DATA_COMPRA TEXT, ATIVO BOOLEAN);",
     nativeQuery = true)
-    List<Produto> findProduto(@Param("id_produto") String id_produto,
-                                            @Param("id_usuario") String id_usuario);
+    List<Produto> findProduto(@Param("id_produto") String id_produto,@Param("id_usuario") String id_usuario);
 
     @Transactional
     @Query(value = "SELECT FN_CADASTRAR_PRODUTO(:id,:nome,:descricao,:diaria," +
