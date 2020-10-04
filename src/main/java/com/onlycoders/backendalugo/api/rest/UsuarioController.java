@@ -123,15 +123,4 @@ public class UsuarioController {
         return usuarioOp.get().getAtivo();
     }
 */
-private JSONObject getJsonFromMap(Map<String, List<RetornaUsuario>> result) throws JSONException {
-    JSONObject jsonData = new JSONObject();
-    for (String key : result.keySet()) {
-        Object value = result.get(key);
-        if (value instanceof Map<?, ?>) {
-            value = getJsonFromMap((Map<String,List<RetornaUsuario>>) value);
-        }
-        jsonData.put(key, value);
-    }
-    return jsonData;
-}
 }

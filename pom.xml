@@ -88,6 +88,12 @@
 			<artifactId>json</artifactId>
 			<version>20200518</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.bertoncelj.hibernatejson/hibernate-json -->
+		<dependency>
+			<groupId>com.vladmihalcea</groupId>
+			<artifactId>hibernate-types-52</artifactId>
+			<version>1.0.0</version>
+		</dependency>
 	</dependencies>
 	<profiles>
 		<profile>

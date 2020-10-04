@@ -1,30 +1,80 @@
 package com.onlycoders.backendalugo.model.entity.produto.templates;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.*;
 
-public interface RetornaProduto {
+public class RetornaProduto {
 
-    @SerializedName("Nome_Usuario")
-    String getNomeUsuario();
+    @JsonAlias("id_produto")
+    private String idProduto;
+    private String nome;
+    private String descricao;
+    private Double valorBaseDiaria;
+    private Double valorBaseMensal;
+    private Double valorProduto;
+    private String dataCompra;
+    private Boolean ativo;
 
-    @SerializedName("Nome_Produto")
-    String getNomeProduto();
+    public String getIdProduto() {
+        return idProduto;
+    }
 
-    @SerializedName("Decricao")
-    String getDescricao();
+    public void setIdProduto(String idProduto) {
+        this.idProduto = idProduto;
+    }
 
-    @SerializedName("BaseDiaria")
-    Double getValorBaseDiaria();
+    public String getNome() {
+        return nome;
+    }
 
-    @SerializedName("BaseMensal")
-    Double getValorBaseMensal();
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
 
-    @SerializedName("ValorProduto")
-    Double getValorProduto();
+    public String getDescricao() {
+        return descricao;
+    }
 
-    @SerializedName("DataCompra")
-    String getDataCompra();
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
+    }
 
-    @SerializedName("DataInclusao")
-    String getDataInclusao();
+    public Double getValorBaseDiaria() {
+        return valorBaseDiaria;
+    }
+
+    public void setValorBaseDiaria(Double valorBaseDiaria) {
+        this.valorBaseDiaria = valorBaseDiaria;
+    }
+
+    public Double getValorBaseMensal() {
+        return valorBaseMensal;
+    }
+
+    public void setValorBaseMensal(Double valorBaseMensal) {
+        this.valorBaseMensal = valorBaseMensal;
+    }
+
+    public Double getValorProduto() {
+        return valorProduto;
+    }
+
+    public void setValorProduto(Double valorProduto) {
+        this.valorProduto = valorProduto;
+    }
+
+    public String getDataCompra() {
+        return dataCompra;
+    }
+
+    public void setDataCompra(String dataCompra) {
+        this.dataCompra = dataCompra;
+    }
+
+    public Boolean getAtivo() {
+        return ativo;
+    }
+
+    public void setAtivo(Boolean ativo) {
+        this.ativo = ativo;
+    }
 }

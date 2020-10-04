@@ -1,51 +1,45 @@
 package com.onlycoders.backendalugo.model.entity.produto;
 
-
-import com.onlycoders.backendalugo.model.entity.usuario.Usuario;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.Date;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
+
 public class Produto {
 
+    @JsonAlias({"id_usuario"})
+    public String idUsuario;
+
     @Id
-    private String idProduto;
+    @JsonAlias({"id_produto"})
+    public String idProduto;
 
-    @Column
-    private String idUsuario;
+    @JsonAlias({"nome"})
+    public String nome;
 
-    @Column
-    private String nome;
+    @JsonAlias({"descricao"})
+    public String descricao;
 
-    @Column
-    private String descricao;
+    @JsonAlias({"base_diaria"})
+    public Double valorBaseDiaria;
 
-    @Column
-    private Double valorBaseDiaria;
+    @JsonAlias({"base_mensal"})
+    public Double valorBaseMensal;
 
-    @Column
-    private Double valorBaseMensal;
+    @JsonAlias({"valor_produto"})
+    public Double valorProduto;
 
-    @Column
-    private Double valorProduto;
+    @JsonAlias({"data_compra"})
+    public String dataCompra;
 
-    @Column
-    private String dataCompra;
-
-    @Column
-    private Boolean isDeletado;
-
-    @Column
-    private String dataInclusao;
-
-    @Transient
-    @Column
-    private String dataModificacao;
+    @JsonAlias({"ativo"})
+    public Boolean ativo;
 }
