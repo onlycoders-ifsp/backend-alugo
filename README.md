@@ -1,4 +1,4 @@
-# alugo backend
+# alugo backend [![Build Status](https://travis-ci.org/onlycoders-ifsp/backend-alugo.svg?branch=master)](https://travis-ci.org/onlycoders-ifsp/backend-alugo)
 Serviço que irá fornecer informações ao backend.
 
 ## Banco de dados:

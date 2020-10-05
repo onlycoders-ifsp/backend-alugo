@@ -28,11 +28,13 @@ public class ProdutoController {
     @ApiOperation(value = "Retorna produtos pelo idusuario e/ou idproduto")
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
+
     public List<UsuarioProduto> retornaProduto(@RequestParam String id_usuario, @RequestParam String id_produto) {
         //System.out.println(id.idUsuario + " - " + id.produto.idProduto);
         id_usuario = UriUtils.decode(id_usuario,"UTF-8");
         id_produto = UriUtils.decode(id_produto,"UTF-8");
         List<Produto> p = repository.findProduto(id_usuario, id_produto);
+
         List<UsuarioProduto> listaProdutos = new ArrayList<UsuarioProduto>();
 
             for(Produto i :p){
