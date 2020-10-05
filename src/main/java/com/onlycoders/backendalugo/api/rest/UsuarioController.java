@@ -6,25 +6,19 @@
  */
 package com.onlycoders.backendalugo.api.rest;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.onlycoders.backendalugo.model.entity.usuario.Usuario;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.CadAtuUsuario;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
-import javassist.Modifier;
 import lombok.RequiredArgsConstructor;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriUtils;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @Api(value = "Usuarios")
@@ -36,11 +30,6 @@ public class UsuarioController {
     @Autowired
     private  UsuarioRepository repository;
 
-    Gson gson = new GsonBuilder()
-            .excludeFieldsWithModifiers(Modifier.FINAL, Modifier.STATIC) //Modifier.FINAL, Modifier.TRANSIENT, Modifier.Static,
-            .serializeNulls()
-            .setPrettyPrinting()
-            .create();
     public UsuarioController(UsuarioRepository repository) {
         this.repository = repository;
     }
@@ -50,9 +39,11 @@ public class UsuarioController {
     @ApiOperation(value = "Seleciona unico usuário pelo id")
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<RetornaUsuario> retornaUsuario(@RequestBody CadAtuUsuario id) {
+    public List<RetornaUsuario> retornaUsuario(@RequestParam String id_usuario) {
+
+        id_usuario = UriUtils.decode(id_usuario,"UTF-8");
         //System.out.println(id.idUsuario);
-        return repository.findUsuario(id.idUsuario);
+        return repository.findUsuario(id_usuario);
     }
 
     @ApiOperation(value = "Cria novo usuário")
