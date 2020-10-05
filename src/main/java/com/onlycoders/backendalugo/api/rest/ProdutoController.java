@@ -4,9 +4,7 @@ import com.onlycoders.backendalugo.model.entity.produto.Produto;
 import com.onlycoders.backendalugo.model.entity.produto.templates.CadAtuProduto;
 import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
 import com.onlycoders.backendalugo.model.entity.produto.templates.UsuarioProduto;
-import com.onlycoders.backendalugo.model.entity.usuario.Usuario;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +25,7 @@ public class ProdutoController {
     @Autowired
     private ProdutoRepository repository;
 
-    @ApiOperation(value = "Retorna todos produ  tos ou por id")
+    @ApiOperation(value = "Retorna produtos pelo idusuario e/ou idproduto")
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<UsuarioProduto> retornaProduto(@RequestParam String id_usuario, @RequestParam String id_produto) {
@@ -37,17 +35,21 @@ public class ProdutoController {
         List<Produto> p = repository.findProduto(id_usuario, id_produto);
         List<UsuarioProduto> listaProdutos = new ArrayList<UsuarioProduto>();
 
-
             for(Produto i :p){
                 RetornaProduto user = new RetornaProduto();
                 UsuarioProduto usrPrd = new UsuarioProduto();
                 user.setIdProduto(i.idProduto);
                 user.setNome(i.nome);
+                user.setDescricaoCurta(i.descricaoCurta);
                 user.setDescricao(i.descricao);
                 user.setValorBaseDiaria(i.valorBaseDiaria);
                 user.setValorBaseMensal(i.valorBaseMensal);
                 user.setValorProduto(i.valorProduto);
                 user.setDataCompra(i.dataCompra);
+                user.setQtdAlugueis(i.qtdAlugueis);
+                user.setTotalGanhos(i.totalGanhos);
+                user.setMediaAvaliacao(i.mediaAvaliacao);
+                user.setCapaFoto(i.capaFoto);
                 user.setAtivo(i.ativo);
                 usrPrd.setId_usuario(i.idUsuario);
                 usrPrd.setProduto(user);
@@ -60,9 +62,9 @@ public class ProdutoController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Boolean inserir(@RequestBody CadAtuProduto produto){
-        return repository.createProduto(produto.idUsuario,produto.produto.nome,produto.produto.descricao,
+        return repository.createProduto(produto.idUsuario,produto.produto.nome,produto.produto.descricaoCurta,produto.produto.descricao,
                 produto.produto.valorBaseDiaria, produto.produto.valorBaseMensal, produto.produto.valorProduto,
-                produto.produto.dataCompra);
+                produto.produto.dataCompra,produto.produto.capaFoto);
     }
 
 
@@ -70,9 +72,9 @@ public class ProdutoController {
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
     public Boolean update(@RequestBody CadAtuProduto produto) {
-        return repository.updateProduto(produto.produto.idProduto, produto.produto.nome,produto.produto.descricao,
-                produto.produto.valorBaseDiaria, produto.produto.valorBaseMensal, produto.produto.valorProduto,
-                produto.produto.dataCompra);
+        return repository.updateProduto(produto.produto.idProduto, produto.produto.nome, produto.produto.descricaoCurta,
+                produto.produto.descricao,produto.produto.valorBaseDiaria, produto.produto.valorBaseMensal, produto.produto.valorProduto,
+                produto.produto.dataCompra,produto.produto.capaFoto);
     }
 
     @ApiOperation(value = "Ativa ou inativa o produto")

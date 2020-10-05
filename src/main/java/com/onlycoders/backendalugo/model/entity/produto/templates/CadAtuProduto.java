@@ -14,10 +14,4 @@ public class CadAtuProduto {
 
     @JsonAlias({"produto"})
     public Produto produto;
-
-    /*
-    public CadAtuProduto(String idUsuario, Produto produto) {
-        this.idUsuario = idUsuario;
-        this.produto = produto;
-    }*/
 }
