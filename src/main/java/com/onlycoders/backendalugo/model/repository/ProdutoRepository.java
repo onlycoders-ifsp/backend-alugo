@@ -15,33 +15,38 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
 
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "SELECT *FROM FN_RETORNA_PRODUTO(:id_produto,:id_usuario)" +
-                    "as t (ID_USUARIO TEXT, ID_PRODUTO TEXT, NOME TEXT, DESCRICAO TEXT, " +
-                        " VALOR_BASE_DIARIA NUMERIC(16,2), VALOR_BASE_MENSAL NUMERIC(16,2)," +
-                        " VALOR_PRODUTO NUMERIC(16,2), DATA_COMPRA TEXT, ATIVO BOOLEAN);",
+            "as (ID_USUARIO TEXT, ID_PRODUTO TEXT, NOME TEXT, DESCRICAO_CURTA TEXT, " +
+            "  DESCRICAO TEXT, VALOR_BASE_DIARIA DECIMAL(16,2), VALOR_BASE_MENSAL DECIMAL(16,2)," +
+            "  VALOR_PRODUTO DECIMAL(16,2), DATA_COMPRA TEXT, QTD_ALUGUEIS NUMERIC(16), " +
+            "  TOTAL_GANHOS DECIMAL(16,2), MEDIA_AVALIACAO DECIMAL(6,1), CAPA_FOTO TEXT, ATIVO BOOLEAN);",
     nativeQuery = true)
     List<Produto> findProduto(@Param("id_produto") String id_produto,@Param("id_usuario") String id_usuario);
 
     @Transactional
-    @Query(value = "SELECT FN_CADASTRAR_PRODUTO(:id,:nome,:descricao,:diaria," +
-                    ":mensal,:valorProduto,:dataCompra);",nativeQuery = true)
+    @Query(value = "SELECT FN_CADASTRAR_PRODUTO(:id,:nome,:descricaoCurta,:descricao,:diaria," +
+                    ":mensal,:valorProduto,:dataCompra,:capaFoto);",nativeQuery = true)
     Boolean createProduto(@Param("id") String id,
                             @Param("nome") String nome,
+                            @Param("descricaoCurta") String descricaoCurta,
                             @Param("descricao") String descricao,
                             @Param("diaria") Double diaria,
                             @Param("mensal") Double mensal,
                             @Param("valorProduto") Double valorProduto,
-                            @Param("dataCompra") String dataCompra);
+                            @Param("dataCompra") String dataCompra,
+                            @Param("capaFoto") String capaFoto);
 
     @Transactional
-    @Query(value = "SELECT FN_ATUALIZA_PRODUTO(:id,:nome,:descricao,:diaria," +
-            ":mensal,:valorProduto,:dataCompra);",nativeQuery = true)
+    @Query(value = "SELECT FN_ATUALIZA_PRODUTO(:id,:nome,:descricaoCurta,:descricao,:diaria," +
+            ":mensal,:valorProduto,:dataCompra,:capaFoto);",nativeQuery = true)
     Boolean updateProduto(@Param("id") String id,
                           @Param("nome") String nome,
+                          @Param("descricaoCurta") String descricaoCurta,
                           @Param("descricao") String descricao,
                           @Param("diaria") Double diaria,
                           @Param("mensal") Double mensal,
                           @Param("valorProduto") Double valorProduto,
-                          @Param("dataCompra") String dataCompra);
+                          @Param("dataCompra") String dataCompra,
+                          @Param("capaFoto") String capaFoto);
 
     @Transactional
     @Query(value = "SELECT FN_ATIVA_INATIVA_PRODUTO(:id);",nativeQuery = true)

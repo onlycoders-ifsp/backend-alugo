@@ -82,36 +82,4 @@ public class UsuarioController {
                 usuario.cpf, usuario.celular,usuario.dataNascimento, usuario.cep,usuario.logradouro,
                 usuario.complemento, usuario.bairro, usuario.numero);
     }
-/*
-    @ApiOperation(value = "Pega o nome do usuário pelo id")
-    @GetMapping("{id}/nome")
-    @ResponseStatus(HttpStatus.OK)
-    public String getNomeById(@PathVariable Integer id) {
-        Optional<Usuario> usuarioOp = repository.findById(id);
-        if (usuarioOp.isPresent())
-            return usuarioOp.get().getNome();
-        else
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "entity not found"
-            );
-    }
-
-    @ApiOperation(value = "Inativa usuário pelo id")
-    @GetMapping("{id}/inativo")
-    @ResponseStatus(HttpStatus.OK)
-    public Boolean inativaById(@PathVariable Integer id) {
-        Optional<Usuario> usuarioOp = repository.findById(id);
-        usuarioOp.ifPresent(u -> {
-            u.setAtivo(false);
-            repository.save(u);
-        });
-
-        if (!usuarioOp.isPresent())
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "entity not found"
-            );
-
-        return usuarioOp.get().getAtivo();
-    }
-*/
 }
