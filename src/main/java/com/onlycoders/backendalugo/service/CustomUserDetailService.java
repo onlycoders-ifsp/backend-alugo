@@ -2,7 +2,6 @@ package com.onlycoders.backendalugo.service;
 
 import com.onlycoders.backendalugo.model.entity.login.RetornaLogin;
 import com.onlycoders.backendalugo.model.entity.login.UsuarioLogin;
-import com.onlycoders.backendalugo.model.entity.usuario.Usuario;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
@@ -10,7 +9,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import sun.usagetracker.UsageTrackerClient;
 
 import java.util.Optional;
 
