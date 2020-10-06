@@ -23,13 +23,13 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
 
     //Retorna usuario
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
-    @Query(value = "Select *From FN_RETORNA_USUARIO(:id) " +
+    @Query(value = "Select *From FN_RETORNA_USUARIO(:id,:opcao) " +
             "AS T(IDUSUARIO TEXT, NOME TEXT, EMAIL TEXT, LOGIN TEXT, CPF TEXT, CELULAR TEXT," +
     "            DATANASCIMENTO TEXT, CEP TEXT, LOGRADOURO TEXT, " +
     "            COMPLEMENTO TEXT, BAIRRO TEXT, NUMERO TEXT, ATIVO BOOLEAN);",
     //@Query(value = "Select u.*From Usuarios u",
     nativeQuery = true)
-    List<RetornaUsuario> findUsuario(@Param("id") String id);
+    List<RetornaUsuario> findUsuario(@Param("id") String id, @Param("opcao") int opcao);
 
     //Insere usuario
     @Transactional()
@@ -54,7 +54,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
 
     //Insere apenas informações minimas
     @Transactional()
-    @Query(value = "SELECT IDUSUARIO, NOME, EMAIL, CPF, CELULAR, ATIVO" +
+    @Query(value = "SELECT IDUSUARIO, NOME, LOGIN, EMAIL, CPF, CELULAR, ATIVO" +
             " FROM FN_INSERIR_USUARIO_MIN(:nome,:email,:login,:senha,:cpf,:celular)" +
             "AS T(IDUSUARIO TEXT, NOME TEXT, EMAIL TEXT, LOGIN TEXT, CPF TEXT," +
             "   CELULAR TEXT,DATANASCIMENTO TEXT, CEP TEXT, LOGRADOURO TEXT," +

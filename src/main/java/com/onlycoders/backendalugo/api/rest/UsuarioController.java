@@ -21,6 +21,7 @@ import net.bytebuddy.implementation.bytecode.Throw;
 import org.omg.CORBA.RepositoryIdHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -51,30 +52,50 @@ public class UsuarioController {
         this.repository = repository;
     }
 
-    @ApiOperation(value = "Seleciona unico usuário pelo id")
-    @GetMapping
+    @ApiOperation(value = "Retorna dados do usuario. Param: id_usuario (0 retorna todos usuarios)")
+    @GetMapping("/usuario")
     @ResponseStatus(HttpStatus.OK)
     public List<RetornaUsuario> retornaUsuario(@RequestParam String id_usuario) {
 
-        id_usuario = UriUtils.decode(id_usuario,"UTF-8");
-        //System.out.println(id.idUsuario);
-        return repository.findUsuario(id_usuario);
+        if (id_usuario.isEmpty() || id_usuario == null)
+            throw new NullPointerException("Parametro id_usuario vazio");
+
+        return repository.findUsuario(id_usuario,0);
     }
 
-    @ApiOperation(value = "Cria novo usuário")
+    @ApiOperation(value = "Retorna dados do usuario pelo login. Param: login")
+    @GetMapping("/usuario-login")
+    @ResponseStatus(HttpStatus.OK)
+    public List<RetornaUsuario> retornaUsuarioLogin(@RequestParam String login) {
+
+        if (login.isEmpty() || login == null || login.length()<2)
+            throw new NullPointerException("Parametro login vazio");
+
+        return repository.findUsuario(login,1);
+    }
+
+    @ApiOperation(value = "Cadastro de usuário")
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
     public List<RetornaUsuario> salvar(@RequestBody CadAtuUsuario usuario) {
         //System.out.println(usuario.nome);
 
-       validaCampos(usuario.login, usuario.cpf,usuario.email);
+       validaCampos(usuario.login, usuario.cpf,usuario.email, usuario.celular, usuario.nome);
 
         return repository
                 .createUsuarioMin(usuario.nome, usuario.email,usuario.login,
                         usuario.senha,usuario.cpf, usuario.celular);
     }
 
-    private void validaCampos(String login, String cpf, String email) {
+    private void validaCampos(String login, String cpf, String email, String celular, String nome) {
+        if(celular.isEmpty() || celular == null){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Celular inválido");
+        }
+
+        if(nome.isEmpty() || nome == null){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nome inválido");
+        }
+
         if(login.isEmpty() || login == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Login inválido");
         }
@@ -98,22 +119,23 @@ public class UsuarioController {
         //  return valida = repository.validaCampos(login, cpf, email);
     }
 
-    @ApiOperation(value = "Deleta usuário")
-    @DeleteMapping
+    @Secured("ADMIN")
+    @ApiOperation(value = "Deleta usuário, apenas usuario com role admin")
+    @DeleteMapping("inativa")
     @ResponseStatus(HttpStatus.OK)
     public Boolean deletar(@RequestBody CadAtuUsuario id) {
         return repository.deleteUserById(id.idUsuario);
     }
 
-    @ApiOperation(value = "Muda senha usuário")
-    @PutMapping("/alterasenha")
+    @ApiOperation(value = "Muda senha do usuario cadastrado")
+    @PutMapping("/altera-senha")
     @ResponseStatus(HttpStatus.OK)
     public Boolean alteraSenha(@RequestBody CadAtuUsuario id) {
         return repository.alteraSenha(getIdUsuario(), id.senha);
     }
 
-    @ApiOperation(value = "Muda dados usuário")
-    @PutMapping
+    @ApiOperation(value = "Alterar dados cadastrais do usuario cadastrado")
+    @PutMapping("altera-dados")
     @ResponseStatus(HttpStatus.OK)
     public List <RetornaUsuario>  alteraUsuario(@RequestBody CadAtuUsuario usuario) {
                 return repository.updateUserById(getIdUsuario(),usuario.nome,usuario.email, usuario.login,
@@ -121,8 +143,8 @@ public class UsuarioController {
                 usuario.complemento, usuario.bairro, usuario.numero);
     }
 
-    @ApiOperation(value = "Retorna produtos do usuario logado pelo idproduto ou po 0")
-    @GetMapping("/produto")
+    @ApiOperation(value = "Retorna todos os produtos do usuario logado. Param: id_produto (0 retorna todos os produtos)")
+    @GetMapping("/produtos")
     @ResponseStatus(HttpStatus.OK)
     public List<UsuarioProduto> retornaProdutoByLoggedUsuario(@RequestParam String id_produto) {
         //System.out.println(id.idUsuario + " - " + id.produto.idProduto);
