@@ -8,7 +8,7 @@
 package com.onlycoders.backendalugo.model.repository;
 
 import com.onlycoders.backendalugo.model.entity.login.RetornaLogin;
-import com.onlycoders.backendalugo.model.entity.usuario.templates.CadAtuUsuario;
+import com.onlycoders.backendalugo.model.entity.login.UsuarioLogin;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario;
 import com.onlycoders.backendalugo.model.entity.usuario.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -37,8 +37,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
             ":cpf,:celular,:nascimento,:cep,:logradouro,:complemento," +
             ":bairro,:numero)" +
             "AS T(IDUSUARIO TEXT, NOME TEXT, EMAIL TEXT, LOGIN TEXT, CPF TEXT, CELULAR TEXT," +
-            "            DATANASCIMENTO TEXT, CEP TEXT, LOGRADOURO TEXT, " +
-            "            COMPLEMENTO TEXT, BAIRRO TEXT, NUMERO TEXT, ATIVO BOOLEAN);",nativeQuery = true)
+            "   DATANASCIMENTO TEXT, CEP TEXT, LOGRADOURO TEXT," +
+            "   COMPLEMENTO TEXT, BAIRRO TEXT, NUMERO TEXT, ATIVO BOOLEAN);",nativeQuery = true)
     List <RetornaUsuario> createUsuario(@Param("nome") String nome,
                           @Param("email") String email,
                           @Param("login") String login,
@@ -56,7 +56,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
     @Transactional()
     @Query(value = "SELECT IDUSUARIO, NOME, EMAIL, CPF, CELULAR, ATIVO" +
             " FROM FN_INSERIR_USUARIO_MIN(:nome,:email,:login,:senha,:cpf,:celular)" +
-            "AS T(IDUSUARIO TEXT,NOME TEXT,EMAIL TEXT,CPF TEXT,CELULAR TEXT,ATIVO BOOLEAN);",
+            "AS T(IDUSUARIO TEXT, NOME TEXT, EMAIL TEXT, LOGIN TEXT, CPF TEXT," +
+            "   CELULAR TEXT,DATANASCIMENTO TEXT, CEP TEXT, LOGRADOURO TEXT," +
+            "   COMPLEMENTO TEXT, BAIRRO TEXT, NUMERO TEXT, ATIVO BOOLEAN)",
             nativeQuery = true)
     List <RetornaUsuario> createUsuarioMin(@Param("nome") String nome,
                                             @Param("email") String email,
@@ -92,14 +94,25 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
                            @Param("numero") String numemro);
 
     //Verifica login
-    @Transactional()
-    @Query(value = "Select *from FN_VERIFCAR_LOGIN(:login,:senha)" +
-                   " AS T(IDUSUARIO TEXT, ATIVO BOOLEAN);",
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Query(value = "Select *from FN_VERIFCAR_LOGIN(:login)" +
+                   " AS T(ID_USUARIO TEXT, LOGIN TEXT, PASSWORD TEXT, ADMIN BOOLEAN, ATIVO BOOLEAN);",
                     nativeQuery = true)
-    List<RetornaLogin> verificaLogin(@Param("login") String login, @Param("senha") String senha);
+    RetornaLogin verificaLogin(@Param("login") String login);
+
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Query(value = "Select ID_USUARIO from FN_VERIFCAR_LOGIN(:login)" +
+            " AS T(ID_USUARIO TEXT, LOGIN TEXT, PASSWORD TEXT, ADMIN BOOLEAN, ATIVO BOOLEAN);",
+            nativeQuery = true)
+    String retornaIdUsuario(@Param("login") String login);
 
     @Transactional()
     @Query(value = "Select FN_INSERIR_LOGIN(:idUsuario,:senha,null);",
                     nativeQuery = true)
     Boolean alteraSenha(@Param("idUsuario") String idUsuario, @Param("senha") String senha);
+
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Query(value = "SELECT FN_VALIDA_DADOS(:dado,:opcao);",nativeQuery = true)
+    Boolean validaDado(@Param("dado") String dado,
+                        @Param("opcao") int opcao);
 }
