@@ -15,6 +15,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -41,8 +42,8 @@ public class ProdutoController {
     @Autowired
     private CustomUserDetailService customUserDetailService;
 
-    @ApiOperation(value = "Retorna todos produtos")
-    @GetMapping
+    @ApiOperation(value = "Retorna todos os produtos")
+    @GetMapping("/lista-todos")
     @ResponseStatus(HttpStatus.OK)
     public List<UsuarioProduto> retornaProdutos() {
         //System.out.println(id.idUsuario + " - " + id.produto.idProduto);
@@ -74,7 +75,7 @@ public class ProdutoController {
         return listaProdutos;
     }
 
-    @ApiOperation(value = "Retorna porduto(s) de um usuario")
+    @ApiOperation(value = "Retorna produtos do usuario logado. Param: id_produto (0 para retornar todos os atributos)")
     @GetMapping("/usuario")
     @ResponseStatus(HttpStatus.OK)
     public List<UsuarioProduto> retornaProdutosUsuario(@RequestParam String id_usuario,@RequestParam String id_produto) {
@@ -107,8 +108,8 @@ public class ProdutoController {
         return listaProdutos;
     }
 
-    @ApiOperation(value = "Cria novo produto")
-    @PostMapping
+    @ApiOperation(value = "Cadastra novo produto do usuario logado")
+    @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
     public Boolean inserir(@RequestBody CadAtuProduto produto){
 
@@ -117,8 +118,8 @@ public class ProdutoController {
                 produto.produto.dataCompra,produto.produto.capaFoto);
     }
 
-    @ApiOperation(value = "Muda dados produto")
-    @PutMapping
+    @ApiOperation(value = "Altera dados cadastrais do produto")
+    @PutMapping("/altera")
     @ResponseStatus(HttpStatus.OK)
     public Boolean update(@RequestBody CadAtuProduto produto) {
         return repository.updateProduto(produto.produto.idProduto, produto.produto.nome, produto.produto.descricaoCurta,
@@ -126,8 +127,8 @@ public class ProdutoController {
                 produto.produto.dataCompra,produto.produto.capaFoto);
     }
 
-    @ApiOperation(value = "Ativa ou inativa o produto")
-    @DeleteMapping
+    @ApiOperation(value = "Ativa ou inativa produto.")
+    @DeleteMapping("ativa-inativa")
     @ResponseStatus(HttpStatus.OK)
     public Boolean ativaInativaProduto(@RequestBody RetornaProduto produto){
         return repository.ativaInativaProduto(produto.getIdProduto());
