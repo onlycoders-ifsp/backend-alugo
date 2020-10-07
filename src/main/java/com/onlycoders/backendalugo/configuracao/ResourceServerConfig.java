@@ -15,7 +15,5 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
                 "/produtos/lista-todos","/produtos/usuario-pesquisa",
                 "/usuarios/usuario","usuarios/usuario-login","usuario/cadastro").permitAll()
         .and().authorizeRequests().anyRequest().authenticated();
-
-        ;
     }
 }
