@@ -1,4 +1,4 @@
-package com.onlycoders.backendalugo.api.rest;
+    package com.onlycoders.backendalugo.api.rest;
 
 import com.onlycoders.backendalugo.model.entity.login.RetornaLogin;
 import com.onlycoders.backendalugo.model.entity.login.UsuarioLogin;
@@ -78,7 +78,7 @@ public class ProdutoController {
     @ApiOperation(value = "Retorna produtos do usuario logado. Param: id_produto (0 para retornar todos os atributos)")
     @GetMapping("/usuario")
     @ResponseStatus(HttpStatus.OK)
-    public List<UsuarioProduto> retornaProdutosUsuario(@RequestParam String id_usuario,@RequestParam String id_produto) {
+    public List<UsuarioProduto> retornaProdutosUsuarioLogado(@RequestParam String id_usuario,@RequestParam String id_produto) {
         //System.out.println(id.idUsuario + " - " + id.produto.idProduto);
         List<Produto> p = repository.findProdutoByUsuario(id_usuario, id_produto);
 
@@ -107,6 +107,40 @@ public class ProdutoController {
         //System.out.println(listProduto.get(0).getIdUsuario());
         return listaProdutos;
     }
+
+    @ApiOperation(value = "Retorna produto de um usuario. Param: id_usuario ou login")
+    @GetMapping("/usuario-pesquisa")
+    @ResponseStatus(HttpStatus.OK)
+    public List<UsuarioProduto> retornaProdutosUsuario(@RequestParam String id_usuario) {
+        //System.out.println(id.idUsuario + " - " + id.produto.idProduto);
+        List<Produto> p = repository.findProdutoByUsuario("0", id_usuario);
+
+        List<UsuarioProduto> listaProdutos = new ArrayList<UsuarioProduto>();
+
+        for(Produto i :p){
+            RetornaProduto user = new RetornaProduto();
+            UsuarioProduto usrPrd = new UsuarioProduto();
+            user.setIdProduto(i.idProduto);
+            user.setNome(i.nome);
+            user.setDescricaoCurta(i.descricaoCurta);
+            user.setDescricao(i.descricao);
+            user.setValorBaseDiaria(i.valorBaseDiaria);
+            user.setValorBaseMensal(i.valorBaseMensal);
+            user.setValorProduto(i.valorProduto);
+            user.setDataCompra(i.dataCompra);
+            user.setQtdAlugueis(i.qtdAlugueis);
+            user.setTotalGanhos(i.totalGanhos);
+            user.setMediaAvaliacao(i.mediaAvaliacao);
+            user.setCapaFoto(i.capaFoto);
+            user.setAtivo(i.ativo);
+            usrPrd.setId_usuario(i.idUsuario);
+            usrPrd.setProduto(user);
+            listaProdutos.add(usrPrd);
+        }
+        //System.out.println(listProduto.get(0).getIdUsuario());
+        return listaProdutos;
+    }
+
 
     @ApiOperation(value = "Cadastra novo produto do usuario logado")
     @PostMapping("/cadastro")
