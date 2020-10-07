@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Api(value = "Aluguel")
 @RequestMapping("/aluguel")
-@CrossOrigin("*")
+@CrossOrigin(origins = "http://localhost:4200")
 public class AlugarController {
 
 }
