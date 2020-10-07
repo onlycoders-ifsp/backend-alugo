@@ -6,6 +6,7 @@
  */
 package com.onlycoders.backendalugo.api.rest;
 
+import com.onlycoders.backendalugo.exception.JsonExceptionHandler;
 import com.onlycoders.backendalugo.exception.NotFoundException;
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
 import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
@@ -44,6 +45,8 @@ import java.util.Optional;
 public class UsuarioController {
 
     private  UsuarioRepository repository;
+
+    JsonExceptionHandler error = new JsonExceptionHandler();
 
     @Autowired
     private ProdutoRepository repositoryProduto;
