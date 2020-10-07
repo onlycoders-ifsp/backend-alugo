@@ -6,6 +6,7 @@
  */
 package com.onlycoders.backendalugo.api.rest;
 
+import com.onlycoders.backendalugo.exception.NotFoundException;
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
 import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
 import com.onlycoders.backendalugo.model.entity.produto.templates.UsuarioProduto;
@@ -77,7 +78,7 @@ public class UsuarioController {
     @ApiOperation(value = "Cadastro de usuário")
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
-    public List<RetornaUsuario> salvar(@RequestBody CadAtuUsuario usuario) {
+    public List<RetornaUsuario> salvar(@RequestBody CadAtuUsuario usuario) throws NotFoundException {
         //System.out.println(usuario.nome);
 
        validaCampos(usuario.login, usuario.cpf,usuario.email, usuario.celular, usuario.nome);
@@ -87,34 +88,34 @@ public class UsuarioController {
                         usuario.senha,usuario.cpf, usuario.celular);
     }
 
-    private void validaCampos(String login, String cpf, String email, String celular, String nome) {
+    private void validaCampos(String login, String cpf, String email, String celular, String nome) throws NotFoundException {
         if(celular.isEmpty() || celular == null){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Celular inválido");
+            throw new NotFoundException("Celular inválido");
         }
 
         if(nome.isEmpty() || nome == null){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nome inválido");
+            throw new NotFoundException("Nome inválido");
         }
 
         if(login.isEmpty() || login == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Login inválido");
+            throw new NotFoundException("Login inválido");
         }
         else if(repository.validaDado(login,3)){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Login já existe");
+            throw new NotFoundException("Login já existe");
         }
 
         if(cpf.isEmpty() || cpf == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CPF inválido");
+            throw new NotFoundException("CPF inválido");
         }
         else if(repository.validaDado(cpf,1)){
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CPF já existe");
+                throw new NotFoundException("CPF já existe");
         }
 
         if (email.isEmpty() || email == null || !email.contains("@")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email inválido");
+            throw new NotFoundException("Email inválido");
         }
         else if(repository.validaDado(email, 2)){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email já existe");
+            throw new NotFoundException("Email já existe");
         }
         //  return valida = repository.validaCampos(login, cpf, email);
     }
