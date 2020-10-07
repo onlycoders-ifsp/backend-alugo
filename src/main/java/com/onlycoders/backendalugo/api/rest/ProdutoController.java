@@ -30,7 +30,7 @@ import java.util.*;
 @Api(value = "Produtos")
 @RequestMapping("/produtos")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "*")
 public class ProdutoController {
 
     @Autowired
