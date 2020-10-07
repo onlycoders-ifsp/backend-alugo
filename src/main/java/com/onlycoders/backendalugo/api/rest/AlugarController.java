@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Api(value = "Aluguel")
 @RequestMapping("/aluguel")
-@CrossOrigin("*")
+@CrossOrigin(origins = "*")
 public class AlugarController {
 
     @Autowired

@@ -41,7 +41,7 @@ import java.util.Optional;
 @Api(value = "Usuarios")
 @RequestMapping("/usuarios")
 @RequiredArgsConstructor
-@CrossOrigin("*")
+@CrossOrigin(origins = "*")
 public class UsuarioController {
 
     private  UsuarioRepository repository;
