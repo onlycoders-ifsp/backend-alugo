@@ -1,30 +1,11 @@
-/* ########################## ENTIDADE DE USUÁRIO ##########################
- * Data Criação: 14/06/2020
- * Programador: Dilan Lima
- * Decrição: Entidade que mapea a tabela de usuários
- * #########################################################################
- */
-
-package com.onlycoders.backendalugo.model.entity.usuario;
+package com.onlycoders.backendalugo.model.entity.usuario.templates;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import javax.persistence.*;
+import lombok.Data;
 
-@Entity
-@Getter
-@Setter
-@NoArgsConstructor
-public class Usuario {
-
-    @JsonIgnore
-    @JsonAlias("id_usuario")
-    @Id
-    private String id_usuario = null;
+@Data
+public class RequestUsuario {
 
     @JsonAlias("nome")
     private String nome;
@@ -35,51 +16,33 @@ public class Usuario {
     @JsonAlias("login")
     private String login;
 
-    @JsonAlias("senha")
-    private String senha;
-
     @JsonAlias("celular")
     private String celular;
 
     @JsonAlias("cpf")
     private String cpf;
 
-    @JsonInclude
-    @JsonIgnore
     @JsonAlias("data_nascimento")
     private String data_nascimento = null;
 
-    @JsonIgnore
     @JsonAlias("cep")
     private String cep = null;
 
-    @JsonIgnore
     @JsonAlias("logradouro")
     private String logradouro = null;
 
-    @JsonIgnore
     @JsonAlias("complemento")
     private String complemento = null;
 
-    @JsonIgnore
     @JsonAlias("bairro")
     private String bairro = null;
 
-    @JsonIgnore
     @JsonAlias("numero")
     private String numero = null;
 
     @JsonIgnore
     @JsonAlias("ativo")
     private Boolean ativo = null;
-
-    public String getId_usuario() {
-        return id_usuario;
-    }
-
-    public void setId_usuario(String id_usuario) {
-        this.id_usuario = id_usuario;
-    }
 
     public String getNome() {
         return nome;
@@ -103,14 +66,6 @@ public class Usuario {
 
     public void setLogin(String login) {
         this.login = login;
-    }
-
-    public String getSenha() {
-        return senha;
-    }
-
-    public void setSenha(String senha) {
-        this.senha = senha;
     }
 
     public String getCelular() {

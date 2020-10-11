@@ -4,12 +4,12 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder({"idUsuario","Id_Usuario","nome"})
+@JsonPropertyOrder({"id_usuario","nome"})
 public interface RetornaUsuario{
 
     //@Transient
     @JsonGetter("id_usuario")
-    @JsonAlias({"Id_Usuario","Id_usuario","idUsuario"})
+    @JsonAlias({"id_usuario"})
     public String getIdUsuario();
 
     @JsonGetter("nome")
@@ -28,7 +28,7 @@ public interface RetornaUsuario{
     public String getCelular();
 
     @JsonGetter("data_nascimento")
-    @JsonAlias({"Data_Nascimento","data_nascimento","DataNascimento"})
+    @JsonAlias({"data_nascimento"})
     public String getDataNascimento();
 
     @JsonGetter("cep")
