@@ -6,18 +6,12 @@
  */
 package com.onlycoders.backendalugo.api.rest;
 
-<<<<<<< Updated upstream
-import com.onlycoders.backendalugo.model.entity.produto.Produto;
-import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
-import com.onlycoders.backendalugo.model.entity.produto.templates.UsuarioProduto;
-import com.onlycoders.backendalugo.model.entity.usuario.templates.CadAtuUsuario;
-=======
 import com.onlycoders.backendalugo.exception.NotFoundException;
 import com.onlycoders.backendalugo.model.entity.usuario.Usuario;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.AlteraSenha;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RequestUsuario;
->>>>>>> Stashed changes
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario;
+import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -30,6 +24,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriUtils;
 
 import java.util.HashMap;
@@ -45,12 +40,9 @@ public class UsuarioController {
 
     private  UsuarioRepository repository;
 
-<<<<<<< Updated upstream
     @Autowired
     private ProdutoRepository repositoryProduto;
 
-=======
->>>>>>> Stashed changes
     @Autowired
     public UsuarioController(UsuarioRepository repository) {
         this.repository = repository;
@@ -82,11 +74,8 @@ public class UsuarioController {
     @ApiOperation(value = "Cadastro de usuário", response = RetornaUsuario.class)
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
-<<<<<<< Updated upstream
-    public List<RetornaUsuario> salvar(@RequestBody CadAtuUsuario usuario) {
-=======
     public HashMap<String, Object> salvar(@RequestBody Usuario usuario) throws NotFoundException {
->>>>>>> Stashed changes
+
         //System.out.println(usuario.nome);
 
        validaCampos(usuario.getLogin(), usuario.getCpf(), usuario.getEmail(),
@@ -144,11 +133,7 @@ public class UsuarioController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CPF inválido");
         }
         else if(repository.validaDado(cpf,1)){
-<<<<<<< Updated upstream
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CPF já existe");
-=======
-            throw new NotFoundException("CPF já existe");
->>>>>>> Stashed changes
         }
 
         if (email.isEmpty() || email == null || !email.contains("@")) {

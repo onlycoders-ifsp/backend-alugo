@@ -2,6 +2,7 @@ package com.onlycoders.backendalugo.api.rest;
 
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
 import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
+import com.onlycoders.backendalugo.model.entity.produto.templates.UsuarioProduto;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import io.swagger.annotations.Api;
@@ -41,26 +42,18 @@ public class ProdutoController {
     @ApiOperation(value = "Retorna produtos do usuario logado. id_produto (0 para retornar todos os produtos)", response = RetornaProduto.class)
     @GetMapping("/usuario")
     @ResponseStatus(HttpStatus.OK)
-<<<<<<< Updated upstream
-    public List<UsuarioProduto> retornaProdutosUsuario(@RequestParam String id_usuario,@RequestParam String id_produto) {
-=======
     public Map<String, Object> RetornaProdutosUsuarioLogado(@RequestParam String id_produto) {
->>>>>>> Stashed changes
-        //System.out.println(id.idUsuario + " - " + id.produto.idProduto);
+
         List<RetornaProduto> listaProduto =  repository.findProdutoByUsuario(GetIdUsuario(), id_produto);
 
         return GeraLista(listaProduto);
     }
 
-<<<<<<< Updated upstream
-=======
     @ApiOperation(value = "Retorna produtos. id_produto para produto ou 0 para todos. id_usuario para o usuario ou 0 para todos", response = RetornaProduto.class)
     @GetMapping("/pesquisa")
     @ResponseStatus(HttpStatus.OK)
     public Map<String, Object> RetornaProdutosUsuario(@RequestParam String id_usuario, @RequestParam String id_produto) {
-        //System.out.println(id.idUsuario + " - " + id.produto.idProduto);
-        System.out.println(id_produto);
-        List<RetornaProduto> listaProduto = repository.findProdutoByUsuario(id_usuario, id_produto);
+       List<RetornaProduto> listaProduto = repository.findProdutoByUsuario(id_usuario, id_produto);
 
         return GeraLista(listaProduto);
 /*
@@ -92,7 +85,6 @@ public class ProdutoController {
      */
     }
 
->>>>>>> Stashed changes
     @ApiOperation(value = "Cadastra novo produto do usuario logado")
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
@@ -137,8 +129,6 @@ public class ProdutoController {
         for (RetornaProduto p : listaProduto){
             mapProduto.put("Produto " + String.valueOf(cont),p);
             //System.out.println(mapProduto.get("Produto").getNome());
-            System.out.println(p.getNome());
-            System.out.println(cont);
             cont++;
         }
         //mapProduto.put("Produto",listaProduto);
