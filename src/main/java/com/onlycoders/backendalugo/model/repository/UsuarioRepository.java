@@ -22,14 +22,14 @@ import java.util.*;
 public interface UsuarioRepository extends JpaRepository<Usuario, String> {
 
     //Retorna usuario
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
-    @Query(value = "Select *From FN_RETORNA_USUARIO(:id,:opcao) " +
+     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Query(value = "Select *From FN_RETORNA_USUARIO(:id) " +
             "AS T(IDUSUARIO TEXT, NOME TEXT, EMAIL TEXT, LOGIN TEXT, CPF TEXT, CELULAR TEXT," +
     "            DATANASCIMENTO TEXT, CEP TEXT, LOGRADOURO TEXT, " +
     "            COMPLEMENTO TEXT, BAIRRO TEXT, NUMERO TEXT, ATIVO BOOLEAN);",
     //@Query(value = "Select u.*From Usuarios u",
     nativeQuery = true)
-    List<RetornaUsuario> findUsuario(@Param("id") String id, @Param("opcao") int opcao);
+    List<RetornaUsuario> findUsuario(@Param("id") String id);
 
     //Insere usuario
     @Transactional()
