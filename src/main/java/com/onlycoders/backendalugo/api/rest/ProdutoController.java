@@ -1,21 +1,17 @@
 package com.onlycoders.backendalugo.api.rest;
 
+import com.onlycoders.backendalugo.model.entity.login.IdUsuario;
+import com.onlycoders.backendalugo.model.entity.login.UsuarioLogin;
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
 import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
-import com.onlycoders.backendalugo.model.entity.produto.templates.UsuarioProduto;
+import com.onlycoders.backendalugo.model.entity.usuario.Usuario;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
-import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.util.UriUtils;
-
 import java.util.*;
 
 @RestController
@@ -28,34 +24,32 @@ public class ProdutoController {
     @Autowired
     private ProdutoRepository repository;
 
-    @Autowired
-    private UsuarioRepository repositoryUsuario;
-/*
+    @ApiOperation(value = "Retorna produtos do usuario logado.", response = RetornaProduto.class)
+    @GetMapping("/lista-produto-logado")
+    @ResponseStatus(HttpStatus.OK)
+    public List<RetornaProduto> retornaProdutosUsuarioLogado() {
+        System.out.println(validaLogin());
+        return repository.findProdutoByUsuario(validaLogin(), "0");
+
+        //return GeraLista(listaProduto);
+    }
+
+    @ApiOperation(value = "Retorna um único produto do usuario logado.", response = RetornaProduto.class)
+    @GetMapping("/produto-logado")
+    @ResponseStatus(HttpStatus.OK)
+    public RetornaProduto retornaProdutoUsuarioLogado(@RequestParam String id_produto) {
+        return repository.findProdutoByUsuario(validaLogin(), validaProduto(id_produto)).get(0);
+        //return GeraLista(listaProduto);
+    }
+
     @ApiOperation(value = "Retorna todos os produtos", response = RetornaProduto.class)
-    @GetMapping("/lista-todos")
+    @GetMapping("/lista-produto")
     @ResponseStatus(HttpStatus.OK)
-    public List<RetornaProduto> RetornaProdutos() {
-        //System.out.println(id.idUsuario + " - " + id.produto.idProduto);
-        return repository.findProdutoByUsuario("0", "0");
-    }
-*/
-    @ApiOperation(value = "Retorna produtos do usuario logado. id_produto (0 para retornar todos os produtos)", response = RetornaProduto.class)
-    @GetMapping("/usuario")
-    @ResponseStatus(HttpStatus.OK)
-    public Map<String, Object> RetornaProdutosUsuarioLogado(@RequestParam String id_produto) {
+    public List<RetornaProduto> retornaProdutos() {
+        System.out.println(validaLogin());
+       return repository.findProdutoByUsuario("0", "0");
 
-        List<RetornaProduto> listaProduto =  repository.findProdutoByUsuario(GetIdUsuario(), id_produto);
-
-        return GeraLista(listaProduto);
-    }
-
-    @ApiOperation(value = "Retorna produtos. id_produto para produto ou 0 para todos. id_usuario para o usuario ou 0 para todos", response = RetornaProduto.class)
-    @GetMapping("/pesquisa")
-    @ResponseStatus(HttpStatus.OK)
-    public Map<String, Object> RetornaProdutosUsuario(@RequestParam String id_usuario, @RequestParam String id_produto) {
-       List<RetornaProduto> listaProduto = repository.findProdutoByUsuario(id_usuario, id_produto);
-
-        return GeraLista(listaProduto);
+        // GeraLista(listaProduto);
 /*
         List<UsuarioProduto> listaProdutos = new ArrayList<UsuarioProduto>();
 
@@ -85,11 +79,26 @@ public class ProdutoController {
      */
     }
 
+    @ApiOperation(value = "Retorna um único produto", response = RetornaProduto.class)
+    @GetMapping("/produto")
+    @ResponseStatus(HttpStatus.OK)
+    public RetornaProduto retornaProduto(@RequestParam String id_produto) {
+        return repository.findProdutoByUsuario("0", validaProduto(id_produto)).get(0);
+    }
+
+    @ApiOperation(value = "Retorna produtos de um usuario, id ou login", response = RetornaProduto.class)
+    @GetMapping("/produto-usuario")
+    @ResponseStatus(HttpStatus.OK)
+    public RetornaProduto retornaProdutosUsuario(@RequestParam String id_usuario) {
+        return repository.findProdutoByUsuario(validaLogin(), "0").get(0);
+    }
+
     @ApiOperation(value = "Cadastra novo produto do usuario logado")
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
-    public Boolean Cadastra(@RequestBody Produto produto){
-        return repository.createProduto(GetIdUsuario(),produto.getNome(),produto.getDescricao_curta(),produto.getDescricao(),
+    public Boolean cadastra(@RequestBody Produto produto){
+
+        return repository.createProduto(validaLogin(),produto.getNome(),produto.getDescricao_curta(),produto.getDescricao(),
                 produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
                 produto.getData_compra(),produto.getCapa_foto());
     }
@@ -97,8 +106,8 @@ public class ProdutoController {
     @ApiOperation(value = "Altera dados cadastrais do produto")
     @PutMapping("/altera")
     @ResponseStatus(HttpStatus.OK)
-    public Boolean Atualiza(@RequestBody Produto produto) {
-        return repository.updateProduto(produto.getId_produto(), produto.getNome(), produto.getDescricao_curta(),
+    public Boolean atualiza(@RequestBody Produto produto) {
+        return repository.updateProduto(validaProduto(produto.getId_produto()), produto.getNome(), produto.getDescricao_curta(),
                 produto.getDescricao(),produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
                 produto.getData_compra(),produto.getCapa_foto());
     }
@@ -106,32 +115,22 @@ public class ProdutoController {
     @ApiOperation(value = "Ativa ou inativa produto.")
     @DeleteMapping("ativa-inativa")
     @ResponseStatus(HttpStatus.OK)
-    public Boolean AtivaInativa(@RequestParam String id_produto){
-        return repository.ativaInativaProduto(id_produto);
+    public Boolean ativaInativa(@RequestParam String id_produto){
+        return repository.ativaInativaProduto(validaProduto(id_produto));
     }
 
-    public String GetIdUsuario(){
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    public String validaLogin(){
+        String id = IdUsuario.getId_usuario();
+        if(id.isEmpty() || id == null || id.equals("0"))
+            throw new NullPointerException("Usuario não está logado");
 
-        Optional<String> u = Optional.of(repositoryUsuario.retornaIdUsuario(auth.getName()));
-
-        String usuario = String.valueOf(u.orElseThrow(()
-                -> new UsernameNotFoundException("Usuario não encontrado")));
-
-        usuario = UriUtils.decode(usuario,"UTF-8");
-
-        return usuario;
+        return id;
     }
 
-    public HashMap<String, Object>GeraLista(List<RetornaProduto> listaProduto){
-        HashMap<String, Object> mapProduto = new HashMap<String, Object>();
-        int cont = 1;
-        for (RetornaProduto p : listaProduto){
-            mapProduto.put("Produto " + String.valueOf(cont),p);
-            //System.out.println(mapProduto.get("Produto").getNome());
-            cont++;
-        }
-        //mapProduto.put("Produto",listaProduto);
-        return mapProduto;
+    public String validaProduto(String id_produto){
+        if (id_produto.isEmpty() || id_produto == null || id_produto.equals("0"))
+            throw new NullPointerException("Parametro id_produto vazio");
+
+        return id_produto;
     }
 }

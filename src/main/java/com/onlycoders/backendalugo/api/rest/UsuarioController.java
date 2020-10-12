@@ -7,6 +7,8 @@
 package com.onlycoders.backendalugo.api.rest;
 
 import com.onlycoders.backendalugo.exception.NotFoundException;
+import com.onlycoders.backendalugo.model.entity.login.IdUsuario;
+import com.onlycoders.backendalugo.model.entity.login.UsuarioLogin;
 import com.onlycoders.backendalugo.model.entity.usuario.Usuario;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.AlteraSenha;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RequestUsuario;
@@ -15,7 +17,6 @@ import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriUtils;
 
+import javax.persistence.Id;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -41,76 +43,81 @@ public class UsuarioController {
     private  UsuarioRepository repository;
 
     @Autowired
-    private ProdutoRepository repositoryProduto;
-
-    @Autowired
     public UsuarioController(UsuarioRepository repository) {
         this.repository = repository;
     }
 
-    @ApiOperation(value = "Retorna dados do usuario pelo id ou login(0 para todos)", response = RetornaUsuario.class)
-    @GetMapping("/usuario")
+    @ApiOperation(value = "Retorna dados do usuario logado", response = RetornaUsuario.class)
+    @GetMapping("/usuario-logado")
     @ResponseStatus(HttpStatus.OK)
-    public HashMap<String, Object> retornaUsuario(@RequestParam String id_usuario) {
+    public RetornaUsuario retornaUsuarioLogado() {
 
-        if (id_usuario.isEmpty() || id_usuario == null)
-            throw new NullPointerException("Parametro id_usuario vazio");
-
-        return GeraLista(repository.findUsuario(id_usuario));
+        return repository.findUsuario(validaLogin()).get(0);
+        //return GeraLista(repository.findUsuario(id_usuario));
     }
 
-    /*
-    @ApiOperation(value = "Retorna dados do usuario pelo login. Param: login")
-    @GetMapping("/usuario-login")
+    @ApiOperation(value = "Retorna dados de um único usuario pelo id ou login", response = RetornaUsuario.class)
+    @GetMapping("/usuario")
     @ResponseStatus(HttpStatus.OK)
-    public List<RetornaUsuario> retornaUsuarioLogin(@RequestParam String login) {
+    public RetornaUsuario retornaUsuario(@RequestParam String id_usuario) {
 
-        if (login.isEmpty() || login == null || login.length()<2)
-            throw new NullPointerException("Parametro login vazio");
+        if (id_usuario.isEmpty() || id_usuario == null || id_usuario.equals("0"))
+            throw new NullPointerException("Parametro id_usuario vazio");
 
-        return repository.findUsuario(login,1);
-    }*/
+            List<RetornaUsuario> listaUsuario = repository.findUsuario(id_usuario);
+
+            return listaUsuario.get(0);
+
+        //return GeraLista(repository.findUsuario(id_usuario));
+    }
+
+    @ApiOperation(value = "Retorna dados de todos os usuarios", response = RetornaUsuario.class)
+    @GetMapping("/lista-usuario")
+    @ResponseStatus(HttpStatus.OK)
+    public List<RetornaUsuario> retornaUsuario() {
+
+        return repository.findUsuario("0");
+        //return GeraLista(repository.findUsuario(id_usuario));
+    }
 
     @ApiOperation(value = "Cadastro de usuário", response = RetornaUsuario.class)
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
-    public HashMap<String, Object> salvar(@RequestBody Usuario usuario) throws NotFoundException {
-
-        //System.out.println(usuario.nome);
-
-       validaCampos(usuario.getLogin(), usuario.getCpf(), usuario.getEmail(),
+    public RetornaUsuario salvar(@RequestBody Usuario usuario){
+       validaCampos(validaLogin(), usuario.getCpf(), usuario.getEmail(),
                usuario.getCelular(), usuario.getNome());
 
-        return GeraLista(repository
+        return repository
                 .createUsuarioMin(usuario.getNome(), usuario.getEmail(),usuario.getLogin(),
-                usuario.getSenha(),usuario.getCpf(), usuario.getCelular()));
+                usuario.getSenha(),usuario.getCpf(), usuario.getCelular()).get(0);
     }
 
     @Secured("ADMIN")
     @ApiOperation(value = "Deleta usuário, apenas usuario com role admin")
     @DeleteMapping("inativa")
     @ResponseStatus(HttpStatus.OK)
-    public Boolean deletar(@RequestParam String id) {
-        return repository.deleteUserById(id);
+    public Boolean deletar(@RequestParam String id_usuario) {
+        if (id_usuario.isEmpty() || id_usuario == null || id_usuario.equals("0"))
+            throw new NullPointerException("Parametro id_usuario vazio");
+
+        return repository.deleteUserById(id_usuario);
     }
 
     @ApiOperation(value = "Muda senha do usuario logado")
     @PutMapping("/altera-senha")
     @ResponseStatus(HttpStatus.OK)
     public Boolean alteraSenha(@RequestBody AlteraSenha senha) {
-        System.out.println(senha.getSenha());
-        return repository.alteraSenha(getIdUsuario(), senha.getSenha());
+        return repository.alteraSenha(validaLogin(), senha.getSenha());
     }
 
     @ApiOperation(value = "Alterar dados cadastrais do usuario logado", response = RetornaUsuario.class)
     @PutMapping("altera-dados")
     @ResponseStatus(HttpStatus.OK)
-    public HashMap<String, Object> alteraUsuario(@RequestBody RequestUsuario usuario) {
-        System.out.println(usuario.getNome());
-        return GeraLista(repository.updateUserById(getIdUsuario(),usuario.getNome(),usuario.getEmail(),
+    public RetornaUsuario alteraUsuario(@RequestBody RequestUsuario usuario) {
+        return repository.updateUserById(validaLogin(),usuario.getNome(),usuario.getEmail(),
                 usuario.getLogin(),usuario.getCpf(), usuario.getCelular(),usuario.getData_nascimento(),
                 usuario.getCep(),usuario.getLogradouro(),usuario.getComplemento(), usuario.getBairro(),
-                usuario.getBairro()));
+                usuario.getBairro()).get(0);
     }
 
     private void validaCampos(String login, String cpf, String email, String celular, String nome) {
@@ -145,6 +152,7 @@ public class UsuarioController {
         //  return valida = repository.validaCampos(login, cpf, email);
     }
 
+    /*
     public String getIdUsuario(){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
@@ -157,8 +165,9 @@ public class UsuarioController {
 
         return usuario;
     }
+    */
 
-    public  HashMap<String,Object> GeraLista(List<RetornaUsuario> listaUsuario){
+    /*public  HashMap<String,Object> GeraLista(List<RetornaUsuario> listaUsuario){
         HashMap<String, Object> mapUsuario = new HashMap<String, Object>();
         int cont = 1;
         for(RetornaUsuario p : listaUsuario){
@@ -166,5 +175,15 @@ public class UsuarioController {
             cont++;
         }
         return  mapUsuario;
+    }
+     */
+
+    public String validaLogin(){
+        String id = IdUsuario.getId_usuario();
+        System.out.println(id);
+        if(id.isEmpty() || id == null || id.equals("0"))
+            throw new NullPointerException("Usuario não está logado");
+
+        return id;
     }
 }

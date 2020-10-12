@@ -7,8 +7,14 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.validation.annotation.Validated;
 
 import javax.persistence.*;
+import javax.validation.Constraint;
+import javax.validation.Valid;
+import javax.validation.constraints.AssertTrue;
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.NotNull;
 
 @Entity
 @Getter
@@ -26,6 +32,7 @@ public class Produto {
     @JsonAlias({"id_produto"})
     private String id_produto = null;
 
+    @NotNull
     @JsonAlias({"nome"})
     private String nome;
 
@@ -35,12 +42,15 @@ public class Produto {
     @JsonAlias({"descricao"})
     private String descricao;
 
+    @DecimalMin("0.01")
     @JsonAlias({"valor_base_diaria"})
     private Double valor_base_diaria;
 
+    @DecimalMin("0.01")
     @JsonAlias({"valor_base_mensal"})
     private Double valor_base_mensal;
 
+    @DecimalMin("0.01")
     @JsonAlias({"valor_produto"})
     private Double valor_produto;
 
