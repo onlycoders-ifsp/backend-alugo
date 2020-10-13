@@ -6,12 +6,19 @@ import com.onlycoders.backendalugo.model.entity.produto.Produto;
 import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
 import com.onlycoders.backendalugo.model.entity.usuario.Usuario;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
+import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriUtils;
+
 import java.util.*;
 
 @RestController
@@ -24,12 +31,30 @@ public class ProdutoController {
     @Autowired
     private ProdutoRepository repository;
 
+    @Autowired
+    private UsuarioRepository repositoryUsuario;
+
+    public ProdutoRepository getRepository() {
+        return repository;
+    }
+
+    public void setRepository(ProdutoRepository repository) {
+        this.repository = repository;
+    }
+
+    public UsuarioRepository getRepositoryUsuario() {
+        return repositoryUsuario;
+    }
+
+    public void setRepositoryUsuario(UsuarioRepository repositoryUsuario) {
+        this.repositoryUsuario = repositoryUsuario;
+    }
+
     @ApiOperation(value = "Retorna produtos do usuario logado.", response = RetornaProduto.class)
     @GetMapping("/lista-produto-logado")
     @ResponseStatus(HttpStatus.OK)
     public List<RetornaProduto> retornaProdutosUsuarioLogado() {
-        System.out.println(validaLogin());
-        return repository.findProdutoByUsuario(validaLogin(), "0");
+        return repository.findProdutoByUsuario(getIdUsuario(), "0");
 
         //return GeraLista(listaProduto);
     }
@@ -38,7 +63,7 @@ public class ProdutoController {
     @GetMapping("/produto-logado")
     @ResponseStatus(HttpStatus.OK)
     public RetornaProduto retornaProdutoUsuarioLogado(@RequestParam String id_produto) {
-        return repository.findProdutoByUsuario(validaLogin(), validaProduto(id_produto)).get(0);
+        return repository.findProdutoByUsuario(getIdUsuario(), validaProduto(id_produto)).get(0);
         //return GeraLista(listaProduto);
     }
 
@@ -46,7 +71,6 @@ public class ProdutoController {
     @GetMapping("/lista-produto")
     @ResponseStatus(HttpStatus.OK)
     public List<RetornaProduto> retornaProdutos() {
-        System.out.println(validaLogin());
        return repository.findProdutoByUsuario("0", "0");
 
         // GeraLista(listaProduto);
@@ -90,7 +114,7 @@ public class ProdutoController {
     @GetMapping("/produto-usuario")
     @ResponseStatus(HttpStatus.OK)
     public RetornaProduto retornaProdutosUsuario(@RequestParam String id_usuario) {
-        return repository.findProdutoByUsuario(validaLogin(), "0").get(0);
+        return repository.findProdutoByUsuario(getIdUsuario(), "0").get(0);
     }
 
     @ApiOperation(value = "Cadastra novo produto do usuario logado")
@@ -98,7 +122,7 @@ public class ProdutoController {
     @ResponseStatus(HttpStatus.CREATED)
     public Boolean cadastra(@RequestBody Produto produto){
 
-        return repository.createProduto(validaLogin(),produto.getNome(),produto.getDescricao_curta(),produto.getDescricao(),
+        return repository.createProduto(getIdUsuario(),produto.getNome(),produto.getDescricao_curta(),produto.getDescricao(),
                 produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
                 produto.getData_compra(),produto.getCapa_foto());
     }
@@ -119,12 +143,29 @@ public class ProdutoController {
         return repository.ativaInativaProduto(validaProduto(id_produto));
     }
 
+    /*
     public String validaLogin(){
         String id = IdUsuario.getId_usuario();
         if(id.isEmpty() || id == null || id.equals("0"))
             throw new NullPointerException("Usuario não está logado");
 
         return id;
+    }
+    */
+    public String getIdUsuario(){
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String login;
+
+        if(!auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken){
+            throw new NullPointerException("Usuario não logado");
+        }
+
+        login = repositoryUsuario.retornaIdUsuario(auth.getName());
+        if (login.isEmpty() || login == null) {
+            throw new NullPointerException("Usuario não encontrado");
+        }
+        return login;
     }
 
     public String validaProduto(String id_produto){

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder({"id_usuario","nome"})
+@JsonPropertyOrder({"id_usuario","nome","email","login","cpf"})
 public interface RetornaUsuario{
 
     //@Transient

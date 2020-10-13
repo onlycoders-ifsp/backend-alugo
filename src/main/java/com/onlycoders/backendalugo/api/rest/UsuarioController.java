@@ -5,15 +5,10 @@
  * #########################################################################
  */
 package com.onlycoders.backendalugo.api.rest;
-
-import com.onlycoders.backendalugo.exception.NotFoundException;
-import com.onlycoders.backendalugo.model.entity.login.IdUsuario;
-import com.onlycoders.backendalugo.model.entity.login.UsuarioLogin;
 import com.onlycoders.backendalugo.model.entity.usuario.Usuario;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.AlteraSenha;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RequestUsuario;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario;
-import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -21,15 +16,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriUtils;
-
-import javax.persistence.Id;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,7 +45,7 @@ public class UsuarioController {
     @ResponseStatus(HttpStatus.OK)
     public RetornaUsuario retornaUsuarioLogado() {
 
-        return repository.findUsuario(validaLogin()).get(0);
+        return repository.findUsuario(getIdUsuario()).get(0);
         //return GeraLista(repository.findUsuario(id_usuario));
     }
 
@@ -64,12 +57,8 @@ public class UsuarioController {
         if (id_usuario.isEmpty() || id_usuario == null || id_usuario.equals("0"))
             throw new NullPointerException("Parametro id_usuario vazio");
 
-            List<RetornaUsuario> listaUsuario = repository.findUsuario(id_usuario);
-
-            return listaUsuario.get(0);
-
-        //return GeraLista(repository.findUsuario(id_usuario));
-    }
+            return repository.findUsuario(id_usuario).get(0);
+ }
 
     @ApiOperation(value = "Retorna dados de todos os usuarios", response = RetornaUsuario.class)
     @GetMapping("/lista-usuario")
@@ -84,7 +73,7 @@ public class UsuarioController {
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
     public RetornaUsuario salvar(@RequestBody Usuario usuario){
-       validaCampos(validaLogin(), usuario.getCpf(), usuario.getEmail(),
+       validaCampos(getIdUsuario(), usuario.getCpf(), usuario.getEmail(),
                usuario.getCelular(), usuario.getNome());
 
         return repository
@@ -107,14 +96,14 @@ public class UsuarioController {
     @PutMapping("/altera-senha")
     @ResponseStatus(HttpStatus.OK)
     public Boolean alteraSenha(@RequestBody AlteraSenha senha) {
-        return repository.alteraSenha(validaLogin(), senha.getSenha());
+        return repository.alteraSenha(getIdUsuario(), senha.getSenha());
     }
 
     @ApiOperation(value = "Alterar dados cadastrais do usuario logado", response = RetornaUsuario.class)
     @PutMapping("altera-dados")
     @ResponseStatus(HttpStatus.OK)
     public RetornaUsuario alteraUsuario(@RequestBody RequestUsuario usuario) {
-        return repository.updateUserById(validaLogin(),usuario.getNome(),usuario.getEmail(),
+        return repository.updateUserById(getIdUsuario(),usuario.getNome(),usuario.getEmail(),
                 usuario.getLogin(),usuario.getCpf(), usuario.getCelular(),usuario.getData_nascimento(),
                 usuario.getCep(),usuario.getLogradouro(),usuario.getComplemento(), usuario.getBairro(),
                 usuario.getBairro()).get(0);
@@ -152,20 +141,23 @@ public class UsuarioController {
         //  return valida = repository.validaCampos(login, cpf, email);
     }
 
-    /*
+
     public String getIdUsuario(){
+
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String login;
 
-        Optional<String> u = Optional.of(repository.retornaIdUsuario(auth.getName()));
+        if(!auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken){
+            throw new NullPointerException("Usuario não logado");
+        }
 
-        String usuario = String.valueOf(u.orElseThrow(()
-                -> new UsernameNotFoundException("Usuario não encontrado")));
-
-        usuario = UriUtils.decode(usuario,"UTF-8");
-
-        return usuario;
+        login = repository.retornaIdUsuario(auth.getName());
+        if (login.isEmpty() || login == null) {
+            throw new NullPointerException("Usuario não encontrado");
+        }
+        return login;
     }
-    */
+
 
     /*public  HashMap<String,Object> GeraLista(List<RetornaUsuario> listaUsuario){
         HashMap<String, Object> mapUsuario = new HashMap<String, Object>();
@@ -177,7 +169,7 @@ public class UsuarioController {
         return  mapUsuario;
     }
      */
-
+/*
     public String validaLogin(){
         String id = IdUsuario.getId_usuario();
         System.out.println(id);
@@ -185,5 +177,5 @@ public class UsuarioController {
             throw new NullPointerException("Usuario não está logado");
 
         return id;
-    }
+    }*/
 }

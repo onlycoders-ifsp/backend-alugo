@@ -5,6 +5,8 @@ import com.onlycoders.backendalugo.model.entity.login.RetornaLogin;
 import com.onlycoders.backendalugo.model.entity.login.UsuarioLogin;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -35,7 +37,7 @@ public class CustomUserDetailService implements UserDetailsService {
         user.setAdmin(retornaLogin.getAdmin());
         user.setAtivo(retornaLogin.getAtivo());
 
-        IdUsuario.setId_usuario(user.getIdUsuario());
+        //IdUsuario.setId_usuario(user.getIdUsuario());
 
         Optional.of(user)
                 .orElseThrow(() -> new UsernameNotFoundException("Login não encontrado"));

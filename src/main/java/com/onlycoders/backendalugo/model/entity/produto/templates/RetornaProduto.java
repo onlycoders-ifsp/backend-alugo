@@ -2,6 +2,7 @@ package com.onlycoders.backendalugo.model.entity.produto.templates;
 
 import com.fasterxml.jackson.annotation.*;
 
+@JsonPropertyOrder({"id_usuario","id_produto","nome","descricao_curta"})
 public interface RetornaProduto {
 
     @JsonSetter("id_usuario")
@@ -19,8 +20,8 @@ public interface RetornaProduto {
     @JsonGetter("descricao")
     String getDescricao();
 
-    @JsonGetter("valor_base_diario")
-    Double getValor_base_diario();
+    @JsonGetter("valor_base_diaria")
+    Double getValor_base_diaria();
 
     @JsonGetter("valor_base_mensal")
     Double getValor_base_mensal();
