@@ -19,12 +19,9 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.util.UriUtils;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @Api(value = "Usuarios")
@@ -33,7 +30,7 @@ import java.util.Optional;
 @CrossOrigin("*")
 public class UsuarioController {
 
-    private  UsuarioRepository repository;
+    private UsuarioRepository repository;
 
     @Autowired
     public UsuarioController(UsuarioRepository repository) {
@@ -141,7 +138,6 @@ public class UsuarioController {
         //  return valida = repository.validaCampos(login, cpf, email);
     }
 
-
     public String getIdUsuario(){
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -157,7 +153,6 @@ public class UsuarioController {
         }
         return login;
     }
-
 
     /*public  HashMap<String,Object> GeraLista(List<RetornaUsuario> listaUsuario){
         HashMap<String, Object> mapUsuario = new HashMap<String, Object>();
