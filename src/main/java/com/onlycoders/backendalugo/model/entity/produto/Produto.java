@@ -27,7 +27,6 @@ public class Produto {
     @JsonAlias({"id_usuario"})
     private String id_usuario;
 
-    @JsonIgnore
     @Id
     @JsonAlias({"id_produto"})
     private String id_produto = null;
@@ -43,7 +42,7 @@ public class Produto {
     private String descricao;
 
     @DecimalMin("0.01")
-    @JsonAlias({"valor_base_diaria"})
+    @JsonAlias({"valor_base_diario","valor_base_diaria"})
     private Double valor_base_diaria;
 
     @DecimalMin("0.01")
