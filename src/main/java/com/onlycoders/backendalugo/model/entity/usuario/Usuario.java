@@ -54,7 +54,7 @@ public class Usuario {
     private String cep = null;
 
     @JsonIgnore
-    @JsonAlias("logradouro")
+    @JsonAlias("endereco")
     private String logradouro = null;
 
     @JsonIgnore

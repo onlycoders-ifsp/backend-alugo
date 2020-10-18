@@ -28,8 +28,8 @@ public class RequestUsuario {
     @JsonAlias("cep")
     private String cep = null;
 
-    @JsonAlias("logradouro")
-    private String logradouro = null;
+    @JsonAlias("endereco")
+    private String endereco = null;
 
     @JsonAlias("complemento")
     private String complemento = null;
@@ -101,11 +101,11 @@ public class RequestUsuario {
     }
 
     public String getLogradouro() {
-        return logradouro;
+        return endereco;
     }
 
     public void setLogradouro(String logradouro) {
-        this.logradouro = logradouro;
+        this.endereco = logradouro;
     }
 
     public String getComplemento() {

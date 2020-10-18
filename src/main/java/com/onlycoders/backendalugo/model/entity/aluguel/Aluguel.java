@@ -1,5 +1,6 @@
 package com.onlycoders.backendalugo.model.entity.aluguel;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,31 +11,12 @@ import javax.persistence.*;
 @Setter
 @NoArgsConstructor
 public class Aluguel {
+
     @Id
-    private String id_aluguel;
-    private String id_usuario = null;
     private String id_produto;
     private String data_inicio;
     private String data_fim;
     private Double valor_aluguel;
-    private Double valor_debito = null;
-    private String data_saque = null;
-
-    public String getId_aluguel() {
-        return id_aluguel;
-    }
-
-    public void setId_aluguel(String id_aluguel) {
-        this.id_aluguel = id_aluguel;
-    }
-
-    public String getId_usuario() {
-        return id_usuario;
-    }
-
-    public void setId_usuario(String id_usuario) {
-        this.id_usuario = id_usuario;
-    }
 
     public String getId_produto() {
         return id_produto;
@@ -66,21 +48,5 @@ public class Aluguel {
 
     public void setValor_aluguel(Double valor_aluguel) {
         this.valor_aluguel = valor_aluguel;
-    }
-
-    public Double getValor_debito() {
-        return valor_debito;
-    }
-
-    public void setValor_debito(Double valor_debito) {
-        this.valor_debito = valor_debito;
-    }
-
-    public String getData_saque() {
-        return data_saque;
-    }
-
-    public void setData_saque(String data_saque) {
-        this.data_saque = data_saque;
     }
 }
