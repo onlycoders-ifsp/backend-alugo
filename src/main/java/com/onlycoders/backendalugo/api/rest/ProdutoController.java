@@ -1,10 +1,7 @@
 package com.onlycoders.backendalugo.api.rest;
 
-import com.onlycoders.backendalugo.model.entity.login.IdUsuario;
-import com.onlycoders.backendalugo.model.entity.login.UsuarioLogin;
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
 import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
-import com.onlycoders.backendalugo.model.entity.usuario.Usuario;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import io.swagger.annotations.Api;
@@ -15,11 +12,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.util.UriUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @Api(value = "Produtos")
@@ -121,7 +117,6 @@ public class ProdutoController {
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
     public Boolean cadastra(@RequestBody Produto produto){
-
         return repository.createProduto(getIdUsuario(),produto.getNome(),produto.getDescricao_curta(),produto.getDescricao(),
                 produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
                 produto.getData_compra(),produto.getCapa_foto());
@@ -131,6 +126,12 @@ public class ProdutoController {
     @PutMapping("/altera")
     @ResponseStatus(HttpStatus.OK)
     public Boolean atualiza(@RequestBody Produto produto) {
+        /*String fotos = null;
+        List<String> f = Arrays.asList(produto.getFotos());
+
+        fotos = f.stream()
+                .collect(Collectors.joining(","));
+*/
         return repository.updateProduto(validaProduto(produto.getId_produto()), produto.getNome(), produto.getDescricao_curta(),
                 produto.getDescricao(),produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
                 produto.getData_compra(),produto.getCapa_foto());

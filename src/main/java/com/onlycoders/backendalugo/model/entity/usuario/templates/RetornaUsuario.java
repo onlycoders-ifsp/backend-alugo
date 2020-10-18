@@ -34,8 +34,8 @@ public interface RetornaUsuario{
     @JsonGetter("cep")
     public String getCep();
 
-    @JsonGetter("logradouro")
-    public String getLogradouro();
+    @JsonGetter("endereco")
+    public String getEndereco();
 
     @JsonGetter("complemento")
     public String getComplemento();

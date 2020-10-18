@@ -4,9 +4,13 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import com.onlycoders.backendalugo.model.entity.produto.templates.Fotos;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 import org.springframework.validation.annotation.Validated;
 
 import javax.persistence.*;
@@ -15,7 +19,10 @@ import javax.validation.Valid;
 import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotNull;
+import java.sql.Array;
+import java.util.ArrayList;
 
+@Data
 @Entity
 @Getter
 @Setter
@@ -27,6 +34,7 @@ public class Produto {
     @JsonAlias({"id_usuario"})
     private String id_usuario;
 
+    @JsonIgnore
     @Id
     @JsonAlias({"id_produto"})
     private String id_produto = null;
@@ -70,6 +78,9 @@ public class Produto {
 
     @JsonAlias({"capa_foto"})
     private String capa_foto;
+
+  //  @JsonAlias("fotos")
+//    private String[] fotos;
 
     @JsonAlias({"ativo"})
     private Boolean ativo = true;
