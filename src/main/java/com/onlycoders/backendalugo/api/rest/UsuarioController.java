@@ -70,7 +70,7 @@ public class UsuarioController {
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
     public RetornaUsuario salvar(@RequestBody Usuario usuario){
-       validaCampos(getIdUsuario(), usuario.getCpf(), usuario.getEmail(),
+       validaCampos(usuario.getLogin(), usuario.getCpf(), usuario.getEmail(),
                usuario.getCelular(), usuario.getNome());
 
         return repository
