@@ -34,7 +34,6 @@ public class Produto {
     @JsonAlias({"id_usuario"})
     private String id_usuario;
 
-    @JsonIgnore
     @Id
     @JsonAlias({"id_produto"})
     private String id_produto = null;
