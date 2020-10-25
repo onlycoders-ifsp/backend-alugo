@@ -103,7 +103,7 @@ public class UsuarioController {
         return repository.updateUserById(getIdUsuario(),usuario.getNome(),usuario.getEmail(),
                 usuario.getLogin(),usuario.getCpf(), usuario.getCelular(),usuario.getData_nascimento(),
                 usuario.getCep(),usuario.getLogradouro(),usuario.getComplemento(), usuario.getBairro(),
-                usuario.getBairro()).get(0);
+                usuario.getNumero()).get(0);
     }
 
     private void validaCampos(String login, String cpf, String email, String celular, String nome) {

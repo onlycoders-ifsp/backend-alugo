@@ -34,6 +34,7 @@ public interface RetornaUsuario{
     @JsonGetter("cep")
     public String getCep();
 
+    @JsonAlias("endereco")
     @JsonGetter("endereco")
     public String getEndereco();
 

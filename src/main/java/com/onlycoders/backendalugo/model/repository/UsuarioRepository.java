@@ -78,7 +78,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
     @Query(value = "SELECT *FROM FN_ATUALIZA_USUARIO(:id,:nome,:email,:login,:cpf," +
             " :celular,:nascimento,:cep,:logradouro,:complemento,:bairro,:numero) " +
             " AS T(IDUSUARIO TEXT, NOME TEXT, EMAIL TEXT, LOGIN TEXT, CPF TEXT, " +
-            " CELULAR TEXT,DATANASCIMENTO TEXT, CEP TEXT, LOGRADOURO TEXT, " +
+            " CELULAR TEXT,DATANASCIMENTO TEXT, CEP TEXT, endereco TEXT, " +
             " COMPLEMENTO TEXT, BAIRRO TEXT, NUMERO TEXT, ATIVO BOOLEAN);",nativeQuery = true)
     List <RetornaUsuario>  updateUserById(@Param("id") String id,
                            @Param("nome") String nome,
@@ -88,7 +88,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
                            @Param("celular") String celular,
                            @Param("nascimento") String nascimento,
                            @Param("cep") String cep,
-                           @Param("logradouro") String logradouro,
+                           @Param("logradouro") String endereco,
                            @Param("complemento") String complemento,
                            @Param("bairro") String bairro,
                            @Param("numero") String numemro);
