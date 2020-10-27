@@ -13,8 +13,8 @@ public class Fotos {
     private String id_produto;
 
     @Lob
-    @JsonAlias("foto")
-    private Part fotos;
+    @JsonAlias("capa_foto")
+    private Part capa_foto;
 
     public String getId_produto() {
         return id_produto;
@@ -24,11 +24,11 @@ public class Fotos {
         this.id_produto = id_produto;
     }
 
-    public Part getFotos() {
-        return fotos;
+    public Part getCapa_foto() {
+        return capa_foto;
     }
 
-    public void setFotos(Part fotos) {
-        this.fotos = fotos;
+    public void setCapa_foto(Part capa_foto) {
+        this.capa_foto = capa_foto;
     }
 }

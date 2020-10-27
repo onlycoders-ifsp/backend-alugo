@@ -133,8 +133,8 @@ public class ProdutoController {
     public Boolean atualiza(@RequestBody Fotos foto) {
         if (!getIdUsuario().isEmpty()){
             try{
-                InputStream is = foto.getFotos().getInputStream();
-                byte[] bytes = new byte[(int) foto.getFotos().getSize()];
+                InputStream is = foto.getCapa_foto().getInputStream();
+                byte[] bytes = new byte[(int) foto.getCapa_foto().getSize()];
                 IOUtils.readFully(is,bytes);
                 is.close();
                 System.out.println(foto);
