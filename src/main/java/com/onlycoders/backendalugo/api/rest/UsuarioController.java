@@ -12,13 +12,18 @@ import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
@@ -92,8 +97,11 @@ public class UsuarioController {
     @ApiOperation(value = "Muda senha do usuario logado")
     @PutMapping("/altera-senha")
     @ResponseStatus(HttpStatus.OK)
-    public Boolean alteraSenha(@RequestBody AlteraSenha senha) {
-        return repository.alteraSenha(getIdUsuario(), senha.getSenha());
+    public Boolean alteraSenha(@RequestBody AlteraSenha senha) throws NotFoundException {
+        if(new BCryptPasswordEncoder().matches(senha.getSenha_antiga(),repository.retornaSenha(getIdUsuario())))
+            return repository.alteraSenha(getIdUsuario(), senha.getSenha_nova());
+        else
+            throw new NotFoundException("Senha incorreta");
     }
 
     @ApiOperation(value = "Alterar dados cadastrais do usuario logado", response = RetornaUsuario.class)

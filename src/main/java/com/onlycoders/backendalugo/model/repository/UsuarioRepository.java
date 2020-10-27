@@ -107,9 +107,14 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
     String retornaIdUsuario(@Param("login") String login);
 
     @Transactional()
-    @Query(value = "Select FN_INSERIR_LOGIN(:idUsuario,:senha,null);",
+    @Query(value = "Select FN_ATUALIZA_SENHA(:idUsuario,:senha);",
                     nativeQuery = true)
     Boolean alteraSenha(@Param("idUsuario") String idUsuario, @Param("senha") String senha);
+
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Query(value = "Select FN_RETORNA_SENHA(:idUsuario);",
+            nativeQuery = true)
+    String retornaSenha(@Param("idUsuario") String idUsuario);
 
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "SELECT FN_VALIDA_DADOS(:dado,:opcao);",nativeQuery = true)
