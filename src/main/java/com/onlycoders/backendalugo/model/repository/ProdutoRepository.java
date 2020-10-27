@@ -18,7 +18,7 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
             "as (ID_USUARIO TEXT, ID_PRODUTO TEXT, NOME TEXT, DESCRICAO_CURTA TEXT, " +
             "  DESCRICAO TEXT, VALOR_BASE_DIARIA DECIMAL(16,2), VALOR_BASE_MENSAL DECIMAL(16,2)," +
             "  VALOR_PRODUTO DECIMAL(16,2), DATA_COMPRA TEXT, QTD_ALUGUEIS NUMERIC(16), " +
-            "  TOTAL_GANHOS DECIMAL(16,2), MEDIA_AVALIACAO DECIMAL(6,1), CAPA_FOTO TEXT, ATIVO BOOLEAN);",
+            "  TOTAL_GANHOS DECIMAL(16,2), MEDIA_AVALIACAO DECIMAL(6,1), FOTOS OID, ATIVO BOOLEAN);",
             nativeQuery = true)
     List<RetornaProduto> findProdutoByUsuario(@Param("id_usuario") String id_usuario, @Param("id_produto") String id_produto);
 
@@ -53,4 +53,14 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
     @Transactional
     @Query(value = "SELECT FN_ATIVA_INATIVA_PRODUTO(:id);",nativeQuery = true)
     Boolean ativaInativaProduto(@Param("id") String id);
+
+
+    @Transactional
+    @Query(value = "SELECT max(id) from log.log where operacao = :id ;",nativeQuery = true)
+    int teste(@Param("id") String id);
+
+    @Transactional
+    @Query(value = "SELECT FN_FOTO_PRODUTO(:id_produto,:foto) ;",nativeQuery = true)
+    Boolean uploadFoto(@Param("id_produto") String id_produto, @Param("foto") byte[] foto);
+
 }

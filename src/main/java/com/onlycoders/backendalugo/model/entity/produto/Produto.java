@@ -79,8 +79,9 @@ public class Produto {
     private String capa_foto;
 
   //  @JsonAlias("fotos")
-//    private String[] fotos;
-
+/*  @Lob
+    private Byte[] fotos;
+*/
     @JsonAlias({"ativo"})
     private Boolean ativo = true;
 

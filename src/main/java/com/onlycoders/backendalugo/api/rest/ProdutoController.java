@@ -1,19 +1,24 @@
 package com.onlycoders.backendalugo.api.rest;
 
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
+import com.onlycoders.backendalugo.model.entity.produto.templates.Fotos;
 import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import sun.nio.ch.IOUtil;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 @RestController
@@ -66,6 +71,7 @@ public class ProdutoController {
     @GetMapping("/lista-produto")
     @ResponseStatus(HttpStatus.OK)
     public List<RetornaProduto> retornaProdutos() {
+        //return repository.teste(id);
        return repository.findProdutoByUsuario("0", "0");
 
         // GeraLista(listaProduto);
@@ -119,6 +125,28 @@ public class ProdutoController {
         return repository.createProduto(getIdUsuario(),produto.getNome(),produto.getDescricao_curta(),produto.getDescricao(),
                 produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
                 produto.getData_compra(),produto.getCapa_foto());
+    }
+
+    @ApiOperation(value = "Altera dados cadastrais do produto")
+    @PutMapping("/upload-foto")
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean atualiza(@RequestBody Fotos foto) {
+        if (!getIdUsuario().isEmpty()){
+            try{
+                InputStream is = foto.getFotos().getInputStream();
+                byte[] bytes = new byte[(int) foto.getFotos().getSize()];
+                IOUtils.readFully(is,bytes);
+                is.close();
+                System.out.println(foto);
+                return repository.uploadFoto(foto.getId_produto(), bytes);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return false;
+        }
+        else
+            return false;
     }
 
     @ApiOperation(value = "Altera dados cadastrais do produto")
