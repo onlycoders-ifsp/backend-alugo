@@ -1,6 +1,4 @@
 package com.onlycoders.backendalugo.model.repository;
-
-import com.onlycoders.backendalugo.model.entity.aluguel.Aluguel;
 import com.onlycoders.backendalugo.model.entity.aluguel.RetornaAluguel;
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,13 +22,13 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
 
 
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
-    @Query(value = "Select FN_RETORNA_ALUGUEL(:id_usuario,:id_aluguel,:id_produto)" +
-                   "AS T (ID_ALUGUEL TEXT, ID_PRODUTO TEXT, NOME_PRODUTO TEXT" +
-                    "ID_LOCATARIO TEXT, NOME_LOCATARIO TEXT, NOME_LOCADOR TEXT, " +
-                    "DATA_INICIO TEXT, DATA_FIM TEXT, VALOR_ALUGUEL DOUBLE PRECISION," +
-                    "VALOR_DEBITO DOUBLE PRECISION, DATA_SAQUE TEXT)",
+    @Query(value = "Select *FROM FN_RETORNA_ALUGUEL(:id_locador,:id_locatario,:id_aluguel,:id_produto)" +
+                   "AS T (ID_ALUGUEL TEXT, ID_PRODUTO TEXT, ID_LOCATARIO TEXT," +
+                    "ID_LOCADOR TEXT, DATA_INICIO TEXT, DATA_FIM TEXT," +
+                    "VALOR_ALUGUEL DOUBLE PRECISION, DATA_SAQUE TEXT)",
             nativeQuery = true)
-    List<RetornaAluguel> retornaAluguelLocador(@Param("id_usuario") String id_usuario,
+    List<RetornaAluguel> retornaAluguel(@Param("id_locador") String id_locador,
+                                               @Param("id_locatario") String id_locatario,
                                                @Param("id_aluguel") String id_aluguel,
                                                @Param("id_produto") String id_produto);
 

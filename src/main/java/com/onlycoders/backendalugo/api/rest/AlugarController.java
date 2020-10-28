@@ -44,12 +44,12 @@ public class AlugarController {
     public Boolean EfetuaAluguel(@RequestBody Aluguel aluguel) throws ParseException {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         sdf.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo"));
 
-        Date hoje  = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(sdf.format(calendar.getTime()));
-        Date dtFim = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(aluguel.getData_fim());
-        Date dtIni = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(aluguel.getData_inicio());
+        Date hoje  = new SimpleDateFormat("yyyy-MM-dd").parse(sdf.format(calendar.getTime()));
+        Date dtFim = new SimpleDateFormat("yyyy-MM-dd").parse(aluguel.getData_fim());
+        Date dtIni = new SimpleDateFormat("yyyy-MM-dd").parse(aluguel.getData_inicio());
 
         if(dtFim.before(hoje) || dtIni.before(hoje) || dtFim.before(dtIni)){
             throw new NullPointerException("Período de data informado incorreto");
@@ -66,32 +66,32 @@ public class AlugarController {
         }
     }
 
-    @ApiOperation(value = "Retorna todos alugueis do usuario logado")
-    @GetMapping("aluguel-logado")
+    @ApiOperation(value = "Retorna todos alugueis do usuario logado como locador")
+    @GetMapping("/locador")
     @ResponseStatus(HttpStatus.OK)
-    public List<RetornaAluguel> retornaAluguelLogado() {
-        return aluguelRepository.retornaAluguelLocador(getIdUsuario(),"0","0");
+    public List<RetornaAluguel> retornaAluguelLocadorLogado() {
+        return aluguelRepository.retornaAluguel(getIdUsuario(),"0","0","0");
+    }
+
+    @ApiOperation(value = "Retorna todos alugueis do usuario logado como locatario")
+    @GetMapping("/locatario")
+    @ResponseStatus(HttpStatus.OK)
+    public List<RetornaAluguel> retornaAluguelLocatarioLogado() {
+        return aluguelRepository.retornaAluguel("0",getIdUsuario(),"0","0");
     }
 
     @ApiOperation(value = "Retorna unico aluguel pelo id_aluguel")
-    @GetMapping("/aluguel-seleciona")
+    @GetMapping("/aluguel")
     @ResponseStatus(HttpStatus.OK)
     public RetornaAluguel retornaAluguelAluguel(@RequestParam("id_aluguel") String id_aluguel) {
-        return aluguelRepository.retornaAluguelLocador("0",id_aluguel,"0").get(0);
+    return aluguelRepository.retornaAluguel("0","0",id_aluguel,"0").get(0);
     }
 
     @ApiOperation(value = "Retorna alugueis do produto")
-    @GetMapping("/aluguel-produto")
+    @GetMapping("/produto")
     @ResponseStatus(HttpStatus.OK)
     public List<RetornaAluguel> retornaAluguelProduto(@RequestParam("id_produto") String id_produto) {
-        return aluguelRepository.retornaAluguelLocador("0","0",id_produto);
-    }
-
-    @ApiOperation(value = "Retorna alugueis de um usuario")
-    @GetMapping("/aluguel-usuario")
-    @ResponseStatus(HttpStatus.OK)
-    public List<RetornaAluguel> retornaAluguelUsuario(@RequestParam("id_usuario") String id_usuario) {
-        return aluguelRepository.retornaAluguelLocador(id_usuario,"0","0");
+        return aluguelRepository.retornaAluguel("0","0","0",id_produto);
     }
 
     public String getIdUsuario(){

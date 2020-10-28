@@ -142,32 +142,32 @@ public class UsuarioController {
 
     private void validaCampos(String login, String cpf, String email, String celular, String nome) {
         if(celular.isEmpty() || celular == null){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Celular inválido");
+            throw new NullPointerException("Celular inválido");
         }
 
         if(nome.isEmpty() || nome == null){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nome inválido");
+            throw new NullPointerException("Nome inválido");
         }
 
         if(login.isEmpty() || login == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Login inválido");
+            throw new NullPointerException("Login inválido");
         }
         else if(repository.validaDado(login,3)){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Login já existe");
+            throw new NullPointerException("Login já existe");
         }
 
         if(cpf.isEmpty() || cpf == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CPF inválido");
+            throw new NullPointerException("CPF inválido");
         }
         else if(repository.validaDado(cpf,1)){
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CPF já existe");
+                throw new NullPointerException("CPF já existe");
         }
 
         if (email.isEmpty() || email == null || !email.contains("@")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email inválido");
+            throw new NullPointerException("Email inválido");
         }
         else if(repository.validaDado(email, 2)){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email já existe");
+            throw new NullPointerException("Email já existe");
         }
         //  return valida = repository.validaCampos(login, cpf, email);
     }
