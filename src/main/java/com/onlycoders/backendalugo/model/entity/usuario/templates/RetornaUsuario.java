@@ -49,4 +49,7 @@ public interface RetornaUsuario{
 
     @JsonGetter("ativo")
     public Boolean getAtivo();
+
+    @JsonGetter("capa_foto")
+    byte[] getCapa_foto();
 }

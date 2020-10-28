@@ -8,7 +8,6 @@
 package com.onlycoders.backendalugo.model.repository;
 
 import com.onlycoders.backendalugo.model.entity.login.RetornaLogin;
-import com.onlycoders.backendalugo.model.entity.login.UsuarioLogin;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario;
 import com.onlycoders.backendalugo.model.entity.usuario.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,7 +25,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
     @Query(value = "Select *From FN_RETORNA_USUARIO(:id) " +
             "AS T(IDUSUARIO TEXT, NOME TEXT, EMAIL TEXT, LOGIN TEXT, CPF TEXT, CELULAR TEXT," +
     "            DATANASCIMENTO TEXT, CEP TEXT, LOGRADOURO TEXT, " +
-    "            COMPLEMENTO TEXT, BAIRRO TEXT, NUMERO TEXT, ATIVO BOOLEAN);",
+    "            COMPLEMENTO TEXT, BAIRRO TEXT, NUMERO TEXT, ATIVO BOOLEAN, CAPA_FOTO BYTEA);",
     //@Query(value = "Select u.*From Usuarios u",
     nativeQuery = true)
     List<RetornaUsuario> findUsuario(@Param("id") String id);
@@ -58,7 +57,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
             " FROM FN_INSERIR_USUARIO_MIN(:nome,:email,:login,:senha,:cpf,:celular)" +
             "AS T(IDUSUARIO TEXT, NOME TEXT, EMAIL TEXT, LOGIN TEXT, CPF TEXT," +
             "   CELULAR TEXT,DATANASCIMENTO TEXT, CEP TEXT, LOGRADOURO TEXT," +
-            "   COMPLEMENTO TEXT, BAIRRO TEXT, NUMERO TEXT, ATIVO BOOLEAN)",
+            "   COMPLEMENTO TEXT, BAIRRO TEXT, NUMERO TEXT, ATIVO BOOLEAN, CAPA_FOTO BYTEA)",
             nativeQuery = true)
     List <RetornaUsuario> createUsuarioMin(@Param("nome") String nome,
                                             @Param("email") String email,
@@ -83,7 +82,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
             " :celular,:nascimento,:cep,:logradouro,:complemento,:bairro,:numero) " +
             " AS T(IDUSUARIO TEXT, NOME TEXT, EMAIL TEXT, LOGIN TEXT, CPF TEXT, " +
             " CELULAR TEXT,DATANASCIMENTO TEXT, CEP TEXT, endereco TEXT, " +
-            " COMPLEMENTO TEXT, BAIRRO TEXT, NUMERO TEXT, ATIVO BOOLEAN);",nativeQuery = true)
+            " COMPLEMENTO TEXT, BAIRRO TEXT, NUMERO TEXT, ATIVO BOOLEAN, CAPA_FOTO BYTEA);",nativeQuery = true)
     List <RetornaUsuario>  updateUserById(@Param("id") String id,
                            @Param("nome") String nome,
                            @Param("email") String email,
