@@ -90,7 +90,7 @@ public class UsuarioController {
     }
 
     @ApiOperation(value = "Atualiza/Cadastra foto de usuario")
-    @PostMapping("/upload-foto")
+    @PutMapping("/upload-foto")
     @ResponseStatus(HttpStatus.CREATED)
     public Boolean atualiza(@RequestParam Part capa_foto) throws NotFoundException {
         Optional<String> usuario = Optional.ofNullable(Optional
