@@ -60,7 +60,7 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
     int teste(@Param("id") String id);
 
     @Transactional
-    @Query(value = "SELECT FN_FOTO_PRODUTO(:id_produto,:foto) ;",nativeQuery = true)
-    Boolean uploadFoto(@Param("id_produto") String id_produto, @Param("foto") byte[] foto);
+    @Query(value = "SELECT FN_FOTO_PRODUTO(:id_usuario,:id_produto,:foto) ;",nativeQuery = true)
+    Boolean uploadFoto(@Param("id_usuario") String id_usuario ,@Param("id_produto") String id_produto, @Param("foto") byte[] foto);
 
 }

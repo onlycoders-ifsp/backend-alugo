@@ -7,6 +7,7 @@ import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import sun.nio.ch.IOUtil;
 
+import javax.servlet.http.Part;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -127,28 +129,27 @@ public class ProdutoController {
                 produto.getData_compra(),produto.getCapa_foto());
     }
 
-    @ApiOperation(value = "Altera dados cadastrais do produto")
+    @ApiOperation(value = "Atualiza/cadastra foto de produto")
     @PutMapping("/upload-foto")
     @ResponseStatus(HttpStatus.OK)
-    public Boolean atualiza(@RequestParam Fotos foto) {
-        if (!getIdUsuario().isEmpty()){
+    public Boolean atualiza(@RequestParam Part foto,
+                            @RequestBody String id_produto) throws NotFoundException {
+        Optional<String> usuario = Optional.ofNullable(Optional
+                .of(getIdUsuario())
+                .orElseThrow(() -> new NotFoundException("Usuario não logado")));
             try{
-                InputStream is = foto.getCapa_foto().getInputStream();
-                byte[] bytes = new byte[(int) foto.getCapa_foto().getSize()];
+                InputStream is = foto.getInputStream();
+                byte[] bytes = new byte[(int) foto.getSize()];
                 IOUtils.readFully(is,bytes);
                 is.close();
-                System.out.println(foto);
-                return repository.uploadFoto(foto.getId_produto(), bytes);
+                System.out.println(foto.toString());
+                return repository.uploadFoto(usuario.get(), id_produto, bytes);
 
             } catch (IOException e) {
                 e.printStackTrace();
-            }
-            return false;
         }
-        else
-            return false;
+        return false;
     }
-
     @ApiOperation(value = "Altera dados cadastrais do produto")
     @PutMapping("/altera")
     @ResponseStatus(HttpStatus.OK)
