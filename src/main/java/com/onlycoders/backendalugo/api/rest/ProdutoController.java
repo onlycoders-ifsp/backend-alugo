@@ -132,17 +132,16 @@ public class ProdutoController {
     @ApiOperation(value = "Atualiza/cadastra foto de produto")
     @PutMapping("/upload-foto")
     @ResponseStatus(HttpStatus.OK)
-    public Boolean atualiza(@RequestParam Part foto,
+    public Boolean atualiza(@RequestParam Part capa_foto,
                             @RequestParam String id_produto) throws NotFoundException {
         Optional<String> usuario = Optional.ofNullable(Optional
                 .of(getIdUsuario())
                 .orElseThrow(() -> new NotFoundException("Usuario não logado")));
             try{
-                InputStream is = foto.getInputStream();
-                byte[] bytes = new byte[(int) foto.getSize()];
+                InputStream is = capa_foto.getInputStream();
+                byte[] bytes = new byte[(int) capa_foto.getSize()];
                 IOUtils.readFully(is,bytes);
                 is.close();
-                System.out.println(foto.toString());
                 return repository.uploadFoto(usuario.get(), id_produto, bytes);
 
             } catch (IOException e) {

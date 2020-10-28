@@ -73,6 +73,10 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
     nativeQuery = true)
     Boolean deleteUserById(String id);
 
+    @Transactional
+    @Query(value = "SELECT FN_FOTO_USUARIO(:id_usuario,:foto) ;",nativeQuery = true)
+    Boolean uploadFoto(@Param("id_usuario") String id_usuario, @Param("foto") byte[] foto);
+
     //Atualiza usuario
     @Transactional()
     @Query(value = "SELECT *FROM FN_ATUALIZA_USUARIO(:id,:nome,:email,:login,:cpf," +

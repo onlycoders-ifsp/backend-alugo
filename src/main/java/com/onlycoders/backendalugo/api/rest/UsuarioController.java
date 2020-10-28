@@ -14,6 +14,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
@@ -26,7 +27,12 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import javax.servlet.http.Part;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @Api(value = "Usuarios")
@@ -81,6 +87,26 @@ public class UsuarioController {
         return repository
                 .createUsuarioMin(usuario.getNome(), usuario.getEmail(),usuario.getLogin(),
                 usuario.getSenha(),usuario.getCpf(), usuario.getCelular()).get(0);
+    }
+
+    @ApiOperation(value = "Atualiza/Cadastra foto de usuario")
+    @PostMapping("/upload-foto")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Boolean atualiza(@RequestParam Part capa_foto) throws NotFoundException {
+        Optional<String> usuario = Optional.ofNullable(Optional
+                .of(getIdUsuario())
+                .orElseThrow(() -> new NotFoundException("Usuario não logado")));
+        try{
+            InputStream is = capa_foto.getInputStream();
+            byte[] bytes = new byte[(int) capa_foto.getSize()];
+            IOUtils.readFully(is,bytes);
+            is.close();
+            return repository.uploadFoto(usuario.get(), bytes);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     @Secured("ADMIN")
