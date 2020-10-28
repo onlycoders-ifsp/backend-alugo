@@ -130,10 +130,10 @@ public class ProdutoController {
     @ApiOperation(value = "Cadastra novo produto do usuario logado")
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
-    public Boolean cadastra(@RequestBody Produto produto){
+    public String cadastra(@RequestBody Produto produto){
         return repository.createProduto(getIdUsuario(),produto.getNome(),produto.getDescricao_curta(),produto.getDescricao(),
                 produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
-                produto.getData_compra(),produto.getCapa_foto());
+                produto.getData_compra());
     }
 
     @ApiOperation(value = "Atualiza/cadastra foto de produto")

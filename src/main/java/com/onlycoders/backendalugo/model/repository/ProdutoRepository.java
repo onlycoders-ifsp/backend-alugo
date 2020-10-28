@@ -25,15 +25,14 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
     @Transactional
     @Query(value = "SELECT FN_CADASTRAR_PRODUTO(:id,:nome,:descricao_curta,:descricao,:valor_base_diaria," +
                     ":valor_base_mensal,:valor_produto,:data_compra,:capa_foto);",nativeQuery = true)
-    Boolean createProduto(@Param("id") String id,
+    String createProduto(@Param("id") String id,
                             @Param("nome") String nome,
                             @Param("descricao_curta") String descricao_curta,
                             @Param("descricao") String descricao,
                             @Param("valor_base_diaria") Double valor_base_diaria,
                             @Param("valor_base_mensal") Double valor_base_mensal,
                             @Param("valor_produto") Double valor_produto,
-                            @Param("data_compra") String data_compra,
-                            @Param("capa_foto") String capa_foto);
+                            @Param("data_compra") String data_compra);
                             //@Param("fotos") String fotos );
 
     @Transactional
