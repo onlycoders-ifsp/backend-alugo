@@ -130,7 +130,7 @@ public class ProdutoController {
     @ApiOperation(value = "Altera dados cadastrais do produto")
     @PutMapping("/upload-foto")
     @ResponseStatus(HttpStatus.OK)
-    public Boolean atualiza(@RequestBody Fotos foto) {
+    public Boolean atualiza(@RequestParam Fotos foto) {
         if (!getIdUsuario().isEmpty()){
             try{
                 InputStream is = foto.getCapa_foto().getInputStream();
