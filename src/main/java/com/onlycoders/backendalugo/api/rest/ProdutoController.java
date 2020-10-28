@@ -56,7 +56,7 @@ public class ProdutoController {
     @GetMapping("/lista-produto-logado")
     @ResponseStatus(HttpStatus.OK)
     public List<RetornaProduto> retornaProdutosUsuarioLogado() {
-        return repository.findProduto(getIdUsuario(), "0");
+        return repository.findProduto(getIdUsuario(), "0",1);
 
         //return GeraLista(listaProduto);
     }
@@ -65,7 +65,7 @@ public class ProdutoController {
     @GetMapping("/produto-logado")
     @ResponseStatus(HttpStatus.OK)
     public RetornaProduto retornaProdutoUsuarioLogado(@RequestParam String id_produto) {
-        return repository.findProduto(getIdUsuario(), validaProduto(id_produto)).get(0);
+        return repository.findProduto(getIdUsuario(), validaProduto(id_produto),2).get(0);
         //return GeraLista(listaProduto);
     }
 
@@ -74,7 +74,7 @@ public class ProdutoController {
     @ResponseStatus(HttpStatus.OK)
     public List<RetornaProduto> retornaProdutos() {
         //return repository.teste(id);
-       return repository.findProduto("0", "0");
+       return repository.findProduto("0", "0",4);
 
         // GeraLista(listaProduto);
 /*
@@ -110,27 +110,27 @@ public class ProdutoController {
     @GetMapping("/produto")
     @ResponseStatus(HttpStatus.OK)
     public RetornaProduto retornaProduto(@RequestParam String id_produto) {
-        return repository.findProduto("0", validaProduto(id_produto)).get(0);
+        return repository.findProduto("0", validaProduto(id_produto),3).get(0);
     }
 
-    @ApiOperation(value = "Retorna um único produto", response = RetornaProduto.class)
+    @ApiOperation(value = "Pesquisa Produto", response = RetornaProduto.class)
     @GetMapping("/produto-pesquisa")
     @ResponseStatus(HttpStatus.OK)
     public List<RetornaProduto> retornaProdutoPesquisa(@RequestParam String produto) {
-        return repository.findProduto("0", validaProduto(produto));
+        return repository.findProduto("0", validaProduto(produto),3);
     }
 
     @ApiOperation(value = "Retorna produtos de um usuario, id ou login", response = RetornaProduto.class)
     @GetMapping("/produto-usuario")
     @ResponseStatus(HttpStatus.OK)
     public RetornaProduto retornaProdutosUsuario(@RequestParam String id_usuario) {
-        return repository.findProduto(getIdUsuario(), "0").get(0);
+        return repository.findProduto(id_usuario, "0",1).get(0);
     }
 
     @ApiOperation(value = "Cadastra novo produto do usuario logado")
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
-    public String cadastra(@RequestBody Produto produto){
+    public RetornaProduto cadastra(@RequestBody Produto produto){
         return repository.createProduto(getIdUsuario(),produto.getNome(),produto.getDescricao_curta(),produto.getDescricao(),
                 produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
                 produto.getData_compra());
