@@ -20,7 +20,7 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
             "  VALOR_PRODUTO DECIMAL(16,2), DATA_COMPRA TEXT, QTD_ALUGUEIS NUMERIC(16), " +
             "  TOTAL_GANHOS DECIMAL(16,2), MEDIA_AVALIACAO DECIMAL(6,1), CAPA_FOTO BYTEA , ATIVO BOOLEAN);",
             nativeQuery = true)
-    List<RetornaProduto> findProdutoByUsuario(@Param("id_usuario") String id_usuario, @Param("id_produto") String id_produto);
+    List<RetornaProduto> findProduto(@Param("id_usuario") String id_usuario, @Param("id_produto") String id_produto);
 
     @Transactional
     @Query(value = "SELECT FN_CADASTRAR_PRODUTO(:id,:nome,:descricao_curta,:descricao,:valor_base_diaria," +
