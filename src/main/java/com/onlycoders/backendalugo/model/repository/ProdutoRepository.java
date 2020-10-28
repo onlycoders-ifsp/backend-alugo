@@ -23,7 +23,7 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
     List<RetornaProduto> findProduto(@Param("id_usuario") String id_usuario, @Param("id_produto") String id_produto, @Param("op") int op);
 
     @Transactional
-    @Query(value = "SELECT FN_CADASTRAR_PRODUTO(:id,:nome,:descricao_curta,:descricao,:valor_base_diaria," +
+    @Query(value = "SELECT * from FN_CADASTRAR_PRODUTO(:id,:nome,:descricao_curta,:descricao,:valor_base_diaria," +
                     ":valor_base_mensal,:valor_produto,:data_compra)" +
             "       as (ID_USUARIO TEXT, ID_PRODUTO TEXT, NOME TEXT, DESCRICAO_CURTA TEXT, " +
             "             DESCRICAO TEXT, VALOR_BASE_DIARIA DECIMAL(16,2), VALOR_BASE_MENSAL DECIMAL(16,2),"  +
