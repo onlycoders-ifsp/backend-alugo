@@ -24,7 +24,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
      @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "Select *From FN_RETORNA_USUARIO(:id) " +
             "AS T(IDUSUARIO TEXT, NOME TEXT, EMAIL TEXT, LOGIN TEXT, CPF TEXT, CELULAR TEXT," +
-    "            DATANASCIMENTO TEXT, CEP TEXT, LOGRADOURO TEXT, " +
+    "            DATANASCIMENTO TEXT, CEP TEXT, ENDERECO TEXT, " +
     "            COMPLEMENTO TEXT, BAIRRO TEXT, NUMERO TEXT, ATIVO BOOLEAN, CAPA_FOTO BYTEA);",
     //@Query(value = "Select u.*From Usuarios u",
     nativeQuery = true)
@@ -33,10 +33,10 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
     //Insere usuario
     @Transactional()
     @Query(value = "SELECT *FROM FN_INSERIR_USUARIO(:nome,:email,:login,:senha," +
-            ":cpf,:celular,:nascimento,:cep,:logradouro,:complemento," +
+            ":cpf,:celular,:nascimento,:cep,:endereco,:complemento," +
             ":bairro,:numero)" +
             "AS T(IDUSUARIO TEXT, NOME TEXT, EMAIL TEXT, LOGIN TEXT, CPF TEXT, CELULAR TEXT," +
-            "   DATANASCIMENTO TEXT, CEP TEXT, LOGRADOURO TEXT," +
+            "   DATANASCIMENTO TEXT, CEP TEXT, ENDERECO TEXT," +
             "   COMPLEMENTO TEXT, BAIRRO TEXT, NUMERO TEXT, ATIVO BOOLEAN);",nativeQuery = true)
     List <RetornaUsuario> createUsuario(@Param("nome") String nome,
                           @Param("email") String email,
@@ -46,7 +46,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
                           @Param("celular") String celular,
                           @Param("nascimento") String nascimento,
                           @Param("cep") String cep,
-                          @Param("logradouro") String logradouro,
+                          @Param("endereco") String endereco,
                           @Param("complemento") String complemento,
                           @Param("bairro") String bairro,
                           @Param("numero") String numero);
@@ -56,7 +56,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
     @Query(value = "SELECT IDUSUARIO, NOME, LOGIN, EMAIL, CPF, CELULAR, ATIVO" +
             " FROM FN_INSERIR_USUARIO_MIN(:nome,:email,:login,:senha,:cpf,:celular)" +
             "AS T(IDUSUARIO TEXT, NOME TEXT, EMAIL TEXT, LOGIN TEXT, CPF TEXT," +
-            "   CELULAR TEXT,DATANASCIMENTO TEXT, CEP TEXT, LOGRADOURO TEXT," +
+            "   CELULAR TEXT,DATANASCIMENTO TEXT, CEP TEXT, ENDERECO TEXT," +
             "   COMPLEMENTO TEXT, BAIRRO TEXT, NUMERO TEXT, ATIVO BOOLEAN, CAPA_FOTO BYTEA)",
             nativeQuery = true)
     List <RetornaUsuario> createUsuarioMin(@Param("nome") String nome,
@@ -79,9 +79,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
     //Atualiza usuario
     @Transactional()
     @Query(value = "SELECT *FROM FN_ATUALIZA_USUARIO(:id,:nome,:email,:login,:cpf," +
-            " :celular,:nascimento,:cep,:logradouro,:complemento,:bairro,:numero) " +
+            " :celular,:nascimento,:cep,:endereco,:complemento,:bairro,:numero) " +
             " AS T(IDUSUARIO TEXT, NOME TEXT, EMAIL TEXT, LOGIN TEXT, CPF TEXT, " +
-            " CELULAR TEXT,DATANASCIMENTO TEXT, CEP TEXT, endereco TEXT, " +
+            " CELULAR TEXT,DATANASCIMENTO TEXT, CEP TEXT, ENDERECO TEXT, " +
             " COMPLEMENTO TEXT, BAIRRO TEXT, NUMERO TEXT, ATIVO BOOLEAN, CAPA_FOTO BYTEA);",nativeQuery = true)
     List <RetornaUsuario>  updateUserById(@Param("id") String id,
                            @Param("nome") String nome,
@@ -91,7 +91,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
                            @Param("celular") String celular,
                            @Param("nascimento") String nascimento,
                            @Param("cep") String cep,
-                           @Param("logradouro") String endereco,
+                           @Param("endereco") String endereco,
                            @Param("complemento") String complemento,
                            @Param("bairro") String bairro,
                            @Param("numero") String numemro);

@@ -35,7 +35,6 @@ public interface RetornaUsuario{
     public String getCep();
 
     @JsonAlias("endereco")
-    @JsonGetter("endereco")
     public String getEndereco();
 
     @JsonGetter("complemento")
