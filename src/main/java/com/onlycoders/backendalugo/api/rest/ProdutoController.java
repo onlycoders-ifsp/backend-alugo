@@ -133,7 +133,7 @@ public class ProdutoController {
     @PutMapping("/upload-foto")
     @ResponseStatus(HttpStatus.OK)
     public Boolean atualiza(@RequestParam Part foto,
-                            @RequestBody String id_produto) throws NotFoundException {
+                            @RequestParam String id_produto) throws NotFoundException {
         Optional<String> usuario = Optional.ofNullable(Optional
                 .of(getIdUsuario())
                 .orElseThrow(() -> new NotFoundException("Usuario não logado")));
