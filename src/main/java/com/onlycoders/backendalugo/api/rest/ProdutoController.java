@@ -56,7 +56,7 @@ public class ProdutoController {
     @GetMapping("/lista-produto-logado")
     @ResponseStatus(HttpStatus.OK)
     public List<RetornaProduto> retornaProdutosUsuarioLogado() {
-        return repository.findProduto(getIdUsuario(), "0",1);
+        return repository.findProduto(getIdUsuario(false), "0",1);
 
         //return GeraLista(listaProduto);
     }
@@ -65,7 +65,7 @@ public class ProdutoController {
     @GetMapping("/produto-logado")
     @ResponseStatus(HttpStatus.OK)
     public RetornaProduto retornaProdutoUsuarioLogado(@RequestParam String id_produto) {
-        return repository.findProduto(getIdUsuario(), validaProduto(id_produto),2).get(0);
+        return repository.findProduto(getIdUsuario(false), validaProduto(id_produto),2).get(0);
         //return GeraLista(listaProduto);
     }
 
@@ -74,36 +74,8 @@ public class ProdutoController {
     @ResponseStatus(HttpStatus.OK)
     public List<RetornaProduto> retornaProdutos() {
         //return repository.teste(id);
-       return repository.findProduto("0", "0",4);
-
-        // GeraLista(listaProduto);
-/*
-        List<UsuarioProduto> listaProdutos = new ArrayList<UsuarioProduto>();
-
-        /*
-        for(Produto i :p){
-            RetornaProduto user = new RetornaProduto();
-            UsuarioProduto usrPrd = new UsuarioProduto();
-            user.setIdProduto(i.idProduto);
-            user.setNome(i.nome);
-            user.setDescricaoCurta(i.descricaoCurta);
-            user.setDescricao(i.descricao);
-            user.setValorBaseDiaria(i.valorBaseDiaria);
-            user.setValorBaseMensal(i.valorBaseMensal);
-            user.setValorProduto(i.valorProduto);
-            user.setDataCompra(i.dataCompra);
-            user.setQtdAlugueis(i.qtdAlugueis);
-            user.setTotalGanhos(i.totalGanhos);
-            user.setMediaAvaliacao(i.mediaAvaliacao);
-            user.setCapaFoto(i.capaFoto);
-            user.setAtivo(i.ativo);
-            usrPrd.setId_usuario(i.idUsuario);
-            usrPrd.setProduto(user);
-            listaProdutos.add(usrPrd);
-        }
-        //System.out.println(listProduto.get(0).getIdUsuario());
-        return listaProdutos;
-     */
+        Optional<String> user = Optional.of(Optional.of(getIdUsuario(true)).orElse("0"));
+       return repository.findProduto(user.get(), "0",4);
     }
 
     @ApiOperation(value = "Retorna um único produto", response = RetornaProduto.class)
@@ -131,7 +103,7 @@ public class ProdutoController {
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
     public RetornaProduto cadastra(@RequestBody Produto produto){
-        return repository.createProduto(getIdUsuario(),produto.getNome(),produto.getDescricao_curta(),produto.getDescricao(),
+        return repository.createProduto(getIdUsuario(false),produto.getNome(),produto.getDescricao_curta(),produto.getDescricao(),
                 produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
                 produto.getData_compra());
     }
@@ -142,7 +114,7 @@ public class ProdutoController {
     public Boolean atualizaCadastrafoto(@RequestParam Part capa_foto,
                             @RequestParam String id_produto) throws NotFoundException {
         Optional<String> usuario = Optional.ofNullable(Optional
-                .of(getIdUsuario())
+                .of(getIdUsuario(false))
                 .orElseThrow(() -> new NotFoundException("Usuario não logado")));
             try{
                 InputStream is = capa_foto.getInputStream();
@@ -178,27 +150,24 @@ public class ProdutoController {
         return repository.ativaInativaProduto(validaProduto(id_produto));
     }
 
-    /*
-    public String validaLogin(){
-        String id = IdUsuario.getId_usuario();
-        if(id.isEmpty() || id == null || id.equals("0"))
-            throw new NullPointerException("Usuario não está logado");
-
-        return id;
-    }
-    */
-    public String getIdUsuario(){
+    public String getIdUsuario(boolean pesquisa){
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String login;
 
         if(!auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken){
-            throw new NullPointerException("Usuario não logado");
+            if(!pesquisa)
+                throw new NullPointerException("Usuario não logado");
+            else
+                return null;
         }
 
         login = repositoryUsuario.retornaIdUsuario(auth.getName());
         if (login.isEmpty() || login == null) {
-            throw new NullPointerException("Usuario não encontrado");
+            if(!pesquisa)
+                throw new NullPointerException("Usuario não encontrado");
+            else
+                return null;
         }
         return login;
     }

@@ -104,10 +104,6 @@ public class AlugarController {
         return alugueis;
     }
 
-
-        //return aluguelRepository.retornaAluguel(getIdUsuario(),"0","0","0",2);
-   // }
-
     @ApiOperation(value = "Retorna todos alugueis do usuario logado como locatario")
     @GetMapping("/locatario")
     @ResponseStatus(HttpStatus.OK)
