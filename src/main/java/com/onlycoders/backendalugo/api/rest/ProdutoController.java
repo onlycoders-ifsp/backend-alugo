@@ -74,7 +74,7 @@ public class ProdutoController {
     @ResponseStatus(HttpStatus.OK)
     public List<RetornaProduto> retornaProdutos() {
         //return repository.teste(id);
-        String user = getIdUsuario(true);
+        String user = getIdUsuario(false);
        return repository.findProduto(user, "0",4);
     }
 
