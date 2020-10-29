@@ -1,7 +1,10 @@
 package com.onlycoders.backendalugo.api.rest;
 
+import com.onlycoders.backendalugo.model.entity.RetornaAluguelUsuarioProduto;
 import com.onlycoders.backendalugo.model.entity.aluguel.Aluguel;
 import com.onlycoders.backendalugo.model.entity.aluguel.RetornaAluguel;
+import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
+import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario;
 import com.onlycoders.backendalugo.model.repository.AluguelRepository;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
@@ -15,10 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 
 @RestController
 @Api(value = "Aluguel")
@@ -69,29 +69,96 @@ public class AlugarController {
     @ApiOperation(value = "Retorna todos alugueis do usuario logado como locador")
     @GetMapping("/locador")
     @ResponseStatus(HttpStatus.OK)
-    public List<RetornaAluguel> retornaAluguelLocadorLogado() {
-        return aluguelRepository.retornaAluguel(getIdUsuario(),"0","0","0");
+    public List<RetornaAluguelUsuarioProduto> retornaAluguelLocadorLogado() {
+
+        String id_locador = getIdUsuario();
+        String id_locatario;
+        String id_produto;
+
+        List<RetornaAluguelUsuarioProduto >alugueis = new ArrayList<RetornaAluguelUsuarioProduto>();
+
+        List<RetornaAluguel> aluguelEfeutuado = aluguelRepository
+                .retornaAluguel(id_locador, "0","0","0",2);
+        System.out.println(aluguelEfeutuado.get(0));
+
+        for (RetornaAluguel a : aluguelEfeutuado) {
+            RetornaAluguelUsuarioProduto aluguel = new RetornaAluguelUsuarioProduto();
+                id_locatario = a.getId_locatario();
+                id_produto = a.getId_produto();
+
+
+            aluguel.setAluguel(a);
+            RetornaUsuario locador = usuarioRepository.findUsuario(id_locador).get(0);
+            aluguel.setLocador(locador);
+
+            RetornaUsuario locatario = usuarioRepository.findUsuario(id_locatario).get(0);
+            aluguel.setLocatario(locatario);
+
+            RetornaProduto produto = produtoRepository.findProduto("0", id_produto, 3).get(0);
+            aluguel.setProduto(produto);
+
+            alugueis.add(aluguel);
+
+        }
+
+        return alugueis;
     }
+
+
+        //return aluguelRepository.retornaAluguel(getIdUsuario(),"0","0","0",2);
+   // }
 
     @ApiOperation(value = "Retorna todos alugueis do usuario logado como locatario")
     @GetMapping("/locatario")
     @ResponseStatus(HttpStatus.OK)
-    public List<RetornaAluguel> retornaAluguelLocatarioLogado() {
-        return aluguelRepository.retornaAluguel("0",getIdUsuario(),"0","0");
+    public List<RetornaAluguelUsuarioProduto> retornaAluguelLocatarioLogado() {
+
+        String id_locatario = getIdUsuario();
+        String id_produto;
+        String id_locador;
+
+        List<RetornaAluguelUsuarioProduto >alugueis = new ArrayList<RetornaAluguelUsuarioProduto>();
+
+        List<RetornaAluguel> aluguelEfeutuado = aluguelRepository
+                .retornaAluguel("0", id_locatario,"0","0",3);
+
+        for (RetornaAluguel a : aluguelEfeutuado) {
+            RetornaAluguelUsuarioProduto aluguel = new RetornaAluguelUsuarioProduto();
+            id_locador = a.getId_locador();
+            id_produto = a.getId_produto();
+
+
+            aluguel.setAluguel(a);
+            RetornaUsuario locador = usuarioRepository.findUsuario(id_locador).get(0);
+            aluguel.setLocador(locador);
+
+            RetornaUsuario locatario = usuarioRepository.findUsuario(id_locatario).get(0);
+            aluguel.setLocatario(locatario);
+
+            RetornaProduto produto = produtoRepository.findProduto("0", id_produto, 3).get(0);
+            aluguel.setProduto(produto);
+
+            alugueis.add(aluguel);
+
+        }
+
+        return alugueis;
+
+        //return aluguelRepository.retornaAluguel("0",getIdUsuario(),"0","0",3);
     }
 
     @ApiOperation(value = "Retorna unico aluguel pelo id_aluguel")
     @GetMapping("/aluguel")
     @ResponseStatus(HttpStatus.OK)
     public RetornaAluguel retornaAluguelAluguel(@RequestParam("id_aluguel") String id_aluguel) {
-    return aluguelRepository.retornaAluguel("0","0",id_aluguel,"0").get(0);
+    return aluguelRepository.retornaAluguel("0","0",id_aluguel,"0",1).get(0);
     }
 
     @ApiOperation(value = "Retorna alugueis do produto")
     @GetMapping("/produto")
     @ResponseStatus(HttpStatus.OK)
     public List<RetornaAluguel> retornaAluguelProduto(@RequestParam("id_produto") String id_produto) {
-        return aluguelRepository.retornaAluguel("0","0","0",id_produto);
+        return aluguelRepository.retornaAluguel("0","0","0",id_produto,4);
     }
 
     public String getIdUsuario(){
