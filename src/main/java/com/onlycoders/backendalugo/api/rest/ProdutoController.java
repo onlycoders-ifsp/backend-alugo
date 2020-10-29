@@ -74,8 +74,8 @@ public class ProdutoController {
     @ResponseStatus(HttpStatus.OK)
     public List<RetornaProduto> retornaProdutos() {
         //return repository.teste(id);
-        Optional<String> user = Optional.of(Optional.of(getIdUsuario(true)).orElse("0"));
-       return repository.findProduto(user.get(), "0",4);
+        String user = getIdUsuario(true);
+       return repository.findProduto(user, "0",4);
     }
 
     @ApiOperation(value = "Retorna um único produto", response = RetornaProduto.class)
@@ -154,12 +154,11 @@ public class ProdutoController {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String login;
-
         if(!auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken){
             if(!pesquisa)
                 throw new NullPointerException("Usuario não logado");
             else
-                return null;
+                return "0";
         }
 
         login = repositoryUsuario.retornaIdUsuario(auth.getName());
@@ -167,7 +166,7 @@ public class ProdutoController {
             if(!pesquisa)
                 throw new NullPointerException("Usuario não encontrado");
             else
-                return null;
+                return "0";
         }
         return login;
     }
