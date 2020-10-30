@@ -74,8 +74,8 @@ public class ProdutoController {
     @ResponseStatus(HttpStatus.OK)
     public List<RetornaProduto> retornaProdutos() {
         //return repository.teste(id);
-        String user = getIdUsuario(false);
-       return repository.findProduto(user, "0",4);
+        //String user = getIdUsuario(true);
+       return repository.findProduto("0", "0",4);
     }
 
     @ApiOperation(value = "Retorna um único produto", response = RetornaProduto.class)
