@@ -27,7 +27,8 @@ public class CustomUserDetailService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
-        RetornaLogin retornaLogin = repository.verificaLogin(login.toLowerCase());
+        //login = login.toLowerCase();
+        RetornaLogin retornaLogin = repository.verificaLogin(login);
 
         UsuarioLogin user = new UsuarioLogin();
 
