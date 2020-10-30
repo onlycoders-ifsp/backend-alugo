@@ -81,7 +81,7 @@ public class UsuarioController {
                usuario.getCelular(), usuario.getNome());
 
         return repository
-                .createUsuarioMin(usuario.getNome(), usuario.getEmail(),usuario.getLogin(),
+                .createUsuarioMin(usuario.getNome(), usuario.getEmail().toLowerCase(),usuario.getLogin(),
                 usuario.getSenha(),usuario.getCpf(), usuario.getCelular()).get(0);
     }
 
@@ -130,7 +130,7 @@ public class UsuarioController {
     @PutMapping("altera-dados")
     @ResponseStatus(HttpStatus.OK)
     public RetornaUsuario alteraUsuario(@RequestBody RequestUsuario usuario) {
-        return repository.updateUserById(getIdUsuario(),usuario.getNome(),usuario.getEmail(),
+        return repository.updateUserById(getIdUsuario(),usuario.getNome(),usuario.getEmail().toLowerCase(),
                 usuario.getLogin(),usuario.getCpf(), usuario.getCelular(),usuario.getData_nascimento(),
                 usuario.getCep(),usuario.getLogradouro(),usuario.getComplemento(), usuario.getBairro(),
                 usuario.getNumero()).get(0);

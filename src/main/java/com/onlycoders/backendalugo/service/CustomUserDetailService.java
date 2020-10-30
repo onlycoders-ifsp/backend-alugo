@@ -27,12 +27,12 @@ public class CustomUserDetailService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
-        RetornaLogin retornaLogin = repository.verificaLogin(login);
+        RetornaLogin retornaLogin = repository.verificaLogin(login.toLowerCase());
 
         UsuarioLogin user = new UsuarioLogin();
 
         user.setIdUsuario(retornaLogin.getId_Usuario());
-        user.setLogin(retornaLogin.getLogin());
+        user.setLogin(retornaLogin.getLogin().toLowerCase());
         user.setPassword(retornaLogin.getPassword());
         user.setAdmin(retornaLogin.getAdmin());
         user.setAtivo(retornaLogin.getAtivo());
@@ -43,7 +43,7 @@ public class CustomUserDetailService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("Login não encontrado"));
         return User
                 .builder()
-                .username(user.getLogin())
+                .username(user.getLogin().toLowerCase())
                 .password(user.getPassword())
                 .roles(user.isAdmin() ? "ADMIN" : "USER")
                 .disabled(!user.isAtivo())
