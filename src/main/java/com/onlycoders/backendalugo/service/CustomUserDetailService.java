@@ -32,7 +32,7 @@ public class CustomUserDetailService implements UserDetailsService {
         UsuarioLogin user = new UsuarioLogin();
 
         user.setIdUsuario(retornaLogin.getId_Usuario());
-        user.setLogin(retornaLogin.getLogin().toLowerCase());
+        user.setLogin(retornaLogin.getLogin());
         user.setPassword(retornaLogin.getPassword());
         user.setAdmin(retornaLogin.getAdmin());
         user.setAtivo(retornaLogin.getAtivo());
@@ -43,7 +43,7 @@ public class CustomUserDetailService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("Login não encontrado"));
         return User
                 .builder()
-                .username(user.getLogin().toLowerCase())
+                .username(user.getLogin())
                 .password(user.getPassword())
                 .roles(user.isAdmin() ? "ADMIN" : "USER")
                 .disabled(!user.isAtivo())
