@@ -48,6 +48,6 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                 .secret("aluGo@123!321")
                 .scopes("read", "write")
                 .authorizedGrantTypes("password")
-                .accessTokenValiditySeconds(60 * 30);
+                .accessTokenValiditySeconds((60 * 60) * 24);
     }
 }
