@@ -18,26 +18,26 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
             "as (ID_USUARIO TEXT, ID_PRODUTO TEXT, NOME TEXT, DESCRICAO_CURTA TEXT, " +
             "  DESCRICAO TEXT, VALOR_BASE_DIARIA DECIMAL(16,2), VALOR_BASE_MENSAL DECIMAL(16,2)," +
             "  VALOR_PRODUTO DECIMAL(16,2), DATA_COMPRA TEXT, QTD_ALUGUEIS NUMERIC(16), " +
-            "  TOTAL_GANHOS DECIMAL(16,2), MEDIA_AVALIACAO DECIMAL(6,1), CAPA_FOTO BYTEA , ATIVO BOOLEAN);",
+            "  TOTAL_GANHOS DECIMAL(16,2), MEDIA_AVALIACAO DECIMAL(6,1), DT_ALUGADAS TEXT, CAPA_FOTO BYTEA , ATIVO BOOLEAN);",
             nativeQuery = true)
     List<RetornaProduto> findProduto(@Param("id_usuario") String id_usuario, @Param("id_produto") String id_produto, @Param("op") int op);
 
     @Transactional
     @Query(value = "SELECT * from FN_CADASTRAR_PRODUTO(:id,:nome,:descricao_curta,:descricao,:valor_base_diaria," +
-                    ":valor_base_mensal,:valor_produto,:data_compra)" +
+            ":valor_base_mensal,:valor_produto,:data_compra)" +
             "       as (ID_USUARIO TEXT, ID_PRODUTO TEXT, NOME TEXT, DESCRICAO_CURTA TEXT, " +
             "             DESCRICAO TEXT, VALOR_BASE_DIARIA DECIMAL(16,2), VALOR_BASE_MENSAL DECIMAL(16,2),"  +
             "             VALOR_PRODUTO DECIMAL(16,2), DATA_COMPRA TEXT, QTD_ALUGUEIS NUMERIC(16)," +
-            "             TOTAL_GANHOS DECIMAL(16,2), MEDIA_AVALIACAO DECIMAL(6,1), CAPA_FOTO BYTEA , ATIVO BOOLEAN);",nativeQuery = true)
+            "             TOTAL_GANHOS DECIMAL(16,2), MEDIA_AVALIACAO DECIMAL(6,1), DT_ALUGADAS TEXT, CAPA_FOTO BYTEA , ATIVO BOOLEAN);",nativeQuery = true)
     RetornaProduto createProduto(@Param("id") String id,
-                            @Param("nome") String nome,
-                            @Param("descricao_curta") String descricao_curta,
-                            @Param("descricao") String descricao,
-                            @Param("valor_base_diaria") Double valor_base_diaria,
-                            @Param("valor_base_mensal") Double valor_base_mensal,
-                            @Param("valor_produto") Double valor_produto,
-                            @Param("data_compra") String data_compra);
-                            //@Param("fotos") String fotos );
+                                 @Param("nome") String nome,
+                                 @Param("descricao_curta") String descricao_curta,
+                                 @Param("descricao") String descricao,
+                                 @Param("valor_base_diaria") Double valor_base_diaria,
+                                 @Param("valor_base_mensal") Double valor_base_mensal,
+                                 @Param("valor_produto") Double valor_produto,
+                                 @Param("data_compra") String data_compra);
+    //@Param("fotos") String fotos );
 
     @Transactional
     @Query(value = "SELECT FN_ATUALIZA_PRODUTO(:id,:nome,:descricaoCurta,:descricao,:diaria," +
@@ -50,7 +50,7 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
                           @Param("mensal") Double mensal,
                           @Param("valorProduto") Double valorProduto,
                           @Param("dataCompra") String dataCompra);
-                          //@Param("fotos") String fotos );
+    //@Param("fotos") String fotos );
 
     @Transactional
     @Query(value = "SELECT FN_ATIVA_INATIVA_PRODUTO(:id);",nativeQuery = true)
@@ -61,8 +61,8 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
     @Query(value = "SELECT max(id) from log.log where operacao = :id ;",nativeQuery = true)
     int teste(@Param("id") String id);
 
-        @Transactional
-        @Query(value = "SELECT FN_FOTO_PRODUTO(:id_usuario,:id_produto,:foto) ;",nativeQuery = true)
-        Boolean uploadFoto(@Param("id_usuario") String id_usuario ,@Param("id_produto") String id_produto, @Param("foto") byte[] foto);
+    @Transactional
+    @Query(value = "SELECT FN_FOTO_PRODUTO(:id_usuario,:id_produto,:foto) ;",nativeQuery = true)
+    Boolean uploadFoto(@Param("id_usuario") String id_usuario ,@Param("id_produto") String id_produto, @Param("foto") byte[] foto);
 
 }
