@@ -44,12 +44,11 @@ public interface RetornaProduto {
 //    @JsonGetter("capa_foto")
 //    String getCapa_foto();
 
+//    @JsonGetter("DT_ALUGADAS")
+//    String getDt_alugadas();
 
     @JsonGetter("capa_foto")
     byte[] getCapa_foto();
-
-    @JsonGetter("dt_alugadas")
-    String getDt_alugadas();
 
     @JsonGetter("ativo")
     Boolean getAtivo();

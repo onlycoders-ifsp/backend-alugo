@@ -1,7 +1,7 @@
 package com.onlycoders.backendalugo.api.rest;
-
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
-import com.onlycoders.backendalugo.model.entity.produto.templates.Fotos;
+import com.onlycoders.backendalugo.model.entity.produto.templates.DatasAlugadas;
+import com.onlycoders.backendalugo.model.entity.produto.templates.ProdutoAluguel;
 import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
@@ -16,8 +16,6 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import sun.nio.ch.IOUtil;
-
 import javax.servlet.http.Part;
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,8 +53,8 @@ public class ProdutoController {
     @ApiOperation(value = "Retorna produtos do usuario logado.", response = RetornaProduto.class)
     @GetMapping("/lista-produto-logado")
     @ResponseStatus(HttpStatus.OK)
-    public List<RetornaProduto> retornaProdutosUsuarioLogado() {
-        return repository.findProduto(getIdUsuario(false), "0",1);
+    public List<ProdutoAluguel> retornaProdutosUsuarioLogado() {
+        return transformaRetornoProduto(repository.findProduto(getIdUsuario(false), "0",1));
 
         //return GeraLista(listaProduto);
     }
@@ -64,48 +62,46 @@ public class ProdutoController {
     @ApiOperation(value = "Retorna um único produto do usuario logado.", response = RetornaProduto.class)
     @GetMapping("/produto-logado")
     @ResponseStatus(HttpStatus.OK)
-    public RetornaProduto retornaProdutoUsuarioLogado(@RequestParam String id_produto) {
-        return repository.findProduto(getIdUsuario(false), validaProduto(id_produto),2).get(0);
+    public ProdutoAluguel retornaProdutoUsuarioLogado(@RequestParam String id_produto) {
+        return transformaRetornoProduto(repository.findProduto(getIdUsuario(false), validaProduto(id_produto),2)).get(0);
         //return GeraLista(listaProduto);
     }
 
     @ApiOperation(value = "Retorna todos os produtos", response = RetornaProduto.class)
     @GetMapping("/lista-produto")
     @ResponseStatus(HttpStatus.OK)
-    public List<RetornaProduto> retornaProdutos() {
-        //return repository.teste(id);
-        //String user = getIdUsuario(true);
-       return repository.findProduto("0", "0",4);
+    public List<ProdutoAluguel> retornaProdutos() {
+        return transformaRetornoProduto(repository.findProduto("0", "0",4));
     }
 
     @ApiOperation(value = "Retorna um único produto", response = RetornaProduto.class)
     @GetMapping("/produto")
     @ResponseStatus(HttpStatus.OK)
-    public RetornaProduto retornaProduto(@RequestParam String id_produto) {
-        return repository.findProduto("0", validaProduto(id_produto),3).get(0);
+    public ProdutoAluguel retornaProduto(@RequestParam String id_produto) {
+        return transformaRetornoProduto(repository.findProduto("0", validaProduto(id_produto),3)).get(0);
     }
 
     @ApiOperation(value = "Pesquisa Produto", response = RetornaProduto.class)
     @GetMapping("/produto-pesquisa")
     @ResponseStatus(HttpStatus.OK)
-    public List<RetornaProduto> retornaProdutoPesquisa(@RequestParam String produto) {
-        return repository.findProduto("0", validaProduto(produto),3);
+    public List<ProdutoAluguel> retornaProdutoPesquisa(@RequestParam String produto) {
+        return transformaRetornoProduto(repository.findProduto("0", validaProduto(produto),3));
     }
 
     @ApiOperation(value = "Retorna produtos de um usuario, id ou login", response = RetornaProduto.class)
     @GetMapping("/produto-usuario")
     @ResponseStatus(HttpStatus.OK)
-    public RetornaProduto retornaProdutosUsuario(@RequestParam String id_usuario) {
-        return repository.findProduto(id_usuario, "0",1).get(0);
+    public ProdutoAluguel retornaProdutosUsuario(@RequestParam String id_usuario) {
+        return transformaRetornoProduto(repository.findProduto(id_usuario, "0",1)).get(0);
     }
 
     @ApiOperation(value = "Cadastra novo produto do usuario logado")
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
-    public RetornaProduto cadastra(@RequestBody Produto produto){
-        return repository.createProduto(getIdUsuario(false),produto.getNome(),produto.getDescricao_curta(),produto.getDescricao(),
+    public ProdutoAluguel cadastra(@RequestBody Produto produto){
+        return transformaRetornoProduto(repository.createProduto(getIdUsuario(false),produto.getNome(),produto.getDescricao_curta(),produto.getDescricao(),
                 produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
-                produto.getData_compra());
+                produto.getData_compra())).get(0);
     }
 
     @ApiOperation(value = "Atualiza/cadastra foto de produto")
@@ -171,5 +167,31 @@ public class ProdutoController {
             throw new NullPointerException("Parametro id_produto vazio");
 
         return id_produto;
+    }
+
+    public List<ProdutoAluguel> transformaRetornoProduto(List<RetornaProduto> ret){
+        List<ProdutoAluguel> listPa = new ArrayList<>();
+        for(RetornaProduto r : ret){
+            List<DatasAlugadas> dt = repository.dtAlugadas(r.getId_produto());
+            ProdutoAluguel pa = new ProdutoAluguel();
+            pa.setAtivo(r.getAtivo());
+            pa.setCapa_foto(r.getCapa_foto());
+            pa.setData_compra(r.getData_compra());
+            pa.setDescricao(r.getDescricao());
+            pa.setDescricao_curta(r.getDescricao_curta());
+            //pa.setDt_aluguel(r.getDt_alugadas().split(","));
+            pa.setDt_alugadas(dt);
+            pa.setId_produto(r.getId_produto());
+            pa.setId_usuario(r.getId_usuario());
+            pa.setMedia_avaliacao(r.getMedia_avaliacao());
+            pa.setNome(r.getNome());
+            pa.setQtd_alugueis(r.getQtd_alugueis());
+            pa.setTotal_ganhos(r.getTotal_ganhos());
+            pa.setValor_base_diaria(r.getValor_base_diaria());
+            pa.setValor_base_mensal(r.getValor_base_mensal());
+            pa.setValor_produto(r.getValor_produto());
+            listPa.add(pa);
+        }
+        return listPa;
     }
 }
