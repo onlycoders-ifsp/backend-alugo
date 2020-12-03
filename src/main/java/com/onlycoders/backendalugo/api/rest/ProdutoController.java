@@ -131,7 +131,7 @@ public class ProdutoController {
 
         return repository.updateProduto(validaProduto(produto.getId_produto()), produto.getNome(), produto.getDescricao_curta(),
                 produto.getDescricao(),produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
-                produto.getData_compra());
+                produto.getData_compra(),produto.getAtivo());
     }
 
     @ApiOperation(value = "Ativa ou inativa produto.")

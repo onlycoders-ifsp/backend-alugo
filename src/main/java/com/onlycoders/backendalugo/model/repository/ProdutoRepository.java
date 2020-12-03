@@ -47,7 +47,7 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
 
     @Transactional
     @Query(value = "SELECT FN_ATUALIZA_PRODUTO(:id,:nome,:descricaoCurta,:descricao,:diaria," +
-            ":mensal,:valorProduto,:dataCompra);",nativeQuery = true)
+            ":mensal,:valorProduto,:dataCompra), :ativo;",nativeQuery = true)
     Boolean updateProduto(@Param("id") String id,
                           @Param("nome") String nome,
                           @Param("descricaoCurta") String descricaoCurta,
@@ -55,17 +55,13 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
                           @Param("diaria") Double diaria,
                           @Param("mensal") Double mensal,
                           @Param("valorProduto") Double valorProduto,
-                          @Param("dataCompra") String dataCompra);
+                          @Param("dataCompra") String dataCompra,
+                          @Param("ativo") Boolean ativo);
     //@Param("fotos") String fotos );
 
     @Transactional
     @Query(value = "SELECT FN_ATIVA_INATIVA_PRODUTO(:id);",nativeQuery = true)
     Boolean ativaInativaProduto(@Param("id") String id);
-
-
-    @Transactional
-    @Query(value = "SELECT max(id) from log.log where operacao = :id ;",nativeQuery = true)
-    int teste(@Param("id") String id);
 
     @Transactional
     @Query(value = "SELECT FN_FOTO_PRODUTO(:id_usuario,:id_produto,:foto) ;",nativeQuery = true)
