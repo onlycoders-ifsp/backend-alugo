@@ -128,7 +128,6 @@ public class ProdutoController {
     @PutMapping("/altera")
     @ResponseStatus(HttpStatus.OK)
     public Boolean atualiza(@RequestBody Produto produto) {
-
         return repository.updateProduto(validaProduto(produto.getId_produto()), produto.getNome(), produto.getDescricao_curta(),
                 produto.getDescricao(),produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
                 produto.getData_compra(),produto.getAtivo());

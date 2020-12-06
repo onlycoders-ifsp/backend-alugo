@@ -83,7 +83,7 @@ public class Produto {
     private Byte[] fotos;
 */
     @JsonAlias({"ativo"})
-    private Boolean ativo = true;
+    private Boolean ativo;
 
     public String getId_usuario() {
         return id_usuario;

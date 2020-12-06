@@ -47,7 +47,7 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
 
     @Transactional
     @Query(value = "SELECT FN_ATUALIZA_PRODUTO(:id,:nome,:descricaoCurta,:descricao,:diaria," +
-            ":mensal,:valorProduto,:dataCompra), :ativo;",nativeQuery = true)
+            ":mensal,:valorProduto,:dataCompra, :ativo);",nativeQuery = true)
     Boolean updateProduto(@Param("id") String id,
                           @Param("nome") String nome,
                           @Param("descricaoCurta") String descricaoCurta,
