@@ -130,6 +130,8 @@ public class UsuarioController {
     @PutMapping("altera-dados")
     @ResponseStatus(HttpStatus.OK)
     public RetornaUsuario alteraUsuario(@RequestBody RequestUsuario usuario) {
+        validaCampos(usuario.getLogin(),usuario.getCpf(),usuario.getEmail(),usuario.getCelular(),usuario.getNome());
+
         return repository.updateUserById(getIdUsuario(),usuario.getNome(),usuario.getEmail().toLowerCase(),
                 usuario.getLogin(),usuario.getCpf(), usuario.getCelular(),usuario.getData_nascimento(),
                 usuario.getCep(),usuario.getLogradouro(),usuario.getComplemento(), usuario.getBairro(),
@@ -177,7 +179,7 @@ public class UsuarioController {
             throw new NullPointerException("Usuario não logado");
         }
 
-        login = repository.retornaIdUsuario(auth.getName());
+        login = repository.retornaIdUsuario(auth.getName(),"username");
         if (login.isEmpty() || login == null) {
             throw new NullPointerException("Usuario não encontrado");
         }

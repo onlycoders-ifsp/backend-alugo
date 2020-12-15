@@ -98,16 +98,18 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
 
     //Verifica login
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
-    @Query(value = "Select *from FN_VERIFCAR_LOGIN(:login)" +
+    @Query(value = "Select *from FN_VERIFCAR_LOGIN(:login, :loginType)" +
                    " AS T(ID_USUARIO TEXT, LOGIN TEXT, PASSWORD TEXT, ADMIN BOOLEAN, ATIVO BOOLEAN);",
                     nativeQuery = true)
-    RetornaLogin verificaLogin(@Param("login") String login);
+    RetornaLogin verificaLogin(@Param("login") String login,
+                               @Param("loginType") String loginType);
 
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
-    @Query(value = "Select ID_USUARIO from FN_VERIFCAR_LOGIN(:login)" +
+    @Query(value = "Select ID_USUARIO from FN_VERIFCAR_LOGIN(:login, :loginType)" +
             " AS T(ID_USUARIO TEXT, LOGIN TEXT, PASSWORD TEXT, ADMIN BOOLEAN, ATIVO BOOLEAN);",
             nativeQuery = true)
-    String retornaIdUsuario(@Param("login") String login);
+    String retornaIdUsuario(@Param("login") String login,
+                            @Param("loginType") String loginType);
 
     @Transactional()
     @Query(value = "Select FN_ATUALIZA_SENHA(:idUsuario,:senha);",
