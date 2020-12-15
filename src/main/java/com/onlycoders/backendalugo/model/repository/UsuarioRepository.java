@@ -98,18 +98,16 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
 
     //Verifica login
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
-    @Query(value = "Select *from FN_VERIFCAR_LOGIN(:login, :loginType)" +
+    @Query(value = "Select *from FN_VERIFCAR_LOGIN(:login)" +
                    " AS T(ID_USUARIO TEXT, LOGIN TEXT, PASSWORD TEXT, ADMIN BOOLEAN, ATIVO BOOLEAN);",
                     nativeQuery = true)
-    RetornaLogin verificaLogin(@Param("login") String login,
-                               @Param("loginType") String loginType);
+    RetornaLogin verificaLogin(@Param("login") String login);
 
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
-    @Query(value = "Select ID_USUARIO from FN_VERIFCAR_LOGIN(:login, :loginType)" +
+    @Query(value = "Select ID_USUARIO from FN_VERIFCAR_LOGIN(:login)" +
             " AS T(ID_USUARIO TEXT, LOGIN TEXT, PASSWORD TEXT, ADMIN BOOLEAN, ATIVO BOOLEAN);",
             nativeQuery = true)
-    String retornaIdUsuario(@Param("login") String login,
-                            @Param("loginType") String loginType);
+    String retornaIdUsuario(@Param("login") String login);
 
     @Transactional()
     @Query(value = "Select FN_ATUALIZA_SENHA(:idUsuario,:senha);",
@@ -125,4 +123,10 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
     @Query(value = "SELECT FN_VALIDA_DADOS(:dado,:opcao);",nativeQuery = true)
     Boolean validaDado(@Param("dado") String dado,
                         @Param("opcao") int opcao);
+
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Query(value = "SELECT FN_VALIDA_DADOS_UPDATE(:dado,:id_usuario,:opcao);",nativeQuery = true)
+    Boolean validaDadouUpdate(@Param("dado") String dado,
+                       @Param("id_usuario") String id_usuario,
+                       @Param("opcao") int opcao);
 }

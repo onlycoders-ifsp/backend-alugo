@@ -9,10 +9,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-
-import javax.servlet.http.HttpServletRequest;
 import java.util.Optional;
 
 @Service
@@ -27,20 +23,8 @@ public class CustomUserDetailService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
-        RetornaLogin retornaLogin;
 
-        HttpServletRequest request = ((ServletRequestAttributes)
-                RequestContextHolder.getRequestAttributes()).getRequest();
-
-        String loginType = request.getParameter("login_type");
-
-        System.out.println(loginType.toLowerCase());
-        if (loginType.equalsIgnoreCase("username") || loginType.equalsIgnoreCase("email")){
-            retornaLogin = repository.verificaLogin(login.toLowerCase(), loginType.toLowerCase());
-        }
-        else {
-            throw new UsernameNotFoundException("Parametro 'login_type' incorreto");
-        }
+        RetornaLogin retornaLogin = repository.verificaLogin(login.toLowerCase());
 
         UsuarioLogin user = new UsuarioLogin();
 

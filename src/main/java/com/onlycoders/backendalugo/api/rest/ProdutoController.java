@@ -151,7 +151,7 @@ public class ProdutoController {
                 return "0";
         }
 
-        login = repositoryUsuario.retornaIdUsuario(auth.getName(),"username");
+        login = repositoryUsuario.retornaIdUsuario(auth.getName());
         if (login.isEmpty() || login == null) {
             if(!pesquisa)
                 throw new NullPointerException("Usuario não encontrado");
