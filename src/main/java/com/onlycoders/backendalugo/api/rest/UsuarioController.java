@@ -78,7 +78,7 @@ public class UsuarioController {
     @ResponseStatus(HttpStatus.CREATED)
     public RetornaUsuario salvar(@RequestBody Usuario usuario){
        validaCampos(usuario.getLogin(), usuario.getCpf(), usuario.getEmail(),
-               usuario.getCelular(), usuario.getNome());
+               usuario.getCelular(), usuario.getNome(), false);
 
         return repository
                 .createUsuarioMin(usuario.getNome(), usuario.getEmail().toLowerCase(),usuario.getLogin(),
@@ -130,13 +130,15 @@ public class UsuarioController {
     @PutMapping("altera-dados")
     @ResponseStatus(HttpStatus.OK)
     public RetornaUsuario alteraUsuario(@RequestBody RequestUsuario usuario) {
+        validaCampos(usuario.getLogin(),usuario.getCpf(),usuario.getEmail(),usuario.getCelular(),usuario.getNome(),true);
+
         return repository.updateUserById(getIdUsuario(),usuario.getNome(),usuario.getEmail().toLowerCase(),
                 usuario.getLogin(),usuario.getCpf(), usuario.getCelular(),usuario.getData_nascimento(),
                 usuario.getCep(),usuario.getLogradouro(),usuario.getComplemento(), usuario.getBairro(),
                 usuario.getNumero()).get(0);
     }
 
-    private void validaCampos(String login, String cpf, String email, String celular, String nome) {
+    private void validaCampos(String login, String cpf, String email, String celular, String nome, Boolean isUpdate) {
         if(celular.isEmpty() || celular == null){
             throw new NullPointerException("Celular inválido");
         }
@@ -148,22 +150,35 @@ public class UsuarioController {
         if(login.isEmpty() || login == null) {
             throw new NullPointerException("Login inválido");
         }
-        else if(repository.validaDado(login,3)){
-            throw new NullPointerException("Login já existe");
-        }
 
-        if(cpf.isEmpty() || cpf == null) {
-            throw new NullPointerException("CPF inválido");
-        }
-        else if(repository.validaDado(cpf,1)){
+        else if(isUpdate){
+            if(repository.validaDadouUpdate(login,getIdUsuario(),3)){
+                throw new NullPointerException("Login já existe");
+            }
+            else if(repository.validaDadouUpdate(cpf, getIdUsuario(),1)){
                 throw new NullPointerException("CPF já existe");
+            }
+            else if(repository.validaDadouUpdate(email,getIdUsuario(),2)){
+                throw new NullPointerException("Email já existe");
+            }
         }
+        else {
 
-        if (email.isEmpty() || email == null || !email.contains("@")) {
-            throw new NullPointerException("Email inválido");
-        }
-        else if(repository.validaDado(email, 2)){
-            throw new NullPointerException("Email já existe");
+            if (repository.validaDado(login, 3)) {
+                throw new NullPointerException("Login já existe");
+            }
+
+            if (cpf.isEmpty() || cpf == null) {
+                throw new NullPointerException("CPF inválido");
+            } else if (repository.validaDado(cpf, 1)) {
+                throw new NullPointerException("CPF já existe");
+            }
+
+            if (email.isEmpty() || email == null || !email.contains("@")) {
+                throw new NullPointerException("Email inválido");
+            } else if (repository.validaDado(email, 2)) {
+                throw new NullPointerException("Email já existe");
+            }
         }
         //  return valida = repository.validaCampos(login, cpf, email);
     }
@@ -183,24 +198,4 @@ public class UsuarioController {
         }
         return login;
     }
-
-    /*public  HashMap<String,Object> GeraLista(List<RetornaUsuario> listaUsuario){
-        HashMap<String, Object> mapUsuario = new HashMap<String, Object>();
-        int cont = 1;
-        for(RetornaUsuario p : listaUsuario){
-            mapUsuario.put("Usuario " + String.valueOf(cont), p);
-            cont++;
-        }
-        return  mapUsuario;
-    }
-     */
-/*
-    public String validaLogin(){
-        String id = IdUsuario.getId_usuario();
-        System.out.println(id);
-        if(id.isEmpty() || id == null || id.equals("0"))
-            throw new NullPointerException("Usuario não está logado");
-
-        return id;
-    }*/
 }

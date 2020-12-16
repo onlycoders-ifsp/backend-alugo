@@ -1,18 +1,14 @@
 package com.onlycoders.backendalugo.service;
 
-import com.onlycoders.backendalugo.model.entity.login.IdUsuario;
 import com.onlycoders.backendalugo.model.entity.login.RetornaLogin;
 import com.onlycoders.backendalugo.model.entity.login.UsuarioLogin;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
 import java.util.Optional;
 
 @Service
@@ -27,8 +23,8 @@ public class CustomUserDetailService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
-        login = login.toLowerCase();
-        RetornaLogin retornaLogin = repository.verificaLogin(login);
+
+        RetornaLogin retornaLogin = repository.verificaLogin(login.toLowerCase());
 
         UsuarioLogin user = new UsuarioLogin();
 
@@ -37,8 +33,6 @@ public class CustomUserDetailService implements UserDetailsService {
         user.setPassword(retornaLogin.getPassword());
         user.setAdmin(retornaLogin.getAdmin());
         user.setAtivo(retornaLogin.getAtivo());
-
-        //IdUsuario.setId_usuario(user.getIdUsuario());
 
         Optional.of(user)
                 .orElseThrow(() -> new UsernameNotFoundException("Login não encontrado"));

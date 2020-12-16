@@ -123,4 +123,10 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
     @Query(value = "SELECT FN_VALIDA_DADOS(:dado,:opcao);",nativeQuery = true)
     Boolean validaDado(@Param("dado") String dado,
                         @Param("opcao") int opcao);
+
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Query(value = "SELECT FN_VALIDA_DADOS_UPDATE(:dado,:id_usuario,:opcao);",nativeQuery = true)
+    Boolean validaDadouUpdate(@Param("dado") String dado,
+                       @Param("id_usuario") String id_usuario,
+                       @Param("opcao") int opcao);
 }
