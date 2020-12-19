@@ -3,6 +3,8 @@ package com.onlycoders.backendalugo.model.repository;
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
 import com.onlycoders.backendalugo.model.entity.produto.templates.DatasAlugadas;
 import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,7 +23,9 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
             "  VALOR_PRODUTO DECIMAL(16,2), DATA_COMPRA TEXT, QTD_ALUGUEIS NUMERIC(16), " +
             "  TOTAL_GANHOS DECIMAL(16,2), MEDIA_AVALIACAO DECIMAL(6,1), CAPA_FOTO BYTEA , ATIVO BOOLEAN);",
             nativeQuery = true)
-    List<RetornaProduto> findProduto(@Param("id_usuario") String id_usuario, @Param("id_produto") String id_produto, @Param("op") int op);
+    List<RetornaProduto> findProduto(@Param("id_usuario") String id_usuario,
+                                     @Param("id_produto") String id_produto,
+                                     @Param("op") int op);
 
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "select *FROM FN_RETORNA_DATAS_ALUGADAS(:id_produto)" +

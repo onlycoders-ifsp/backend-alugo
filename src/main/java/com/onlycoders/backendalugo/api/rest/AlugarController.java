@@ -11,6 +11,10 @@ import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -69,7 +73,14 @@ public class AlugarController {
     @ApiOperation(value = "Retorna todos alugueis do usuario logado como locador")
     @GetMapping("/locador")
     @ResponseStatus(HttpStatus.OK)
-    public List<RetornaAluguelUsuarioProduto> retornaAluguelLocadorLogado() {
+    public Page<RetornaAluguelUsuarioProduto>
+    retornaAluguelLocadorLogado(@RequestParam(value = "page",
+                                                required = false,
+                                                defaultValue = "0") int page,
+                                @RequestParam(value = "size",
+                                              required = false,
+                                              defaultValue = "10") int size) {
+        Pageable paging = PageRequest.of(page, size);
 
         String id_locador = getIdUsuario();
         String id_locatario;
@@ -83,10 +94,9 @@ public class AlugarController {
 
         for (RetornaAluguel a : aluguelEfeutuado) {
             RetornaAluguelUsuarioProduto aluguel = new RetornaAluguelUsuarioProduto();
-                id_locatario = a.getId_locatario();
-                id_produto = a.getId_produto();
 
-
+            id_locatario = a.getId_locatario();
+            id_produto = a.getId_produto();
             aluguel.setAluguel(a);
             RetornaUsuario locador = usuarioRepository.findUsuario(id_locador).get(0);
             aluguel.setLocador(locador);
@@ -96,19 +106,24 @@ public class AlugarController {
 
             RetornaProduto produto = produtoRepository.findProduto("0", id_produto, 3).get(0);
             aluguel.setProduto(produto);
-
             alugueis.add(aluguel);
-
         }
 
-        return alugueis;
+        return new PageImpl<>(alugueis,paging,alugueis.size());
     }
 
     @ApiOperation(value = "Retorna todos alugueis do usuario logado como locatario")
     @GetMapping("/locatario")
     @ResponseStatus(HttpStatus.OK)
-    public List<RetornaAluguelUsuarioProduto> retornaAluguelLocatarioLogado() {
+    public Page<RetornaAluguelUsuarioProduto>
+    retornaAluguelLocatarioLogado(@RequestParam(value = "page",
+                                                required = false,
+                                                defaultValue = "0") int page,
+                                  @RequestParam(value = "size",
+                                                required = false,
+                                                defaultValue = "10") int size) {
 
+        Pageable paging = PageRequest.of(page, size);
         String id_locatario = getIdUsuario();
         String id_produto;
         String id_locador;
@@ -138,7 +153,7 @@ public class AlugarController {
 
         }
 
-        return alugueis;
+        return new PageImpl<>(alugueis,paging,alugueis.size());
 
         //return aluguelRepository.retornaAluguel("0",getIdUsuario(),"0","0",3);
     }

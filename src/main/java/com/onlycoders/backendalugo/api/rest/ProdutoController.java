@@ -11,6 +11,10 @@ import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -34,27 +38,17 @@ public class ProdutoController {
     @Autowired
     private UsuarioRepository repositoryUsuario;
 
-    public ProdutoRepository getRepository() {
-        return repository;
-    }
-
-    public void setRepository(ProdutoRepository repository) {
-        this.repository = repository;
-    }
-
-    public UsuarioRepository getRepositoryUsuario() {
-        return repositoryUsuario;
-    }
-
-    public void setRepositoryUsuario(UsuarioRepository repositoryUsuario) {
-        this.repositoryUsuario = repositoryUsuario;
-    }
-
     @ApiOperation(value = "Retorna produtos do usuario logado.", response = RetornaProduto.class)
     @GetMapping("/lista-produto-logado")
     @ResponseStatus(HttpStatus.OK)
-    public List<ProdutoAluguel> retornaProdutosUsuarioLogado() {
-        return transformaRetornoProduto(repository.findProduto(getIdUsuario(false), "0",1));
+    public Page<ProdutoAluguel> retornaProdutosUsuarioLogado(@RequestParam(value = "page",
+                                                                            required = false,
+                                                                            defaultValue = "0") int page,
+                                                             @RequestParam(value = "size",
+                                                                             required = false,
+                                                                             defaultValue = "10") int size) {
+        Pageable paging = PageRequest.of(page, size);
+        return transformaRetornoProdutoToPage(repository.findProduto(getIdUsuario(false), "0",1),paging);
 
         //return GeraLista(listaProduto);
     }
@@ -70,8 +64,14 @@ public class ProdutoController {
     @ApiOperation(value = "Retorna todos os produtos", response = RetornaProduto.class)
     @GetMapping("/lista-produto")
     @ResponseStatus(HttpStatus.OK)
-    public List<ProdutoAluguel> retornaProdutos() {
-        return transformaRetornoProduto(repository.findProduto("0", "0",4));
+    public Page<ProdutoAluguel> retornaProdutos(@RequestParam(value = "page",
+                                                                required = false,
+                                                                defaultValue = "0") int page,
+                                                @RequestParam(value = "size",
+                                                                required = false,
+                                                                defaultValue = "10") int size) {
+        Pageable paging = PageRequest.of(page, size);
+        return transformaRetornoProdutoToPage(repository.findProduto("0", "0",4),paging);
     }
 
     @ApiOperation(value = "Retorna um único produto", response = RetornaProduto.class)
@@ -81,11 +81,20 @@ public class ProdutoController {
         return transformaRetornoProduto(repository.findProduto("0", validaProduto(id_produto),3)).get(0);
     }
 
-    @ApiOperation(value = "Pesquisa Produto", response = RetornaProduto.class)
+    @ApiOperation(value = "Pesquisa de produto", response = RetornaProduto.class)
     @GetMapping("/produto-pesquisa")
     @ResponseStatus(HttpStatus.OK)
-    public List<ProdutoAluguel> retornaProdutoPesquisa(@RequestParam String produto) {
-        return transformaRetornoProduto(repository.findProduto("0", validaProduto(produto),3));
+    public Page<ProdutoAluguel> retornaProdutoPesquisa(@RequestParam String produto,
+                                                       @RequestParam(value = "page",
+                                                                     required = false,
+                                                                     defaultValue = "0") int page,
+                                                       @RequestParam(value = "size",
+                                                               required = false,
+                                                               defaultValue = "10") int size) {
+        Pageable paging = PageRequest.of(page, size);
+        return transformaRetornoProdutoToPage(repository.findProduto("0", validaProduto(produto),3),paging);
+        //List<RetornaProduto> tmpProdutos = repository.findProduto("0", validaProduto(produto),3);
+        //page
     }
 
     @ApiOperation(value = "Retorna produtos de um usuario, id ou login", response = RetornaProduto.class)
@@ -168,6 +177,33 @@ public class ProdutoController {
         return id_produto;
     }
 
+    public Page<ProdutoAluguel> transformaRetornoProdutoToPage(List<RetornaProduto> ret, Pageable page){
+        List<ProdutoAluguel> listPa = new ArrayList<>();
+        for(RetornaProduto r : ret){
+            List<DatasAlugadas> dt = repository.dtAlugadas(r.getId_produto());
+            ProdutoAluguel pa = new ProdutoAluguel();
+            pa.setAtivo(r.getAtivo());
+            pa.setCapa_foto(r.getCapa_foto());
+            pa.setData_compra(r.getData_compra());
+            pa.setDescricao(r.getDescricao());
+            pa.setDescricao_curta(r.getDescricao_curta());
+            //pa.setDt_aluguel(r.getDt_alugadas().split(","));
+            pa.setDt_alugadas(dt);
+            pa.setId_produto(r.getId_produto());
+            pa.setId_usuario(r.getId_usuario());
+            pa.setMedia_avaliacao(r.getMedia_avaliacao());
+            pa.setNome(r.getNome());
+            pa.setQtd_alugueis(r.getQtd_alugueis());
+            pa.setTotal_ganhos(r.getTotal_ganhos());
+            pa.setValor_base_diaria(r.getValor_base_diaria());
+            pa.setValor_base_mensal(r.getValor_base_mensal());
+            pa.setValor_produto(r.getValor_produto());
+            listPa.add(pa);
+        }
+        //Page<ProdutoAluguel> produtos = new PageImpl<>(listPa,page, listPa.size());
+        return new PageImpl<>(listPa,page, listPa.size());//listPa;
+    }
+
     public List<ProdutoAluguel> transformaRetornoProduto(List<RetornaProduto> ret){
         List<ProdutoAluguel> listPa = new ArrayList<>();
         for(RetornaProduto r : ret){
@@ -191,6 +227,7 @@ public class ProdutoController {
             pa.setValor_produto(r.getValor_produto());
             listPa.add(pa);
         }
+        //Page<ProdutoAluguel> produtos = new PageImpl<>(listPa,page, listPa.size());
         return listPa;
     }
 }
