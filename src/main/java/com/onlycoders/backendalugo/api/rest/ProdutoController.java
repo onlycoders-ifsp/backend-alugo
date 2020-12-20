@@ -11,10 +11,8 @@ import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.beans.support.PagedListHolder;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -41,13 +39,13 @@ public class ProdutoController {
     @ApiOperation(value = "Retorna produtos do usuario logado.", response = RetornaProduto.class)
     @GetMapping("/lista-produto-logado")
     @ResponseStatus(HttpStatus.OK)
-    public Page<ProdutoAluguel> retornaProdutosUsuarioLogado(@RequestParam(value = "page",
-                                                                            required = false,
-                                                                            defaultValue = "0") int page,
-                                                             @RequestParam(value = "size",
-                                                                             required = false,
-                                                                             defaultValue = "10") int size) {
-        Pageable paging = PageRequest.of(page, size);
+    public Page<ProdutoAluguel>
+    retornaProdutosUsuarioLogado(@RequestParam(value = "page",required = false,defaultValue = "0") int page,
+                                 @RequestParam(value = "size",required = false,defaultValue = "10") int size,
+                                 @RequestParam(value = "sort",required = false,defaultValue = "qtd_alugueis") String sortBy,
+                                 @RequestParam(value = "order",required = false,defaultValue = "desc") String order) {
+
+        Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
         return transformaRetornoProdutoToPage(repository.findProduto(getIdUsuario(false), "0",1),paging);
 
         //return GeraLista(listaProduto);
@@ -64,13 +62,13 @@ public class ProdutoController {
     @ApiOperation(value = "Retorna todos os produtos", response = RetornaProduto.class)
     @GetMapping("/lista-produto")
     @ResponseStatus(HttpStatus.OK)
-    public Page<ProdutoAluguel> retornaProdutos(@RequestParam(value = "page",
-                                                                required = false,
-                                                                defaultValue = "0") int page,
-                                                @RequestParam(value = "size",
-                                                                required = false,
-                                                                defaultValue = "10") int size) {
-        Pageable paging = PageRequest.of(page, size);
+    public Page<ProdutoAluguel>
+    retornaProdutos(@RequestParam(value = "page",required = false,defaultValue = "0") int page,
+                    @RequestParam(value = "size",required = false,defaultValue = "10") int size,
+                    @RequestParam(value = "sort",required = false,defaultValue = "qtd_alugueis") String sortBy,
+                    @RequestParam(value = "order",required = false,defaultValue = "desc") String order) {
+
+        Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
         return transformaRetornoProdutoToPage(repository.findProduto("0", "0",4),paging);
     }
 
@@ -84,14 +82,14 @@ public class ProdutoController {
     @ApiOperation(value = "Pesquisa de produto", response = RetornaProduto.class)
     @GetMapping("/produto-pesquisa")
     @ResponseStatus(HttpStatus.OK)
-    public Page<ProdutoAluguel> retornaProdutoPesquisa(@RequestParam String produto,
-                                                       @RequestParam(value = "page",
-                                                                     required = false,
-                                                                     defaultValue = "0") int page,
-                                                       @RequestParam(value = "size",
-                                                               required = false,
-                                                               defaultValue = "10") int size) {
-        Pageable paging = PageRequest.of(page, size);
+    public Page <ProdutoAluguel>
+    retornaProdutoPesquisa(@RequestParam String produto,
+                           @RequestParam(value = "page",required = false,defaultValue = "0") int page,
+                           @RequestParam(value = "size",required = false,defaultValue = "10") int size,
+                           @RequestParam(value = "sort",required = false,defaultValue = "qtd_alugueis") String sortBy,
+                           @RequestParam(value = "order",required = false,defaultValue = "desc") String order) {
+
+        Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
         return transformaRetornoProdutoToPage(repository.findProduto("0", validaProduto(produto),3),paging);
         //List<RetornaProduto> tmpProdutos = repository.findProduto("0", validaProduto(produto),3);
         //page
@@ -177,7 +175,7 @@ public class ProdutoController {
         return id_produto;
     }
 
-    public Page<ProdutoAluguel> transformaRetornoProdutoToPage(List<RetornaProduto> ret, Pageable page){
+    public Page <ProdutoAluguel> transformaRetornoProdutoToPage(List<RetornaProduto> ret, Pageable page){
         List<ProdutoAluguel> listPa = new ArrayList<>();
         for(RetornaProduto r : ret){
             List<DatasAlugadas> dt = repository.dtAlugadas(r.getId_produto());
@@ -201,7 +199,16 @@ public class ProdutoController {
             listPa.add(pa);
         }
         //Page<ProdutoAluguel> produtos = new PageImpl<>(listPa,page, listPa.size());
-        return new PageImpl<>(listPa,page, listPa.size());//listPa;
+        System.out.println(page.getPageSize());
+        System.out.println(page.getPageNumber());
+        System.out.println(page.getOffset());
+        //PagedListHolder paging = new PagedListHolder(listPa);
+        //paging.setPage(page.getPageNumber());
+        //paging.setPageSize(page.getPageSize());
+        //return paging;//
+        int start =(int) page.getOffset();
+        int end = (start + page.getPageSize()) > listPa.size() ? listPa.size() : (start + page.getPageSize());
+        return new PageImpl<>(listPa.subList(start,end),page,listPa.size());//listPa;
     }
 
     public List<ProdutoAluguel> transformaRetornoProduto(List<RetornaProduto> ret){
