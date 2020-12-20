@@ -1,6 +1,7 @@
 package com.onlycoders.backendalugo.api.rest;
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
 import com.onlycoders.backendalugo.model.entity.produto.templates.DatasAlugadas;
+import com.onlycoders.backendalugo.model.entity.produto.templates.DtAlugadas;
 import com.onlycoders.backendalugo.model.entity.produto.templates.ProdutoAluguel;
 import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
@@ -55,7 +56,10 @@ public class ProdutoController {
     @GetMapping("/produto-logado")
     @ResponseStatus(HttpStatus.OK)
     public ProdutoAluguel retornaProdutoUsuarioLogado(@RequestParam String id_produto) {
-        return transformaRetornoProduto(repository.findProduto(getIdUsuario(false), validaProduto(id_produto),2)).get(0);
+        Pageable paging = PageRequest.of(0, 1);
+        return transformaRetornoProdutoToPage(
+                repository.findProduto(getIdUsuario(false), validaProduto(id_produto),2),paging)
+                .getContent().get(0);
         //return GeraLista(listaProduto);
     }
 
@@ -76,7 +80,11 @@ public class ProdutoController {
     @GetMapping("/produto")
     @ResponseStatus(HttpStatus.OK)
     public ProdutoAluguel retornaProduto(@RequestParam String id_produto) {
-        return transformaRetornoProduto(repository.findProduto("0", validaProduto(id_produto),3)).get(0);
+        Pageable paging = PageRequest.of(0, 1);
+        return transformaRetornoProdutoToPage(
+                repository.findProduto("0", validaProduto(id_produto),3),paging)
+                .getContent()
+                .get(0);
     }
 
     @ApiOperation(value = "Pesquisa de produto", response = RetornaProduto.class)
@@ -99,16 +107,20 @@ public class ProdutoController {
     @GetMapping("/produto-usuario")
     @ResponseStatus(HttpStatus.OK)
     public ProdutoAluguel retornaProdutosUsuario(@RequestParam String id_usuario) {
-        return transformaRetornoProduto(repository.findProduto(id_usuario, "0",1)).get(0);
+        Pageable paging = PageRequest.of(0, 1);
+        return transformaRetornoProdutoToPage(
+                repository.findProduto(id_usuario, "0",1),paging)
+                .getContent().get(0);
     }
 
     @ApiOperation(value = "Cadastra novo produto do usuario logado")
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
     public ProdutoAluguel cadastra(@RequestBody Produto produto){
-        return transformaRetornoProduto(repository.createProduto(getIdUsuario(false),produto.getNome(),produto.getDescricao_curta(),produto.getDescricao(),
+        Pageable paging = PageRequest.of(0, 1);
+        return transformaRetornoProdutoToPage(repository.createProduto(getIdUsuario(false),produto.getNome(),produto.getDescricao_curta(),produto.getDescricao(),
                 produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
-                produto.getData_compra())).get(0);
+                produto.getData_compra()),paging).getContent().get(0);
     }
 
     @ApiOperation(value = "Atualiza/cadastra foto de produto")
@@ -177,8 +189,22 @@ public class ProdutoController {
 
     public Page <ProdutoAluguel> transformaRetornoProdutoToPage(List<RetornaProduto> ret, Pageable page){
         List<ProdutoAluguel> listPa = new ArrayList<>();
+        String[] dtAluguel;
+        String[] dtAluguelInicio;
+        String[] dtAluguelFim;
+
         for(RetornaProduto r : ret){
-            List<DatasAlugadas> dt = repository.dtAlugadas(r.getId_produto());
+            List<DtAlugadas> dt = new ArrayList<DtAlugadas>();// = repository.dtAlugadas(r.getId_produto());
+
+            if (r.getDt_Aluguel().contains(";")) {
+                dtAluguel = r.getDt_Aluguel().split(";");
+                dtAluguelInicio = dtAluguel[0].split(",");
+                dtAluguelFim = dtAluguel[1].split(",");
+                for (int i = 0; i < dtAluguelInicio.length; i++) {
+                    DtAlugadas dtAlugadas = new DtAlugadas(dtAluguelInicio[i],dtAluguelFim[i]);
+                    dt.add(dtAlugadas);
+                }
+            }
             ProdutoAluguel pa = new ProdutoAluguel();
             pa.setAtivo(r.getAtivo());
             pa.setCapa_foto(r.getCapa_foto());
@@ -199,9 +225,6 @@ public class ProdutoController {
             listPa.add(pa);
         }
         //Page<ProdutoAluguel> produtos = new PageImpl<>(listPa,page, listPa.size());
-        System.out.println(page.getPageSize());
-        System.out.println(page.getPageNumber());
-        System.out.println(page.getOffset());
         //PagedListHolder paging = new PagedListHolder(listPa);
         //paging.setPage(page.getPageNumber());
         //paging.setPageSize(page.getPageSize());
@@ -211,7 +234,7 @@ public class ProdutoController {
         return new PageImpl<>(listPa.subList(start,end),page,listPa.size());//listPa;
     }
 
-    public List<ProdutoAluguel> transformaRetornoProduto(List<RetornaProduto> ret){
+    /*public List<ProdutoAluguel> transformaRetornoProduto(List<RetornaProduto> ret){
         List<ProdutoAluguel> listPa = new ArrayList<>();
         for(RetornaProduto r : ret){
             List<DatasAlugadas> dt = repository.dtAlugadas(r.getId_produto());
@@ -236,5 +259,5 @@ public class ProdutoController {
         }
         //Page<ProdutoAluguel> produtos = new PageImpl<>(listPa,page, listPa.size());
         return listPa;
-    }
+    }*/
 }

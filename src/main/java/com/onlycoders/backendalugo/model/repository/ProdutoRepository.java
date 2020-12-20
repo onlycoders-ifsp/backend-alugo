@@ -21,7 +21,7 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
             "as (ID_USUARIO TEXT, ID_PRODUTO TEXT, NOME TEXT, DESCRICAO_CURTA TEXT, " +
             "  DESCRICAO TEXT, VALOR_BASE_DIARIA DECIMAL(16,2), VALOR_BASE_MENSAL DECIMAL(16,2)," +
             "  VALOR_PRODUTO DECIMAL(16,2), DATA_COMPRA TEXT, QTD_ALUGUEIS NUMERIC(16), " +
-            "  TOTAL_GANHOS DECIMAL(16,2), MEDIA_AVALIACAO DECIMAL(6,1), CAPA_FOTO BYTEA , ATIVO BOOLEAN);",
+            "  TOTAL_GANHOS DECIMAL(16,2), MEDIA_AVALIACAO DECIMAL(6,1), DT_ALUGUEL TEXT, CAPA_FOTO BYTEA , ATIVO BOOLEAN);",
             nativeQuery = true)
     List<RetornaProduto> findProduto(@Param("id_usuario") String id_usuario,
                                      @Param("id_produto") String id_produto,
@@ -38,19 +38,20 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
                                             @Param("id_produto") String id_produto,
                                             @Param("op") int op,
                                            Pageable pageable);
-
+/*
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "select *FROM FN_RETORNA_DATAS_ALUGADAS(:id_produto)" +
                     "AS (DT_INICIO TEXT, DT_FIM TEXT); ",nativeQuery = true)
     List<DatasAlugadas> dtAlugadas(@Param("id_produto") String id_produto);
-
+*/
     @Transactional
     @Query(value = "SELECT * from FN_CADASTRAR_PRODUTO(:id,:nome,:descricao_curta,:descricao,:valor_base_diaria," +
             ":valor_base_mensal,:valor_produto,:data_compra)" +
-            "       as (ID_USUARIO TEXT, ID_PRODUTO TEXT, NOME TEXT, DESCRICAO_CURTA TEXT, " +
-            "             DESCRICAO TEXT, VALOR_BASE_DIARIA DECIMAL(16,2), VALOR_BASE_MENSAL DECIMAL(16,2),"  +
-            "             VALOR_PRODUTO DECIMAL(16,2), DATA_COMPRA TEXT, QTD_ALUGUEIS NUMERIC(16)," +
-            "             TOTAL_GANHOS DECIMAL(16,2), MEDIA_AVALIACAO DECIMAL(6,1), CAPA_FOTO BYTEA , ATIVO BOOLEAN);",nativeQuery = true)
+            "as (ID_USUARIO TEXT, ID_PRODUTO TEXT, NOME TEXT, DESCRICAO_CURTA TEXT," +
+            "DESCRICAO TEXT, VALOR_BASE_DIARIA DECIMAL(16,2), VALOR_BASE_MENSAL DECIMAL(16,2)," +
+            "VALOR_PRODUTO DECIMAL(16,2), DATA_COMPRA TEXT, QTD_ALUGUEIS NUMERIC(16)," +
+            "TOTAL_GANHOS DECIMAL(16,2), MEDIA_AVALIACAO DECIMAL(6,1), DT_ALUGUEL TEXT, CAPA_FOTO BYTEA , ATIVO BOOLEAN);"
+            ,nativeQuery = true)
     List<RetornaProduto> createProduto(@Param("id") String id,
                                  @Param("nome") String nome,
                                  @Param("descricao_curta") String descricao_curta,

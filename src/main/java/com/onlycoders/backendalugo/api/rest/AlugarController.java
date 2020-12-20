@@ -108,8 +108,9 @@ public class AlugarController {
             aluguel.setProduto(produto);
             alugueis.add(aluguel);
         }
-
-        return new PageImpl<>(alugueis,paging,alugueis.size());
+        int start =(int) paging.getOffset();
+        int end = (start + paging.getPageSize()) > alugueis.size() ? alugueis.size() : (start + paging.getPageSize());
+        return new PageImpl<>(alugueis.subList(start,end),paging,alugueis.size());
     }
 
     @ApiOperation(value = "Retorna todos alugueis do usuario logado como locatario")
@@ -152,8 +153,9 @@ public class AlugarController {
             alugueis.add(aluguel);
 
         }
-
-        return new PageImpl<>(alugueis,paging,alugueis.size());
+        int start =(int) paging.getOffset();
+        int end = (start + paging.getPageSize()) > alugueis.size() ? alugueis.size() : (start + paging.getPageSize());
+        return new PageImpl<>(alugueis.subList(start,end),paging,alugueis.size());
 
         //return aluguelRepository.retornaAluguel("0",getIdUsuario(),"0","0",3);
     }

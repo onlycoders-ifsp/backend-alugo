@@ -30,7 +30,7 @@ public class ProdutoAluguel {
 
     byte[] Capa_foto;
 
-    List<DatasAlugadas> dt_alugadas;
+    List<DtAlugadas> dt_alugadas;
     //String[] dt_alugadas;
 
     Boolean Ativo;
@@ -131,11 +131,11 @@ public class ProdutoAluguel {
         Media_avaliacao = media_avaliacao;
     }
 
-    public List<DatasAlugadas> getDt_alugadas() {
+    public List<DtAlugadas> getDt_alugadas() {
         return dt_alugadas;
     }
 
-    public void setDt_alugadas(List<DatasAlugadas> dt_alugadas) {
+    public void setDt_alugadas(List<DtAlugadas> dt_alugadas) {
         this.dt_alugadas = dt_alugadas;
     }
 
