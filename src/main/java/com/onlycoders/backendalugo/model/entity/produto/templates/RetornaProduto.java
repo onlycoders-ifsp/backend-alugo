@@ -41,6 +41,9 @@ public interface RetornaProduto {
     @JsonGetter("media_avaliacao")
     Double getMedia_avaliacao();
 
+    @JsonGetter("dt_aluguel")
+    String getDt_Aluguel();
+
     @JsonGetter("capa_foto")
     byte[] getCapa_foto();
 

@@ -16,6 +16,10 @@ import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -67,9 +71,15 @@ public class UsuarioController {
     @ApiOperation(value = "Retorna dados de todos os usuarios", response = RetornaUsuario.class)
     @GetMapping("/lista-usuario")
     @ResponseStatus(HttpStatus.OK)
-    public List<RetornaUsuario> retornaUsuario() {
-
-        return repository.findUsuario("0");
+    public Page<RetornaUsuario> retornaUsuario(@RequestParam(value = "page",
+                                                             required = false,
+                                                             defaultValue = "0") int page,
+                                               @RequestParam(value = "size",
+                                                             required = false,
+                                                             defaultValue = "10") int size) {
+        Pageable paging = PageRequest.of(page, size);
+        List<RetornaUsuario> listUsers = repository.findUsuario("0");
+        return new PageImpl<>(listUsers,paging,listUsers.size());
         //return GeraLista(repository.findUsuario(id_usuario));
     }
 
