@@ -10,12 +10,14 @@ import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import javassist.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -73,56 +75,58 @@ public class AlugarController {
     @ApiOperation(value = "Retorna todos alugueis do usuario logado como locador")
     @GetMapping("/locador")
     @ResponseStatus(HttpStatus.OK)
-    public Page<RetornaAluguelUsuarioProduto>
+    public ResponseEntity<?>// Page<RetornaAluguelUsuarioProduto>
     retornaAluguelLocadorLogado(@RequestParam(value = "page",
                                                 required = false,
                                                 defaultValue = "0") int page,
                                 @RequestParam(value = "size",
                                               required = false,
-                                              defaultValue = "10") int size) {
+                                              defaultValue = "10") int size) throws NotFoundException {
         Pageable paging = PageRequest.of(page, size);
 
         String id_locador = getIdUsuario();
         String id_locatario;
         String id_produto;
 
-        List<RetornaAluguelUsuarioProduto >alugueis = new ArrayList<RetornaAluguelUsuarioProduto>();
+        List<RetornaAluguelUsuarioProduto> alugueis = new ArrayList<RetornaAluguelUsuarioProduto>();
 
-        List<RetornaAluguel> aluguelEfeutuado = aluguelRepository
-                .retornaAluguel(id_locador, "0","0","0",2);
-        System.out.println(aluguelEfeutuado.get(0));
+        Optional<List<RetornaAluguel>> aluguelEfeutuado = Optional.ofNullable(aluguelRepository
+                .retornaAluguel(id_locador, "0","0","0",2));
+        if(!aluguelEfeutuado.get().isEmpty()) {
+            for (RetornaAluguel a : aluguelEfeutuado.get()) {
+                RetornaAluguelUsuarioProduto aluguel = new RetornaAluguelUsuarioProduto();
 
-        for (RetornaAluguel a : aluguelEfeutuado) {
-            RetornaAluguelUsuarioProduto aluguel = new RetornaAluguelUsuarioProduto();
+                id_locatario = a.getId_locatario();
+                id_produto = a.getId_produto();
+                aluguel.setAluguel(a);
+                RetornaUsuario locador = usuarioRepository.findUsuario(id_locador).get(0);
+                aluguel.setLocador(locador);
 
-            id_locatario = a.getId_locatario();
-            id_produto = a.getId_produto();
-            aluguel.setAluguel(a);
-            RetornaUsuario locador = usuarioRepository.findUsuario(id_locador).get(0);
-            aluguel.setLocador(locador);
+                RetornaUsuario locatario = usuarioRepository.findUsuario(id_locatario).get(0);
+                aluguel.setLocatario(locatario);
 
-            RetornaUsuario locatario = usuarioRepository.findUsuario(id_locatario).get(0);
-            aluguel.setLocatario(locatario);
-
-            RetornaProduto produto = produtoRepository.findProduto("0", id_produto, 3).get(0);
-            aluguel.setProduto(produto);
-            alugueis.add(aluguel);
+                RetornaProduto produto = produtoRepository.findProduto("0", id_produto, 3).get(0);
+                aluguel.setProduto(produto);
+                alugueis.add(aluguel);
+            }
+            int start = (int) paging.getOffset();
+            int end = (start + paging.getPageSize()) > alugueis.size() ? alugueis.size() : (start + paging.getPageSize());
+            return new ResponseEntity<>(new PageImpl<>(alugueis.subList(start, end), paging, alugueis.size()), HttpStatus.OK);
         }
-        int start =(int) paging.getOffset();
-        int end = (start + paging.getPageSize()) > alugueis.size() ? alugueis.size() : (start + paging.getPageSize());
-        return new PageImpl<>(alugueis.subList(start,end),paging,alugueis.size());
+        throw new NotFoundException("Nenhum produto alugado");
+        //return new ResponseEntity<>("Nenhum produto alugado",HttpStatus.OK);
     }
 
     @ApiOperation(value = "Retorna todos alugueis do usuario logado como locatario")
     @GetMapping("/locatario")
     @ResponseStatus(HttpStatus.OK)
-    public Page<RetornaAluguelUsuarioProduto>
+    public ResponseEntity<?>//Page<RetornaAluguelUsuarioProduto>
     retornaAluguelLocatarioLogado(@RequestParam(value = "page",
                                                 required = false,
                                                 defaultValue = "0") int page,
                                   @RequestParam(value = "size",
                                                 required = false,
-                                                defaultValue = "10") int size) {
+                                                defaultValue = "10") int size) throws NotFoundException {
 
         Pageable paging = PageRequest.of(page, size);
         String id_locatario = getIdUsuario();
@@ -131,33 +135,35 @@ public class AlugarController {
 
         List<RetornaAluguelUsuarioProduto >alugueis = new ArrayList<RetornaAluguelUsuarioProduto>();
 
-        List<RetornaAluguel> aluguelEfeutuado = aluguelRepository
-                .retornaAluguel("0", id_locatario,"0","0",3);
+        Optional<List<RetornaAluguel>> aluguelEfeutuado = Optional.ofNullable(aluguelRepository
+                .retornaAluguel("0", id_locatario,"0","0",3));
 
-        for (RetornaAluguel a : aluguelEfeutuado) {
-            RetornaAluguelUsuarioProduto aluguel = new RetornaAluguelUsuarioProduto();
-            id_locador = a.getId_locador();
-            id_produto = a.getId_produto();
+        if(!aluguelEfeutuado.get().isEmpty()) {
+            for (RetornaAluguel a : aluguelEfeutuado.get()) {
+                RetornaAluguelUsuarioProduto aluguel = new RetornaAluguelUsuarioProduto();
+                id_locador = a.getId_locador();
+                id_produto = a.getId_produto();
 
 
-            aluguel.setAluguel(a);
-            RetornaUsuario locador = usuarioRepository.findUsuario(id_locador).get(0);
-            aluguel.setLocador(locador);
+                aluguel.setAluguel(a);
+                RetornaUsuario locador = usuarioRepository.findUsuario(id_locador).get(0);
+                aluguel.setLocador(locador);
 
-            RetornaUsuario locatario = usuarioRepository.findUsuario(id_locatario).get(0);
-            aluguel.setLocatario(locatario);
+                RetornaUsuario locatario = usuarioRepository.findUsuario(id_locatario).get(0);
+                aluguel.setLocatario(locatario);
 
-            RetornaProduto produto = produtoRepository.findProduto("0", id_produto, 3).get(0);
-            aluguel.setProduto(produto);
+                RetornaProduto produto = produtoRepository.findProduto("0", id_produto, 3).get(0);
+                aluguel.setProduto(produto);
 
-            alugueis.add(aluguel);
+                alugueis.add(aluguel);
 
+            }
+            int start = (int) paging.getOffset();
+            int end = (start + paging.getPageSize()) > alugueis.size() ? alugueis.size() : (start + paging.getPageSize());
+            return new ResponseEntity<>(new PageImpl<>(alugueis.subList(start, end), paging, alugueis.size()), HttpStatus.OK);
         }
-        int start =(int) paging.getOffset();
-        int end = (start + paging.getPageSize()) > alugueis.size() ? alugueis.size() : (start + paging.getPageSize());
-        return new PageImpl<>(alugueis.subList(start,end),paging,alugueis.size());
-
-        //return aluguelRepository.retornaAluguel("0",getIdUsuario(),"0","0",3);
+        throw new NotFoundException("Nenhum aluguel efetuado");
+        //return new ResponseEntity<>("Nenhum aluguel efetuado",HttpStatus.OK);
     }
 
     @ApiOperation(value = "Retorna unico aluguel pelo id_aluguel")
