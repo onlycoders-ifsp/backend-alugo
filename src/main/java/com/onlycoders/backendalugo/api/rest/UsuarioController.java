@@ -42,17 +42,7 @@ import java.util.Optional;
 public class UsuarioController {
 
     private UsuarioRepository repository;
-
-    private String usuarioId;
-
-    public String getUsuarioId() {
-        return usuarioId;
-    }
-
-    public void setUsuarioId() {
-        this.usuarioId = getIdUsuario();
-    }
-
+    
     @Autowired
     public UsuarioController(UsuarioRepository repository) {
         this.repository = repository;
@@ -62,8 +52,7 @@ public class UsuarioController {
     @GetMapping("/usuario-logado")
     @ResponseStatus(HttpStatus.OK)
     public RetornaUsuario retornaUsuarioLogado() {
-        setUsuarioId();
-        return repository.findUsuario(getUsuarioId()).get(0);
+        return repository.findUsuario(getIdUsuario()).get(0);
         //return GeraLista(repository.findUsuario(id_usuario));
     }
 
@@ -109,9 +98,8 @@ public class UsuarioController {
     @PutMapping("/upload-foto")
     @ResponseStatus(HttpStatus.CREATED)
     public Boolean atualizaFoto(@RequestParam Part capa_foto) throws NotFoundException {
-        setUsuarioId();
         Optional<String> usuario = Optional.ofNullable(Optional
-                .of(getUsuarioId())
+                .of(getIdUsuario())
                 .orElseThrow(() -> new NotFoundException("Usuario não logado")));
         try{
             InputStream is = capa_foto.getInputStream();
@@ -141,9 +129,8 @@ public class UsuarioController {
     @PutMapping("/altera-senha")
     @ResponseStatus(HttpStatus.OK)
     public Boolean alteraSenha(@RequestBody AlteraSenha senha) throws NotFoundException {
-        setUsuarioId();
-        if(new BCryptPasswordEncoder().matches(senha.getSenha_antiga(),repository.retornaSenha(getUsuarioId())))
-            return repository.alteraSenha(getUsuarioId(), senha.getSenha_nova());
+        if(new BCryptPasswordEncoder().matches(senha.getSenha_antiga(),repository.retornaSenha(getIdUsuario())))
+            return repository.alteraSenha(getIdUsuario(), senha.getSenha_nova());
         else
             throw new NotFoundException("Senha incorreta");
     }
@@ -153,8 +140,7 @@ public class UsuarioController {
     @ResponseStatus(HttpStatus.OK)
     public RetornaUsuario alteraUsuario(@RequestBody RequestUsuario usuario) {
         //validaCampos(usuario.getLogin(),usuario.getCpf(),usuario.getEmail(),usuario.getCelular(),usuario.getNome(),true);
-        setUsuarioId();
-        return repository.updateUserById(getUsuarioId(),usuario.getNome(),usuario.getEmail().toLowerCase(),
+        return repository.updateUserById(getIdUsuario(),usuario.getNome(),usuario.getEmail().toLowerCase(),
                 usuario.getLogin(),usuario.getCpf(), usuario.getCelular(),usuario.getData_nascimento(),
                 usuario.getCep(),usuario.getLogradouro(),usuario.getComplemento(), usuario.getBairro(),
                 usuario.getNumero()).get(0);
@@ -185,24 +171,21 @@ public class UsuarioController {
     @GetMapping("/verifica/email-update")
     @ResponseStatus(HttpStatus.OK)
     public Boolean verificaEmailUpdate(@RequestParam String email){
-        setUsuarioId();
-        return repository.validaDadouUpdate(email, getUsuarioId(),2);
+        return repository.validaDadouUpdate(email, getIdUsuario(),2);
     }
 
     @ApiOperation(value = "Retorna se existe o CPF informado do usuario logado", response = RetornaUsuario.class)
     @GetMapping("/verifica/cpf-update")
     @ResponseStatus(HttpStatus.OK)
     public Boolean verificaCpfUpdate(@RequestParam String cpf){
-        setUsuarioId();
-        return repository.validaDadouUpdate(cpf, getUsuarioId(),1);
+        return repository.validaDadouUpdate(cpf, getIdUsuario(),1);
     }
 
     @ApiOperation(value = "Retorna se existe o nome de usuario informado do usuario logado", response = RetornaUsuario.class)
     @GetMapping("/verifica/username-update")
     @ResponseStatus(HttpStatus.OK)
     public Boolean verificaUserNameUpdate(@RequestParam String user){
-        setUsuarioId();
-        return repository.validaDadouUpdate(user, getUsuarioId(),3);
+        return repository.validaDadouUpdate(user, getIdUsuario(),3);
     }
 /*
     private void validaCampos(String login, String cpf, String email, String celular, String nome, Boolean isUpdate) {
