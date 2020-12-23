@@ -43,6 +43,16 @@ public class UsuarioController {
 
     private UsuarioRepository repository;
 
+    private String usuarioId;
+
+    public String getUsuarioId() {
+        return usuarioId;
+    }
+
+    public void setUsuarioId() {
+        this.usuarioId = getIdUsuario();
+    }
+
     @Autowired
     public UsuarioController(UsuarioRepository repository) {
         this.repository = repository;
@@ -52,8 +62,8 @@ public class UsuarioController {
     @GetMapping("/usuario-logado")
     @ResponseStatus(HttpStatus.OK)
     public RetornaUsuario retornaUsuarioLogado() {
-
-        return repository.findUsuario(getIdUsuario()).get(0);
+        setUsuarioId();
+        return repository.findUsuario(getUsuarioId()).get(0);
         //return GeraLista(repository.findUsuario(id_usuario));
     }
 
@@ -87,8 +97,8 @@ public class UsuarioController {
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
     public RetornaUsuario salvar(@RequestBody Usuario usuario){
-       validaCampos(usuario.getLogin(), usuario.getCpf(), usuario.getEmail(),
-               usuario.getCelular(), usuario.getNome(), false);
+       //validaCampos(usuario.getLogin(), usuario.getCpf(), usuario.getEmail(),
+       //        usuario.getCelular(), usuario.getNome(), false);
 
         return repository
                 .createUsuarioMin(usuario.getNome(), usuario.getEmail().toLowerCase(),usuario.getLogin(),
@@ -98,9 +108,10 @@ public class UsuarioController {
     @ApiOperation(value = "Atualiza/Cadastra foto de usuario")
     @PutMapping("/upload-foto")
     @ResponseStatus(HttpStatus.CREATED)
-    public Boolean atualiza(@RequestParam Part capa_foto) throws NotFoundException {
+    public Boolean atualizaFoto(@RequestParam Part capa_foto) throws NotFoundException {
+        setUsuarioId();
         Optional<String> usuario = Optional.ofNullable(Optional
-                .of(getIdUsuario())
+                .of(getUsuarioId())
                 .orElseThrow(() -> new NotFoundException("Usuario não logado")));
         try{
             InputStream is = capa_foto.getInputStream();
@@ -130,8 +141,9 @@ public class UsuarioController {
     @PutMapping("/altera-senha")
     @ResponseStatus(HttpStatus.OK)
     public Boolean alteraSenha(@RequestBody AlteraSenha senha) throws NotFoundException {
-        if(new BCryptPasswordEncoder().matches(senha.getSenha_antiga(),repository.retornaSenha(getIdUsuario())))
-            return repository.alteraSenha(getIdUsuario(), senha.getSenha_nova());
+        setUsuarioId();
+        if(new BCryptPasswordEncoder().matches(senha.getSenha_antiga(),repository.retornaSenha(getUsuarioId())))
+            return repository.alteraSenha(getUsuarioId(), senha.getSenha_nova());
         else
             throw new NotFoundException("Senha incorreta");
     }
@@ -140,14 +152,59 @@ public class UsuarioController {
     @PutMapping("altera-dados")
     @ResponseStatus(HttpStatus.OK)
     public RetornaUsuario alteraUsuario(@RequestBody RequestUsuario usuario) {
-        validaCampos(usuario.getLogin(),usuario.getCpf(),usuario.getEmail(),usuario.getCelular(),usuario.getNome(),true);
-
-        return repository.updateUserById(getIdUsuario(),usuario.getNome(),usuario.getEmail().toLowerCase(),
+        //validaCampos(usuario.getLogin(),usuario.getCpf(),usuario.getEmail(),usuario.getCelular(),usuario.getNome(),true);
+        setUsuarioId();
+        return repository.updateUserById(getUsuarioId(),usuario.getNome(),usuario.getEmail().toLowerCase(),
                 usuario.getLogin(),usuario.getCpf(), usuario.getCelular(),usuario.getData_nascimento(),
                 usuario.getCep(),usuario.getLogradouro(),usuario.getComplemento(), usuario.getBairro(),
                 usuario.getNumero()).get(0);
     }
 
+    @ApiOperation(value = "Retorna se existe o email informado", response = RetornaUsuario.class)
+    @GetMapping("/verifica/email")
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean verificaEmail(@RequestParam String email){
+        return repository.validaDado(email, 2);
+    }
+
+    @ApiOperation(value = "Retorna se existe o CPF informado", response = RetornaUsuario.class)
+    @GetMapping("/verifica/cpf")
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean verificaCpf(@RequestParam String cpf){
+        return repository.validaDado(cpf, 1);
+    }
+
+    @ApiOperation(value = "Retorna se existe o nome de usuario informado", response = RetornaUsuario.class)
+    @GetMapping("/verifica/username")
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean verificaUserName(@RequestParam String user){
+        return repository.validaDado(user, 3);
+    }
+
+    @ApiOperation(value = "Retorna se existe o email informado do usuario logado", response = RetornaUsuario.class)
+    @GetMapping("/verifica/email-update")
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean verificaEmailUpdate(@RequestParam String email){
+        setUsuarioId();
+        return repository.validaDadouUpdate(email, getUsuarioId(),2);
+    }
+
+    @ApiOperation(value = "Retorna se existe o CPF informado do usuario logado", response = RetornaUsuario.class)
+    @GetMapping("/verifica/cpf-update")
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean verificaCpfUpdate(@RequestParam String cpf){
+        setUsuarioId();
+        return repository.validaDadouUpdate(cpf, getUsuarioId(),1);
+    }
+
+    @ApiOperation(value = "Retorna se existe o nome de usuario informado do usuario logado", response = RetornaUsuario.class)
+    @GetMapping("/verifica/username-update")
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean verificaUserNameUpdate(@RequestParam String user){
+        setUsuarioId();
+        return repository.validaDadouUpdate(user, getUsuarioId(),3);
+    }
+/*
     private void validaCampos(String login, String cpf, String email, String celular, String nome, Boolean isUpdate) {
         if(celular.isEmpty() || celular == null){
             throw new NullPointerException("Celular inválido");
@@ -192,7 +249,7 @@ public class UsuarioController {
         }
         //  return valida = repository.validaCampos(login, cpf, email);
     }
-
+*/
     public String getIdUsuario(){
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
