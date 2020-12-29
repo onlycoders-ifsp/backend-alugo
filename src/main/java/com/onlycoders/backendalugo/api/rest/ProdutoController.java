@@ -1,9 +1,6 @@
 package com.onlycoders.backendalugo.api.rest;
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
-import com.onlycoders.backendalugo.model.entity.produto.templates.Categorias;
-import com.onlycoders.backendalugo.model.entity.produto.templates.DtAlugadas;
-import com.onlycoders.backendalugo.model.entity.produto.templates.ProdutoAluguel;
-import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
+import com.onlycoders.backendalugo.model.entity.produto.templates.*;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import io.swagger.annotations.Api;
@@ -197,6 +194,14 @@ public class ProdutoController {
     public Boolean ativaInativa(@RequestParam String id_produto){
         return repository.ativaInativaProduto(id_produto);
     }
+
+    @ApiOperation(value = "Retorna categorias", response = RetornaProduto.class)
+    @GetMapping("/categorias")
+    @ResponseStatus(HttpStatus.OK)
+    public List<RetornaCategorias> retornaCategorias(){
+        return repository.retornaCategorias();
+    }
+
 
     public String trasnformaCategoriasToString(List<Categorias> listCategorias){
         String categoria = null;

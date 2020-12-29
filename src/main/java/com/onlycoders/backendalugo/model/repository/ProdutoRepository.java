@@ -1,6 +1,8 @@
 package com.onlycoders.backendalugo.model.repository;
 
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
+import com.onlycoders.backendalugo.model.entity.produto.templates.Categorias;
+import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaCategorias;
 import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -9,6 +11,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
     //List<Produto> getByNome(String nome);
@@ -68,4 +71,8 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
     @Query(value = "SELECT FN_FOTO_PRODUTO(:id_usuario,:id_produto,:foto) ;",nativeQuery = true)
     Boolean uploadFoto(@Param("id_usuario") String id_usuario ,@Param("id_produto") String id_produto, @Param("foto") byte[] foto);
 
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Query(value = "SELECT CAST(ID_CATEGORIA AS TEXT) ID_CATEGORIA, Descricao " +
+                    "FROM Categoria order by CAST(ID_CATEGORIA as integer);",nativeQuery = true)
+    List<RetornaCategorias> retornaCategorias();
 }
