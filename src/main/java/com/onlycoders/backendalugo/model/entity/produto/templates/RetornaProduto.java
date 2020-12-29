@@ -44,6 +44,9 @@ public interface RetornaProduto {
     @JsonGetter("dt_aluguel")
     String getDt_Aluguel();
 
+    @JsonGetter("categorias")
+    String getCategorias();
+
     @JsonGetter("capa_foto")
     byte[] getCapa_foto();
 
