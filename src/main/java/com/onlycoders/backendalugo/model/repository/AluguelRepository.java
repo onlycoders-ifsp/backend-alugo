@@ -1,5 +1,6 @@
 package com.onlycoders.backendalugo.model.repository;
 import com.onlycoders.backendalugo.model.entity.aluguel.RetornaAluguel;
+import com.onlycoders.backendalugo.model.entity.aluguel.RetornaAluguelDetalhe;
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -40,4 +41,12 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
                          @Param("id_produto")String id_produto,
                          @Param("inicio")String inicio,
                          @Param("fim")String fim);
+
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Query(value = "Select *FROM FN_RETORNA_ALUGUEL_DETALHE(:id_produto)" +
+            "AS T (ID_PRODUTO TEXT, NOME_PRODUTO TEXT, ID_LOCATARIO TEXT," +
+            "NOME_LOCATARIO TEXT, CAPA_FOTO BYTEA, DATA_INICIO TEXT, DATA_FIM TEXT," +
+            "VALOR_ALUGUEL DOUBLE PRECISION, VALOR_GANHO DOUBLE PRECISION, DATA_DEVOLUCAO TEXT)",
+            nativeQuery = true)
+    List<RetornaAluguelDetalhe> retornaAluguelDetalhe(@Param("id_produto") String id_produto);
 }

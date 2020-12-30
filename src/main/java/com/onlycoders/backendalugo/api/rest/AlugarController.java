@@ -2,7 +2,9 @@ package com.onlycoders.backendalugo.api.rest;
 
 import com.onlycoders.backendalugo.model.entity.RetornaAluguelUsuarioProduto;
 import com.onlycoders.backendalugo.model.entity.aluguel.Aluguel;
+import com.onlycoders.backendalugo.model.entity.aluguel.AluguelDetalhe;
 import com.onlycoders.backendalugo.model.entity.aluguel.RetornaAluguel;
+import com.onlycoders.backendalugo.model.entity.aluguel.RetornaAluguelDetalhe;
 import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario;
 import com.onlycoders.backendalugo.model.repository.AluguelRepository;
@@ -12,10 +14,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import javassist.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -178,6 +177,29 @@ public class AlugarController {
     @ResponseStatus(HttpStatus.OK)
     public List<RetornaAluguel> retornaAluguelProduto(@RequestParam("id_produto") String id_produto) {
         return aluguelRepository.retornaAluguel("0","0","0",id_produto,4);
+    }
+
+    @ApiOperation(value = "Retorna detalhes do aluguel")
+    @GetMapping("/detalhe")
+    @ResponseStatus(HttpStatus.OK)
+    public Page<RetornaAluguelDetalhe> retornaAluguelProduto(@RequestParam("id_produto") String id_produto,
+                                                      @RequestParam(value = "page",required = false,defaultValue = "0") int page,
+                                                      @RequestParam(value = "size",required = false,defaultValue = "10") int size,
+                                                      @RequestParam(value = "sort",required = false,defaultValue = "valor_ganho") String sortBy,
+                                                      @RequestParam(value = "order",required = false,defaultValue = "desc") String order) {
+        List<RetornaAluguelDetalhe> detAlugeis = aluguelRepository.retornaAluguelDetalhe(id_produto);
+        //List<AluguelDetalhe> detalhe = new ArrayList<>();
+        //for(RetornaAluguelDetalhe r : detAlugeis){
+        //    detalhe.add(new AluguelDetalhe(r.getId_produto(),r.getNome_produto(),r.getId_locatario(),
+        //            r.getNome_locatario(),r.getCapa_foto(),r.getData_inicio(),r.getData_fim(),
+        //            r.getValor_aluguel(),r.getValor_ganho(),r.getData_devolucao()));
+        //}
+        Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
+        int start =(int) paging.getOffset();
+        int end = (start + paging.getPageSize()) > detAlugeis.size() ? detAlugeis.size() : (start + paging.getPageSize());
+        return new PageImpl<>(detAlugeis.subList(start,end),paging,detAlugeis.size());//listPa;
+        //return detAlugeis;
+
     }
 
     public String getIdUsuario(){

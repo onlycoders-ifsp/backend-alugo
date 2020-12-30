@@ -1,9 +1,6 @@
 package com.onlycoders.backendalugo.api.rest;
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
-import com.onlycoders.backendalugo.model.entity.produto.templates.DatasAlugadas;
-import com.onlycoders.backendalugo.model.entity.produto.templates.DtAlugadas;
-import com.onlycoders.backendalugo.model.entity.produto.templates.ProdutoAluguel;
-import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
+import com.onlycoders.backendalugo.model.entity.produto.templates.*;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import io.swagger.annotations.Api;
@@ -12,10 +9,8 @@ import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.support.PagedListHolder;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -66,7 +61,7 @@ public class ProdutoController {
     public ProdutoAluguel /*ResponseEntity<?>*/ retornaProdutoUsuarioLogado(@RequestParam String id_produto) throws NotFoundException {
         Pageable paging = PageRequest.of(0, 1);
         Optional<ProdutoAluguel> produtos = Optional.ofNullable(transformaRetornoProdutoToPage(
-                repository.findProduto(getIdUsuario(false), validaProduto(id_produto),2),paging)
+                repository.findProduto(getIdUsuario(false), id_produto,2),paging)
                 .getContent().get(0));
         /*if (produtos.isPresent()) {
             return new ResponseEntity<>(produtos.get(), HttpStatus.OK);
@@ -104,7 +99,7 @@ public class ProdutoController {
     public ProdutoAluguel /*ResponseEntity<?>*/ retornaProduto(@RequestParam String id_produto) throws NotFoundException {
         Pageable paging = PageRequest.of(0, 1);
         Optional<ProdutoAluguel> produtos = Optional.ofNullable(transformaRetornoProdutoToPage(
-                repository.findProduto("0", validaProduto(id_produto),3),paging)
+                repository.findProduto("0", id_produto,3),paging)
                 .getContent()
                 .get(0));
         /*if (produtos.isPresent()) {
@@ -129,7 +124,7 @@ public class ProdutoController {
 
         Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
         Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(
-                transformaRetornoProdutoToPage(repository.findProduto("0", validaProduto(produto),3),paging));
+                transformaRetornoProdutoToPage(repository.findProduto("0", produto,3),paging));
         /*if (!produtos.get().getContent().isEmpty()) {
             return new ResponseEntity<>(produtos.get(), HttpStatus.OK);
         }*/
@@ -156,9 +151,11 @@ public class ProdutoController {
     @ResponseStatus(HttpStatus.CREATED)
     public ProdutoAluguel cadastra(@RequestBody Produto produto){
         Pageable paging = PageRequest.of(0, 1);
-        return transformaRetornoProdutoToPage(repository.createProduto(getIdUsuario(false),produto.getNome(),produto.getDescricao_curta(),produto.getDescricao(),
+        String categoria = trasnformaCategoriasToString(produto.getCategorias());
+        return transformaRetornoProdutoToPage(repository.createProduto(getIdUsuario(false),
+                produto.getNome(),produto.getDescricao_curta(),produto.getDescricao(),
                 produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
-                produto.getData_compra()),paging).getContent().get(0);
+                produto.getData_compra(),categoria),paging).getContent().get(0);
     }
 
     @ApiOperation(value = "Atualiza/cadastra foto de produto")
@@ -185,16 +182,37 @@ public class ProdutoController {
     @PutMapping("/altera")
     @ResponseStatus(HttpStatus.OK)
     public Boolean atualiza(@RequestBody Produto produto) {
-        return repository.updateProduto(validaProduto(produto.getId_produto()), produto.getNome(), produto.getDescricao_curta(),
+        String categoria = trasnformaCategoriasToString(produto.getCategorias());
+        return repository.updateProduto(produto.getId_produto(), produto.getNome(), produto.getDescricao_curta(),
                 produto.getDescricao(),produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
-                produto.getData_compra(),produto.getAtivo());
+                produto.getData_compra(),produto.getAtivo(),categoria);
     }
 
     @ApiOperation(value = "Ativa ou inativa produto.")
     @DeleteMapping("ativa-inativa")
     @ResponseStatus(HttpStatus.OK)
     public Boolean ativaInativa(@RequestParam String id_produto){
-        return repository.ativaInativaProduto(validaProduto(id_produto));
+        return repository.ativaInativaProduto(id_produto);
+    }
+
+    @ApiOperation(value = "Retorna categorias", response = RetornaProduto.class)
+    @GetMapping("/categorias")
+    @ResponseStatus(HttpStatus.OK)
+    public List<RetornaCategorias> retornaCategorias(){
+        return repository.retornaCategorias();
+    }
+
+
+    public String trasnformaCategoriasToString(List<Categorias> listCategorias){
+        String categoria = null;
+        for(Categorias c : listCategorias) {
+            if (categoria.isEmpty()){
+                categoria = c.getIdCategoria();
+            }else {
+                categoria = categoria + ',' + c.getIdCategoria();
+            }
+        }
+        return categoria;
     }
 
     public String getIdUsuario(boolean pesquisa){
@@ -218,21 +236,17 @@ public class ProdutoController {
         return login;
     }
 
-    public String validaProduto(String id_produto){
-        if (id_produto.isEmpty() || id_produto == null || id_produto.equals("0"))
-            throw new NullPointerException("Parametro id_produto vazio");
-
-        return id_produto;
-    }
-
     public Page <ProdutoAluguel> transformaRetornoProdutoToPage(List<RetornaProduto> ret, Pageable page){
         List<ProdutoAluguel> listPa = new ArrayList<>();
         String[] dtAluguel;
         String[] dtAluguelInicio;
         String[] dtAluguelFim;
+        String[] categoria;
+
 
         for(RetornaProduto r : ret){
             List<DtAlugadas> dt = new ArrayList<DtAlugadas>();// = repository.dtAlugadas(r.getId_produto());
+            List<Categorias> categorias = new ArrayList<>();
 
             if (r.getDt_Aluguel().contains(";")) {
                 dtAluguel = r.getDt_Aluguel().split(";");
@@ -243,14 +257,22 @@ public class ProdutoController {
                     dt.add(dtAlugadas);
                 }
             }
+            if(!r.getCategorias().isEmpty()){
+                categoria = r.getCategorias().split(",");
+                for(String c : categoria){
+                    Categorias cat = new Categorias();
+                    cat.setIdCategoria(c);
+                    categorias.add(cat);
+                }
+            }
             ProdutoAluguel pa = new ProdutoAluguel();
             pa.setAtivo(r.getAtivo());
             pa.setCapa_foto(r.getCapa_foto());
             pa.setData_compra(r.getData_compra());
             pa.setDescricao(r.getDescricao());
             pa.setDescricao_curta(r.getDescricao_curta());
-            //pa.setDt_aluguel(r.getDt_alugadas().split(","));
             pa.setDt_alugadas(dt);
+            pa.setCategorias(categorias);
             pa.setId_produto(r.getId_produto());
             pa.setId_usuario(r.getId_usuario());
             pa.setMedia_avaliacao(r.getMedia_avaliacao());

@@ -31,7 +31,8 @@ public class ProdutoAluguel {
     byte[] Capa_foto;
 
     List<DtAlugadas> dt_alugadas;
-    //String[] dt_alugadas;
+
+    List<Categorias> categorias;
 
     Boolean Ativo;
 
@@ -137,6 +138,14 @@ public class ProdutoAluguel {
 
     public void setDt_alugadas(List<DtAlugadas> dt_alugadas) {
         this.dt_alugadas = dt_alugadas;
+    }
+
+    public List<Categorias> getCategorias() {
+        return categorias;
+    }
+
+    public void setCategorias(List<Categorias> categorias) {
+        this.categorias = categorias;
     }
 
     public byte[] getCapa_foto() {
