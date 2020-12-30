@@ -44,8 +44,8 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
 
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "Select *FROM FN_RETORNA_ALUGUEL_DETALHE(:id_produto)" +
-            "AS T (ID_PRODUTO TEXT, NOME_PRODUTO TEXT, ID_LOCATARIO TEXT," +
-            "NOME_LOCATARIO TEXT, CAPA_FOTO BYTEA, DATA_INICIO TEXT, DATA_FIM TEXT," +
+            "AS T (ID_PRODUTO TEXT, NOME_PRODUTO TEXT, FOTO_PRODUTO BYTEA, ID_LOCATARIO TEXT," +
+            "NOME_LOCATARIO TEXT, FOTO_LOCATARIO BYTEA, DATA_INICIO TEXT, DATA_FIM TEXT," +
             "VALOR_ALUGUEL DOUBLE PRECISION, VALOR_GANHO DOUBLE PRECISION, DATA_DEVOLUCAO TEXT)",
             nativeQuery = true)
     List<RetornaAluguelDetalhe> retornaAluguelDetalhe(@Param("id_produto") String id_produto);

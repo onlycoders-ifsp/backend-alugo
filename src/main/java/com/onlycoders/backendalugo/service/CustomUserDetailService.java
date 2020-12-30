@@ -27,7 +27,6 @@ public class CustomUserDetailService implements UserDetailsService {
         RetornaLogin retornaLogin = repository.verificaLogin(login);
 
         UsuarioLogin user = new UsuarioLogin();
-        System.out.println(retornaLogin.getLogin());
         user.setIdUsuario(retornaLogin.getId_Usuario());
         user.setLogin(retornaLogin.getLogin());
         user.setPassword(retornaLogin.getPassword());

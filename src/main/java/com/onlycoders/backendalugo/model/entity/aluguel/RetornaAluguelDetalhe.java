@@ -11,14 +11,17 @@ public interface RetornaAluguelDetalhe {
     @JsonGetter("nome_produto")
     public String getNome_produto();
 
+    @JsonGetter("foto_produto")
+    byte[] getFoto_produto();
+
     @JsonGetter("id_locatario")
     public String getId_locatario();
 
     @JsonGetter("nome_locatario")
     public String getNome_locatario();
 
-    @JsonGetter("capa_foto")
-    byte[] getCapa_foto();
+    @JsonGetter("foto_locatario")
+    byte[] getFoto_locatario();
 
     @JsonGetter("data_inicio")
     public String getData_inicio();
