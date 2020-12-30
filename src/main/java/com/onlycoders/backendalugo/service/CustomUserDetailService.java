@@ -3,6 +3,7 @@ package com.onlycoders.backendalugo.service;
 import com.onlycoders.backendalugo.model.entity.login.RetornaLogin;
 import com.onlycoders.backendalugo.model.entity.login.UsuarioLogin;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
+import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,10 +25,10 @@ public class CustomUserDetailService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
 
-        RetornaLogin retornaLogin = repository.verificaLogin(login.toLowerCase());
+        RetornaLogin retornaLogin = repository.verificaLogin(login);
 
         UsuarioLogin user = new UsuarioLogin();
-
+        System.out.println(retornaLogin.getLogin());
         user.setIdUsuario(retornaLogin.getId_Usuario());
         user.setLogin(retornaLogin.getLogin());
         user.setPassword(retornaLogin.getPassword());
