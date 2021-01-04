@@ -1,10 +1,9 @@
 package com.onlycoders.backendalugo.api.rest;
 
-import com.onlycoders.backendalugo.model.entity.RetornaAluguelUsuarioProduto;
+import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguelUsuarioProduto;
 import com.onlycoders.backendalugo.model.entity.aluguel.Aluguel;
-import com.onlycoders.backendalugo.model.entity.aluguel.AluguelDetalhe;
-import com.onlycoders.backendalugo.model.entity.aluguel.RetornaAluguel;
-import com.onlycoders.backendalugo.model.entity.aluguel.RetornaAluguelDetalhe;
+import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguel;
+import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguelDetalhe;
 import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario;
 import com.onlycoders.backendalugo.model.repository.AluguelRepository;
@@ -57,7 +56,7 @@ public class AlugarController {
         Date dtIni = new SimpleDateFormat("yyyy-MM-dd").parse(aluguel.getData_inicio());
 
         if(dtFim.before(hoje) || dtIni.before(hoje) || dtFim.before(dtIni)){
-            throw new NullPointerException("Período de data informado incorreto");
+            throw new NullPointerException("11");
         }
 
         String valida = aluguelRepository.validaALuguel(getIdUsuario(), aluguel.getId_produto(), aluguel.getData_inicio(), aluguel.getData_fim());

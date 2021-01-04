@@ -1,6 +1,6 @@
 package com.onlycoders.backendalugo.model.repository;
-import com.onlycoders.backendalugo.model.entity.aluguel.RetornaAluguel;
-import com.onlycoders.backendalugo.model.entity.aluguel.RetornaAluguelDetalhe;
+import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguel;
+import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguelDetalhe;
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

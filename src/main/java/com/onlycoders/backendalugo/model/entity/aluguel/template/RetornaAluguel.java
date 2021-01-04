@@ -1,4 +1,4 @@
-package com.onlycoders.backendalugo.model.entity.aluguel;
+package com.onlycoders.backendalugo.model.entity.aluguel.template;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 

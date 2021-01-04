@@ -24,16 +24,16 @@ public class UsuarioControllerTest {
 
     @Test
     public void retornaUsuariosTest() throws NotFoundException {
-        Page<RetornaUsuario> usuarios = controllerUsuario.retornaUsuario(0,10);
+        RetornaUsuario usuarios = controllerUsuario.retornaUsuario("0");
 
-        assertTrue(usuarios.hasContent());
+        assertTrue(!usuarios.getEmail().isEmpty());
     }
 
     @Test
     public void retornaUsuarioTest() throws NotFoundException {
-        Page<RetornaUsuario> usuarios = controllerUsuario.retornaUsuario(0,10);
+        RetornaUsuario usuarios = controllerUsuario.retornaUsuario("0");
 
-        RetornaUsuario usuario = controllerUsuario.retornaUsuario(usuarios.get().findFirst().get().getIdUsuario());
-        assertEquals(usuarios.get().findFirst().get().getNome(),usuario.getNome());
+        RetornaUsuario usuario = controllerUsuario.retornaUsuario(usuarios.getIdUsuario());
+        assertEquals(usuarios.getNome(),usuario.getNome());
     }
 }

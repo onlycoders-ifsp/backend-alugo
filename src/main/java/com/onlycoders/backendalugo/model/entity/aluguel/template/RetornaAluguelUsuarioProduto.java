@@ -1,7 +1,6 @@
-package com.onlycoders.backendalugo.model.entity;
+package com.onlycoders.backendalugo.model.entity.aluguel.template;
 
 import com.fasterxml.jackson.annotation.*;
-import com.onlycoders.backendalugo.model.entity.aluguel.RetornaAluguel;
 import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario;
 

@@ -66,12 +66,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
                                             @Param("cpf") String cpf,
                                             @Param("celular") String celular);
 
-    //Ativa/Inativa usuario
-    @Transactional()
-    @Query(value = "SELECT FN_ATIVA_INATIVA_USUARIO(:id);",
-    nativeQuery = true)
-    Boolean deleteUserById(String id);
-
     @Transactional
     @Query(value = "SELECT FN_FOTO_USUARIO(:id_usuario,:foto) ;",nativeQuery = true)
     Boolean uploadFoto(@Param("id_usuario") String id_usuario, @Param("foto") byte[] foto);
