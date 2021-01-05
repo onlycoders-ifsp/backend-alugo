@@ -39,6 +39,7 @@ import java.util.Optional;
 @RequestMapping("/usuarios")
 @RequiredArgsConstructor
 @CrossOrigin("*")
+@Secured("ROLE_USER")
 public class UsuarioController {
 
     private UsuarioRepository repository;

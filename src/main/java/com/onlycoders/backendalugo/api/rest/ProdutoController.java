@@ -11,6 +11,7 @@ import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,6 +26,7 @@ import java.util.*;
 @RequestMapping("/produtos")
 @RequiredArgsConstructor
 @CrossOrigin("*")
+@Secured("ROLE_USER")
 public class ProdutoController {
 
     @Autowired
