@@ -36,6 +36,8 @@ public class ProdutoAluguel {
 
     Boolean Ativo;
 
+    Boolean publicado;
+
     public String getId_usuario() {
         return Id_usuario;
     }
@@ -162,5 +164,13 @@ public class ProdutoAluguel {
 
     public void setAtivo(Boolean ativo) {
         Ativo = ativo;
+    }
+
+    public Boolean getPublicado() {
+        return publicado;
+    }
+
+    public void setPublicado(Boolean publicado) {
+        this.publicado = publicado;
     }
 }
