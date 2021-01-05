@@ -287,6 +287,7 @@ public class ProdutoController {
             pa.setValor_base_diaria(r.getValor_base_diaria());
             pa.setValor_base_mensal(r.getValor_base_mensal());
             pa.setValor_produto(r.getValor_produto());
+            pa.setPublicado(r.getPublicado());
             listPa.add(pa);
         }
         //Page<ProdutoAluguel> produtos = new PageImpl<>(listPa,page, listPa.size());

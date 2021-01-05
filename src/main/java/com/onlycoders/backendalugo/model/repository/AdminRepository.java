@@ -1,6 +1,7 @@
 package com.onlycoders.backendalugo.model.repository;
 
 import com.onlycoders.backendalugo.model.entity.admin.LogErros;
+import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -34,4 +35,5 @@ public interface AdminRepository extends JpaRepository<LogErros,Integer> {
             //@Query(value = "Select u.*From Usuarios u",
             nativeQuery = true)
     List<RetornaUsuario> findUsuario(@Param("id") String id);
+
 }

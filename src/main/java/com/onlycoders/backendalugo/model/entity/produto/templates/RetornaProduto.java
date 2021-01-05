@@ -52,4 +52,7 @@ public interface RetornaProduto {
 
     @JsonGetter("ativo")
     Boolean getAtivo();
+
+    @JsonGetter("publicado")
+    Boolean getPublicado();
 }
