@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
@@ -22,6 +21,9 @@ public class Categorias {
     @JsonAlias("id_categoria")
     String idCategoria;
 
+    @JsonAlias("nome_categoria")
+    String nomeCategoria;
+
     @JsonGetter("id_categoria")
     public String getIdCategoria() {
         return idCategoria;
@@ -30,5 +32,15 @@ public class Categorias {
     @JsonSetter("id_categoria")
     public void setIdCategoria(String idCategoria) {
         this.idCategoria = idCategoria;
+    }
+
+    @JsonGetter("nome_categoria")
+    public String getNomeCategoria() {
+        return nomeCategoria;
+    }
+
+    @JsonSetter("nome_categoria")
+    public void setNomeCategoria(String nomeCategoria) {
+        this.nomeCategoria = nomeCategoria;
     }
 }

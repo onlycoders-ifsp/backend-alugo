@@ -242,7 +242,8 @@ public class ProdutoController {
         String[] dtAluguelInicio;
         String[] dtAluguelFim;
         String[] categoria;
-
+        String[] idCategoria;
+        String[] nomeCategoria;
 
         for(RetornaProduto r : ret){
             List<DtAlugadas> dt = new ArrayList<DtAlugadas>();// = repository.dtAlugadas(r.getId_produto());
@@ -257,11 +258,15 @@ public class ProdutoController {
                     dt.add(dtAlugadas);
                 }
             }
-            if(!r.getCategorias().isEmpty()){
-                categoria = r.getCategorias().split(",");
-                for(String c : categoria){
+            if(r.getCategorias().contains(";")){
+                categoria = r.getCategorias().split(";");
+                idCategoria = categoria[0].split(",");
+                nomeCategoria = categoria[1].split(",");
+
+                for(int i = 0;i<idCategoria.length;i++){
                     Categorias cat = new Categorias();
-                    cat.setIdCategoria(c);
+                    cat.setIdCategoria(idCategoria[i]);
+                    cat.setNomeCategoria(nomeCategoria[i]);
                     categorias.add(cat);
                 }
             }

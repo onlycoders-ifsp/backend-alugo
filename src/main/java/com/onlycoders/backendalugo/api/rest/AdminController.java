@@ -4,8 +4,6 @@ package com.onlycoders.backendalugo.api.rest;
 import com.onlycoders.backendalugo.model.entity.admin.LogErros;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario;
 import com.onlycoders.backendalugo.model.repository.AdminRepository;
-import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
-import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +18,7 @@ import java.util.List;
 @Api(value = "Admin")
 @RequestMapping("/admin")
 @CrossOrigin(origins = "*")
-//@Secured("ADMIN")
+@Secured("ROLE_ADMIN")
 public class AdminController {
 
     @Autowired
@@ -61,8 +59,6 @@ public class AdminController {
                     @RequestParam(value = "size",required = false,defaultValue = "10") int size,
                     @RequestParam(value = "sort",required = false,defaultValue = "id") String sortBy,
                     @RequestParam(value = "order",required = false,defaultValue = "desc") String order){
-
-        System.out.println(sortBy);
         Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
 
         List<LogErros> listErros = adminRepository.retornaErros();
