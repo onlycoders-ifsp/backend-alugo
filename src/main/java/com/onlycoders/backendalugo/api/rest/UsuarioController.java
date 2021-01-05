@@ -61,12 +61,10 @@ public class UsuarioController {
     @ResponseStatus(HttpStatus.OK)
     public RetornaUsuario retornaUsuario(@RequestParam String id_usuario) {
 
-        if (id_usuario.isEmpty() || id_usuario == null || id_usuario.equals("0"))
-            throw new NullPointerException("Parametro id_usuario vazio");
-
             return repository.findUsuario(id_usuario).get(0);
  }
 
+ /*
     @ApiOperation(value = "Retorna dados de todos os usuarios", response = RetornaUsuario.class)
     @GetMapping("/lista-usuario")
     @ResponseStatus(HttpStatus.OK)
@@ -81,6 +79,8 @@ public class UsuarioController {
         return new PageImpl<>(listUsers,paging,listUsers.size());
         //return GeraLista(repository.findUsuario(id_usuario));
     }
+
+  */
 
     @ApiOperation(value = "Cadastro de usuário", response = RetornaUsuario.class)
     @PostMapping("/cadastro")
@@ -112,17 +112,6 @@ public class UsuarioController {
             e.printStackTrace();
         }
         return false;
-    }
-
-    @Secured("ADMIN")
-    @ApiOperation(value = "Deleta usuário, apenas usuario com role admin")
-    @DeleteMapping("inativa")
-    @ResponseStatus(HttpStatus.OK)
-    public Boolean deletar(@RequestParam String id_usuario) {
-        if (id_usuario.isEmpty() || id_usuario == null || id_usuario.equals("0"))
-            throw new NullPointerException("Parametro id_usuario vazio");
-
-        return repository.deleteUserById(id_usuario);
     }
 
     @ApiOperation(value = "Muda senha do usuario logado")
