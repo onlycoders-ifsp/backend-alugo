@@ -26,7 +26,6 @@ import java.util.*;
 @RequestMapping("/produtos")
 @RequiredArgsConstructor
 @CrossOrigin("*")
-@Secured("ROLE_USER")
 public class ProdutoController {
 
     @Autowired

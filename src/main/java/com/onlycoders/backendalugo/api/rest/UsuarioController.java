@@ -16,12 +16,7 @@ import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,7 +26,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.Part;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -39,7 +33,6 @@ import java.util.Optional;
 @RequestMapping("/usuarios")
 @RequiredArgsConstructor
 @CrossOrigin("*")
-@Secured("ROLE_USER")
 public class UsuarioController {
 
     private UsuarioRepository repository;
