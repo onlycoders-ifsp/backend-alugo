@@ -42,11 +42,12 @@ public class ProdutoController {
     retornaProdutosUsuarioLogado(@RequestParam(value = "page",required = false,defaultValue = "0") int page,
                                  @RequestParam(value = "size",required = false,defaultValue = "10") int size,
                                  @RequestParam(value = "sort",required = false,defaultValue = "qtd_alugueis") String sortBy,
-                                 @RequestParam(value = "order",required = false,defaultValue = "desc") String order) throws NotFoundException {
+                                 @RequestParam(value = "order",required = false,defaultValue = "desc") String order,
+                                 @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
 
         Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
         Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(transformaRetornoProdutoToPage(repository
-                .findProduto(getIdUsuario(false), "0",1),paging));
+                .findProduto(getIdUsuario(false), "0",1,categoria),paging));
         /*if (!produtos.get().getContent().isEmpty()) {
             //return new ResponseEntity<>(produtos.get(), HttpStatus.OK);
 
@@ -59,10 +60,12 @@ public class ProdutoController {
     @ApiOperation(value = "Retorna um único produto do usuario logado.", response = RetornaProduto.class)
     @GetMapping("/produto-logado")
     @ResponseStatus(HttpStatus.OK)
-    public ProdutoAluguel /*ResponseEntity<?>*/ retornaProdutoUsuarioLogado(@RequestParam String id_produto) throws NotFoundException {
+    public ProdutoAluguel /*ResponseEntity<?>*/
+    retornaProdutoUsuarioLogado(@RequestParam String id_produto,
+                                @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
         Pageable paging = PageRequest.of(0, 1);
         Optional<ProdutoAluguel> produtos = Optional.ofNullable(transformaRetornoProdutoToPage(
-                repository.findProduto(getIdUsuario(false), id_produto,2),paging)
+                repository.findProduto(getIdUsuario(false), id_produto,2,categoria),paging)
                 .getContent().get(0));
         /*if (produtos.isPresent()) {
             return new ResponseEntity<>(produtos.get(), HttpStatus.OK);
@@ -80,11 +83,11 @@ public class ProdutoController {
     retornaProdutos(@RequestParam(value = "page",required = false,defaultValue = "0") int page,
                     @RequestParam(value = "size",required = false,defaultValue = "10") int size,
                     @RequestParam(value = "sort",required = false,defaultValue = "qtd_alugueis") String sortBy,
-                    @RequestParam(value = "order",required = false,defaultValue = "desc") String order) throws NotFoundException {
-
+                    @RequestParam(value = "order",required = false,defaultValue = "desc") String order,
+                    @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
         Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
         Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(
-                transformaRetornoProdutoToPage(repository.findProduto("0", "0",4),paging));
+                transformaRetornoProdutoToPage(repository.findProduto("0", "0",4,categoria),paging));
         /*if (!produtos.get().isEmpty()) {
             return new ResponseEntity<>(produtos.get(), HttpStatus.OK);
         }*/
@@ -97,10 +100,12 @@ public class ProdutoController {
     @ApiOperation(value = "Retorna um único produto", response = RetornaProduto.class)
     @GetMapping("/produto")
     @ResponseStatus(HttpStatus.OK)
-    public ProdutoAluguel /*ResponseEntity<?>*/ retornaProduto(@RequestParam String id_produto) throws NotFoundException {
+    public ProdutoAluguel /*ResponseEntity<?>*/
+    retornaProduto(@RequestParam String id_produto,
+                   @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
         Pageable paging = PageRequest.of(0, 1);
         Optional<ProdutoAluguel> produtos = Optional.ofNullable(transformaRetornoProdutoToPage(
-                repository.findProduto("0", id_produto,3),paging)
+                repository.findProduto("0", id_produto,3,categoria),paging)
                 .getContent()
                 .get(0));
         /*if (produtos.isPresent()) {
@@ -121,11 +126,12 @@ public class ProdutoController {
                            @RequestParam(value = "page",required = false,defaultValue = "0") int page,
                            @RequestParam(value = "size",required = false,defaultValue = "10") int size,
                            @RequestParam(value = "sort",required = false,defaultValue = "qtd_alugueis") String sortBy,
-                           @RequestParam(value = "order",required = false,defaultValue = "desc") String order) throws NotFoundException {
+                           @RequestParam(value = "order",required = false,defaultValue = "desc") String order,
+                           @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
 
         Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
         Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(
-                transformaRetornoProdutoToPage(repository.findProduto("0", produto,3),paging));
+                transformaRetornoProdutoToPage(repository.findProduto("0", produto,3,categoria),paging));
         /*if (!produtos.get().getContent().isEmpty()) {
             return new ResponseEntity<>(produtos.get(), HttpStatus.OK);
         }*/
@@ -141,10 +147,11 @@ public class ProdutoController {
     retornaProdutosUsuario(@RequestParam String id_usuario, @RequestParam(value = "page",required = false,defaultValue = "0") int page,
                            @RequestParam(value = "size",required = false,defaultValue = "10") int size,
                            @RequestParam(value = "sort",required = false,defaultValue = "qtd_alugueis") String sortBy,
-                           @RequestParam(value = "order",required = false,defaultValue = "desc") String order) {
+                           @RequestParam(value = "order",required = false,defaultValue = "desc") String order,
+                           @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) {
         Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
         return transformaRetornoProdutoToPage(
-                repository.findProduto(id_usuario, "0",1),paging);
+                repository.findProduto(id_usuario, "0",1,categoria),paging);
     }
 
     @ApiOperation(value = "Cadastra novo produto do usuario logado")

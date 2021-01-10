@@ -79,7 +79,8 @@ public class AlugarController {
                                                 defaultValue = "0") int page,
                                 @RequestParam(value = "size",
                                               required = false,
-                                              defaultValue = "10") int size) throws NotFoundException {
+                                              defaultValue = "10") int size,
+                                @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
         Pageable paging = PageRequest.of(page, size);
 
         String id_locador = getIdUsuario();
@@ -103,7 +104,7 @@ public class AlugarController {
                 RetornaUsuario locatario = usuarioRepository.findUsuario(id_locatario).get(0);
                 aluguel.setLocatario(locatario);
 
-                RetornaProduto produto = produtoRepository.findProduto("0", id_produto, 3).get(0);
+                RetornaProduto produto = produtoRepository.findProduto("0", id_produto, 3,categoria).get(0);
                 aluguel.setProduto(produto);
                 alugueis.add(aluguel);
             }
@@ -124,7 +125,8 @@ public class AlugarController {
                                                 defaultValue = "0") int page,
                                   @RequestParam(value = "size",
                                                 required = false,
-                                                defaultValue = "10") int size) throws NotFoundException {
+                                                defaultValue = "10") int size,
+                                  @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
 
         Pageable paging = PageRequest.of(page, size);
         String id_locatario = getIdUsuario();
@@ -150,7 +152,7 @@ public class AlugarController {
                 RetornaUsuario locatario = usuarioRepository.findUsuario(id_locatario).get(0);
                 aluguel.setLocatario(locatario);
 
-                RetornaProduto produto = produtoRepository.findProduto("0", id_produto, 3).get(0);
+                RetornaProduto produto = produtoRepository.findProduto("0", id_produto, 3,categoria).get(0);
                 aluguel.setProduto(produto);
 
                 alugueis.add(aluguel);
