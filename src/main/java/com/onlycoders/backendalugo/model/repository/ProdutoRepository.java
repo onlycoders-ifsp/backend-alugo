@@ -14,7 +14,7 @@ import java.util.List;
 public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
 
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
-    @Query(value = "SELECT *FROM FN_RETORNA_PRODUTO(:id_usuario, :id_produto, :op)" +
+    @Query(value = "SELECT *FROM FN_RETORNA_PRODUTO(:id_usuario, :id_produto,:op, :categoria)" +
             "as (ID_USUARIO TEXT, ID_PRODUTO TEXT, NOME TEXT, DESCRICAO_CURTA TEXT, " +
             "  DESCRICAO TEXT, VALOR_BASE_DIARIA DECIMAL(16,2), VALOR_BASE_MENSAL DECIMAL(16,2)," +
             "  VALOR_PRODUTO DECIMAL(16,2), DATA_COMPRA TEXT, QTD_ALUGUEIS NUMERIC(16), " +
@@ -23,7 +23,8 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
             nativeQuery = true)
     List<RetornaProduto> findProduto(@Param("id_usuario") String id_usuario,
                                      @Param("id_produto") String id_produto,
-                                     @Param("op") int op);
+                                     @Param("op") int op,
+                                     @Param("categoria") int categoria);
 
     @Transactional
     @Query(value = "SELECT * from FN_CADASTRAR_PRODUTO(:id,:nome,:descricao_curta," +

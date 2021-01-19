@@ -84,10 +84,11 @@ public class AdminController {
     retornaProdutosNaoPublicados(@RequestParam(value = "page",required = false,defaultValue = "0") int page,
                                  @RequestParam(value = "size",required = false,defaultValue = "10") int size,
                                  @RequestParam(value = "sort",required = false,defaultValue = "qtd_alugueis") String sortBy,
-                                 @RequestParam(value = "order",required = false,defaultValue = "desc") String order){
+                                 @RequestParam(value = "order",required = false,defaultValue = "desc") String order,
+                                 @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria){
         Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
         Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(
-                transformaRetornoProdutoToPage(produtoRepository.findProduto("0", "0",2),paging));
+                transformaRetornoProdutoToPage(produtoRepository.findProduto("0", "0",2,categoria),paging));
         return produtos.get();
     }
 

@@ -23,30 +23,30 @@ public class ProdutoControllerTest {
 
     @Test
     public void retornaProdutosTest() throws NotFoundException {
-        Page<ProdutoAluguel> produtos = controllerProduto.retornaProdutos(0,10,"qtd_alugueis","desc");
+        Page<ProdutoAluguel> produtos = controllerProduto.retornaProdutos(0,10,"qtd_alugueis","desc",0);
         assertTrue(produtos.hasContent());
     }
 
     @Test
     public void retornaProdutoTest() throws NotFoundException {
-        Page<ProdutoAluguel> produtos = controllerProduto.retornaProdutos(0,10,"qtd_alugueis","desc");
+        Page<ProdutoAluguel> produtos = controllerProduto.retornaProdutos(0,10,"qtd_alugueis","desc",0);
 
-        ProdutoAluguel produto = controllerProduto.retornaProduto(produtos.get().findFirst().get().getId_produto());
+        ProdutoAluguel produto = controllerProduto.retornaProduto(produtos.get().findFirst().get().getId_produto(),0);
         assertEquals(produtos.get().findFirst().get().getNome(),produto.getNome());
     }
 
     @Test
     public void retornaProdutoPesquisaTest() throws NotFoundException {
         String palavraPesquisada = "livro";
-        Page<ProdutoAluguel> produtos = controllerProduto.retornaProdutoPesquisa(palavraPesquisada,0,10,"qtd_alugueis","desc");
+        Page<ProdutoAluguel> produtos = controllerProduto.retornaProdutoPesquisa(palavraPesquisada,0,10,"qtd_alugueis","desc",0);
 
         assertTrue(produtos.get().allMatch(nome -> nome.getNome().toLowerCase().contains(palavraPesquisada)));
     }
 
     @Test
     public void retornaProdutosUsuarioTest() throws NotFoundException {
-        String id_usuario = controllerProduto.retornaProdutos(0,10,"qtd_alugueis","desc").get().findFirst().get().getId_usuario();
-        Page<ProdutoAluguel> produtos = controllerProduto.retornaProdutosUsuario(id_usuario,0,10,"qtd_alugueis","desc");
+        String id_usuario = controllerProduto.retornaProdutos(0,10,"qtd_alugueis","desc",0).get().findFirst().get().getId_usuario();
+        Page<ProdutoAluguel> produtos = controllerProduto.retornaProdutosUsuario(id_usuario,0,10,"qtd_alugueis","desc",0);
 
         assertTrue(produtos.hasContent());
     }
