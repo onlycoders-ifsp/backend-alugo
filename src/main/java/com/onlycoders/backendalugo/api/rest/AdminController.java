@@ -1,6 +1,5 @@
 package com.onlycoders.backendalugo.api.rest;
-
-
+import com.google.common.base.Throwables;
 import com.onlycoders.backendalugo.model.entity.admin.LogErros;
 import com.onlycoders.backendalugo.model.entity.produto.templates.Categorias;
 import com.onlycoders.backendalugo.model.entity.produto.templates.DtAlugadas;
@@ -8,6 +7,7 @@ import com.onlycoders.backendalugo.model.entity.produto.templates.ProdutoAluguel
 import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario;
 import com.onlycoders.backendalugo.model.repository.AdminRepository;
+import com.onlycoders.backendalugo.model.repository.LogRepository;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -15,8 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -34,13 +35,23 @@ public class AdminController {
     @Autowired
     private ProdutoRepository produtoRepository;
 
+    @Autowired
+    private LogRepository logRepository;
+
     @ApiOperation(value = "Deleta usuário")
     @DeleteMapping("inativa-usuario")
     public Boolean deletar(@RequestParam String id_usuario) {
-        if (id_usuario.isEmpty() || id_usuario == null || id_usuario.equals("0"))
-            throw new NullPointerException("Parametro id_usuario vazio");
-
-        return adminRepository.deleteUserById(id_usuario);
+        try{
+            return adminRepository.deleteUserById(id_usuario,SecurityContextHolder.getContext().getAuthentication().getName());
+        }catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
     }
 
     @ApiOperation(value = "Retorna dados de todos os usuarios", response = RetornaUsuario.class)
@@ -48,17 +59,28 @@ public class AdminController {
     @ResponseStatus(HttpStatus.OK)
     public Page<RetornaUsuario>
     retornaUsuario(@RequestParam(value = "page",
-                                 required = false,
-                                 defaultValue = "0") int page,
+            required = false,
+            defaultValue = "0") int page,
                    @RequestParam(value = "size",
-                                 required = false,
-                                 defaultValue = "10") int size) {
-        Pageable paging = PageRequest.of(page, size);
-        List<RetornaUsuario> listUsuarios = adminRepository.findUsuario("0");
+                           required = false,
+                           defaultValue = "10") int size) {
+        try {
+            Pageable paging = PageRequest.of(page, size);
+            List<RetornaUsuario> listUsuarios = adminRepository.findUsuario("0",SecurityContextHolder.getContext().getAuthentication().getName());
 
-        int start =(int) paging.getOffset();
-        int end = (start + paging.getPageSize()) > listUsuarios.size() ? listUsuarios.size() : (start + paging.getPageSize());
-        return new PageImpl<>(listUsuarios.subList(start,end), paging, listUsuarios.size());
+            int start = (int) paging.getOffset();
+            int end = (start + paging.getPageSize()) > listUsuarios.size() ? listUsuarios.size() : (start + paging.getPageSize());
+            return new PageImpl<>(listUsuarios.subList(start, end), paging, listUsuarios.size());
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
     }
 
     @ApiOperation(value = "Retorna log erros", response = LogErros.class)
@@ -71,10 +93,21 @@ public class AdminController {
                     @RequestParam(value = "order",required = false,defaultValue = "desc") String order){
         Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
 
-        List<LogErros> listErros = adminRepository.retornaErros();
-        int start =(int) paging.getOffset();
-        int end = (start + paging.getPageSize()) > listErros.size() ? listErros.size() : (start + paging.getPageSize());
-        return new PageImpl<>(listErros.subList(start,end), paging, listErros.size());
+        try {
+            List<LogErros> listErros = adminRepository.retornaErros(SecurityContextHolder.getContext().getAuthentication().getName());
+            int start = (int) paging.getOffset();
+            int end = (start + paging.getPageSize()) > listErros.size() ? listErros.size() : (start + paging.getPageSize());
+            return new PageImpl<>(listErros.subList(start, end), paging, listErros.size());
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
     }
 
     @ApiOperation(value = "Retorna produtos não publicados", response = ProdutoAluguel.class)
@@ -87,9 +120,20 @@ public class AdminController {
                                  @RequestParam(value = "order",required = false,defaultValue = "desc") String order,
                                  @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria){
         Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
-        Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(
-                transformaRetornoProdutoToPage(produtoRepository.findProduto("0", "0",2,categoria),paging));
-        return produtos.get();
+        try {
+            Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(
+                    transformaRetornoProdutoToPage(produtoRepository.findProduto("0", "0", 2, categoria,SecurityContextHolder.getContext().getAuthentication().getName()), paging));
+            return produtos.get();
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
     }
 
     public Page <ProdutoAluguel> transformaRetornoProdutoToPage(List<RetornaProduto> ret, Pageable page){

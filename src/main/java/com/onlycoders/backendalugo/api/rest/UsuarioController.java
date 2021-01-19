@@ -5,10 +5,12 @@
  * #########################################################################
  */
 package com.onlycoders.backendalugo.api.rest;
+import com.google.common.base.Throwables;
 import com.onlycoders.backendalugo.model.entity.usuario.Usuario;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.AlteraSenha;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RequestUsuario;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario;
+import com.onlycoders.backendalugo.model.repository.LogRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -22,6 +24,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.servlet.http.Part;
 import java.io.IOException;
@@ -42,11 +45,25 @@ public class UsuarioController {
         this.repository = repository;
     }
 
+    @Autowired
+    private LogRepository logRepository;
+
     @ApiOperation(value = "Retorna dados do usuario logado", response = RetornaUsuario.class)
     @GetMapping("/usuario-logado")
     @ResponseStatus(HttpStatus.OK)
     public RetornaUsuario retornaUsuarioLogado() {
-        return repository.findUsuario(getIdUsuario()).get(0);
+        try {
+            return repository.findUsuario(getIdUsuario()).get(0);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
         //return GeraLista(repository.findUsuario(id_usuario));
     }
 
@@ -82,10 +99,20 @@ public class UsuarioController {
     public RetornaUsuario salvar(@RequestBody Usuario usuario){
        //validaCampos(usuario.getLogin(), usuario.getCpf(), usuario.getEmail(),
        //        usuario.getCelular(), usuario.getNome(), false);
-
-        return repository
-                .createUsuarioMin(usuario.getNome(), usuario.getEmail().toLowerCase(),usuario.getLogin(),
-                usuario.getSenha(),usuario.getCpf(), usuario.getCelular()).get(0);
+        try {
+            return repository
+                    .createUsuarioMin(usuario.getNome(), usuario.getEmail().toLowerCase(), usuario.getLogin(),
+                            usuario.getSenha(), usuario.getCpf(), usuario.getCelular()).get(0);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
     }
 
     @ApiOperation(value = "Atualiza/Cadastra foto de usuario")
@@ -102,20 +129,36 @@ public class UsuarioController {
             is.close();
             return repository.uploadFoto(usuario.get(), bytes);
 
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch(IOException e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
         }
-        return false;
     }
 
     @ApiOperation(value = "Muda senha do usuario logado")
     @PutMapping("/altera-senha")
     @ResponseStatus(HttpStatus.OK)
     public Boolean alteraSenha(@RequestBody AlteraSenha senha) throws NotFoundException {
-        if(new BCryptPasswordEncoder().matches(senha.getSenha_antiga(),repository.retornaSenha(getIdUsuario())))
-            return repository.alteraSenha(getIdUsuario(), senha.getSenha_nova());
-        else
-            throw new NotFoundException("Senha incorreta");
+        try {
+            if (new BCryptPasswordEncoder().matches(senha.getSenha_antiga(), repository.retornaSenha(getIdUsuario())))
+                return repository.alteraSenha(getIdUsuario(), senha.getSenha_nova());
+            else
+                throw new NotFoundException("Senha incorreta");
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
     }
 
     @ApiOperation(value = "Alterar dados cadastrais do usuario logado", response = RetornaUsuario.class)
@@ -123,52 +166,129 @@ public class UsuarioController {
     @ResponseStatus(HttpStatus.OK)
     public RetornaUsuario alteraUsuario(@RequestBody RequestUsuario usuario) {
         //validaCampos(usuario.getLogin(),usuario.getCpf(),usuario.getEmail(),usuario.getCelular(),usuario.getNome(),true);
-        return repository.updateUserById(getIdUsuario(),usuario.getNome(),usuario.getEmail().toLowerCase(),
-                usuario.getLogin(),usuario.getCpf(), usuario.getCelular(),usuario.getData_nascimento(),
-                usuario.getCep(),usuario.getLogradouro(),usuario.getComplemento(), usuario.getBairro(),
-                usuario.getNumero()).get(0);
+        try {
+            return repository.updateUserById(getIdUsuario(), usuario.getNome(), usuario.getEmail().toLowerCase(),
+                    usuario.getLogin(), usuario.getCpf(), usuario.getCelular(), usuario.getData_nascimento(),
+                    usuario.getCep(), usuario.getLogradouro(), usuario.getComplemento(), usuario.getBairro(),
+                    usuario.getNumero()).get(0);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
     }
 
     @ApiOperation(value = "Retorna se existe o email informado", response = RetornaUsuario.class)
     @GetMapping("/verifica/email")
     @ResponseStatus(HttpStatus.OK)
     public Boolean verificaEmail(@RequestParam String email){
-        return repository.validaDado(email, 2);
+        try {
+            return repository.validaDado(email, 2);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
     }
 
     @ApiOperation(value = "Retorna se existe o CPF informado", response = RetornaUsuario.class)
     @GetMapping("/verifica/cpf")
     @ResponseStatus(HttpStatus.OK)
     public Boolean verificaCpf(@RequestParam String cpf){
-        return repository.validaDado(cpf, 1);
+        try {
+            return repository.validaDado(cpf, 1);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
     }
 
     @ApiOperation(value = "Retorna se existe o nome de usuario informado", response = RetornaUsuario.class)
     @GetMapping("/verifica/username")
     @ResponseStatus(HttpStatus.OK)
     public Boolean verificaUserName(@RequestParam String user){
-        return repository.validaDado(user, 3);
+        try {
+            return repository.validaDado(user, 3);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, userName, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
     }
 
     @ApiOperation(value = "Retorna se existe o email informado do usuario logado", response = RetornaUsuario.class)
     @GetMapping("/verifica/email-update")
     @ResponseStatus(HttpStatus.OK)
     public Boolean verificaEmailUpdate(@RequestParam String email){
-        return repository.validaDadouUpdate(email, getIdUsuario(),2);
+        try {
+            return repository.validaDadouUpdate(email, getIdUsuario(), 2);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
     }
 
     @ApiOperation(value = "Retorna se existe o CPF informado do usuario logado", response = RetornaUsuario.class)
     @GetMapping("/verifica/cpf-update")
     @ResponseStatus(HttpStatus.OK)
     public Boolean verificaCpfUpdate(@RequestParam String cpf){
-        return repository.validaDadouUpdate(cpf, getIdUsuario(),1);
+        try {
+            return repository.validaDadouUpdate(cpf, getIdUsuario(), 1);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
     }
 
     @ApiOperation(value = "Retorna se existe o nome de usuario informado do usuario logado", response = RetornaUsuario.class)
     @GetMapping("/verifica/username-update")
     @ResponseStatus(HttpStatus.OK)
     public Boolean verificaUserNameUpdate(@RequestParam String user){
-        return repository.validaDadouUpdate(user, getIdUsuario(),3);
+        try {
+            return repository.validaDadouUpdate(user, getIdUsuario(), 3);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, userName, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
     }
 /*
     private void validaCampos(String login, String cpf, String email, String celular, String nome, Boolean isUpdate) {

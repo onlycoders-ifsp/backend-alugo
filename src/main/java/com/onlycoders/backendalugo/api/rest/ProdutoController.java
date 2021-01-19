@@ -1,6 +1,8 @@
 package com.onlycoders.backendalugo.api.rest;
+import com.google.common.base.Throwables;
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
 import com.onlycoders.backendalugo.model.entity.produto.templates.*;
+import com.onlycoders.backendalugo.model.repository.LogRepository;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import io.swagger.annotations.Api;
@@ -16,6 +18,8 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
 import javax.servlet.http.Part;
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,6 +38,9 @@ public class ProdutoController {
     @Autowired
     private UsuarioRepository repositoryUsuario;
 
+    @Autowired
+    private LogRepository logRepository;
+
     @ApiOperation(value = "Retorna produtos do usuario logado.", response = RetornaProduto.class)
     @GetMapping("/lista-produto-logado")
     @ResponseStatus(HttpStatus.OK)
@@ -45,16 +52,27 @@ public class ProdutoController {
                                  @RequestParam(value = "order",required = false,defaultValue = "desc") String order,
                                  @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
 
-        Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
-        Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(transformaRetornoProdutoToPage(repository
-                .findProduto(getIdUsuario(false), "0",1,categoria),paging));
+        try {
+            Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
+            Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(transformaRetornoProdutoToPage(repository
+                    .findProduto(getIdUsuario(false), "0", 1, categoria,SecurityContextHolder.getContext().getAuthentication().getName()), paging));
         /*if (!produtos.get().getContent().isEmpty()) {
             //return new ResponseEntity<>(produtos.get(), HttpStatus.OK);
 
         }*/
-        //return new ResponseEntity<>("Nenhum produto disponível", HttpStatus.OK);
-        //throw new NotFoundException("Nenhum produto disponível");
-        return produtos.get();
+            //return new ResponseEntity<>("Nenhum produto disponível", HttpStatus.OK);
+            //throw new NotFoundException("Nenhum produto disponível");
+            return produtos.get();
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
     }
 
     @ApiOperation(value = "Retorna um único produto do usuario logado.", response = RetornaProduto.class)
@@ -63,16 +81,27 @@ public class ProdutoController {
     public ProdutoAluguel /*ResponseEntity<?>*/
     retornaProdutoUsuarioLogado(@RequestParam String id_produto,
                                 @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
-        Pageable paging = PageRequest.of(0, 1);
-        Optional<ProdutoAluguel> produtos = Optional.ofNullable(transformaRetornoProdutoToPage(
-                repository.findProduto(getIdUsuario(false), id_produto,2,categoria),paging)
-                .getContent().get(0));
+        try{
+            Pageable paging = PageRequest.of(0, 1);
+            Optional<ProdutoAluguel> produtos = Optional.ofNullable(transformaRetornoProdutoToPage(
+                    repository.findProduto(getIdUsuario(false), id_produto, 2, categoria,SecurityContextHolder.getContext().getAuthentication().getName()), paging)
+                    .getContent().get(0));
         /*if (produtos.isPresent()) {
             return new ResponseEntity<>(produtos.get(), HttpStatus.OK);
         }*/
-        //return new ResponseEntity<>("Nenhum produto disponível", HttpStatus.OK);
-        //throw new NotFoundException("Nenhum produto disponível");
-        return produtos.get();
+            //return new ResponseEntity<>("Nenhum produto disponível", HttpStatus.OK);
+            //throw new NotFoundException("Nenhum produto disponível");
+            return produtos.get();
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
     }
 
     @ApiOperation(value = "Retorna todos os produtos", response = RetornaProduto.class)
@@ -85,14 +114,26 @@ public class ProdutoController {
                     @RequestParam(value = "sort",required = false,defaultValue = "qtd_alugueis") String sortBy,
                     @RequestParam(value = "order",required = false,defaultValue = "desc") String order,
                     @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
-        Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
-        Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(
-                transformaRetornoProdutoToPage(repository.findProduto("0", "0",4,categoria),paging));
+        try{
+            Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
+            //System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().build().getPath());
+            Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(
+                    transformaRetornoProdutoToPage(repository.findProduto("0", "0", 4, categoria,SecurityContextHolder.getContext().getAuthentication().getName()), paging));
         /*if (!produtos.get().isEmpty()) {
             return new ResponseEntity<>(produtos.get(), HttpStatus.OK);
         }*/
-        //throw new NotFoundException("Nenhum produto localizado");
-        return produtos.get();
+            //throw new NotFoundException("Nenhum produto localizado");
+            return produtos.get();
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
         //return new ResponseEntity<>("Nenhum produto localizado", HttpStatus.OK);
 
     }
@@ -103,15 +144,26 @@ public class ProdutoController {
     public ProdutoAluguel /*ResponseEntity<?>*/
     retornaProduto(@RequestParam String id_produto,
                    @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
-        Pageable paging = PageRequest.of(0, 1);
-        Optional<ProdutoAluguel> produtos = Optional.ofNullable(transformaRetornoProdutoToPage(
-                repository.findProduto("0", id_produto,3,categoria),paging)
-                .getContent()
-                .get(0));
+        try {
+            Pageable paging = PageRequest.of(0, 1);
+            Optional<ProdutoAluguel> produtos = Optional.ofNullable(transformaRetornoProdutoToPage(
+                    repository.findProduto("0", id_produto, 3, categoria,SecurityContextHolder.getContext().getAuthentication().getName()), paging)
+                    .getContent()
+                    .get(0));
         /*if (produtos.isPresent()) {
             return new ResponseEntity<>(produtos.get(), HttpStatus.OK);
         }*/
-        return produtos.get();
+            return produtos.get();
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
         //throw new NotFoundException("Produto não localizado");
         //return new ResponseEntity<>(produtos.get(), HttpStatus.OK);
         //return new ResponseEntity<>("Produto não localizado", HttpStatus.OK);
@@ -128,14 +180,24 @@ public class ProdutoController {
                            @RequestParam(value = "sort",required = false,defaultValue = "qtd_alugueis") String sortBy,
                            @RequestParam(value = "order",required = false,defaultValue = "desc") String order,
                            @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
-
+    try {
         Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
         Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(
-                transformaRetornoProdutoToPage(repository.findProduto("0", produto,3,categoria),paging));
+                transformaRetornoProdutoToPage(repository.findProduto("0", produto, 3, categoria,SecurityContextHolder.getContext().getAuthentication().getName()), paging));
         /*if (!produtos.get().getContent().isEmpty()) {
             return new ResponseEntity<>(produtos.get(), HttpStatus.OK);
         }*/
         return produtos.get();
+    }
+    catch(Exception e) {
+        String className = this.getClass().getSimpleName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+        String user = SecurityContextHolder.getContext().getAuthentication().getName();
+        logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+        return null;
+    }
         //throw new NotFoundException("Nenhum produto encontrado");
         //return new ResponseEntity<>("Nenhum produto encontrado", HttpStatus.OK);
     }
@@ -149,21 +211,43 @@ public class ProdutoController {
                            @RequestParam(value = "sort",required = false,defaultValue = "qtd_alugueis") String sortBy,
                            @RequestParam(value = "order",required = false,defaultValue = "desc") String order,
                            @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) {
-        Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
-        return transformaRetornoProdutoToPage(
-                repository.findProduto(id_usuario, "0",1,categoria),paging);
+        try {
+            Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
+            return transformaRetornoProdutoToPage(
+                    repository.findProduto(id_usuario, "0", 1, categoria,SecurityContextHolder.getContext().getAuthentication().getName()), paging);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
     }
 
     @ApiOperation(value = "Cadastra novo produto do usuario logado")
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
     public ProdutoAluguel cadastra(@RequestBody Produto produto){
-        Pageable paging = PageRequest.of(0, 1);
-        String categoria = trasnformaCategoriasToString(produto.getCategorias());
-        return transformaRetornoProdutoToPage(repository.createProduto(getIdUsuario(false),
-                produto.getNome(),produto.getDescricao_curta(),produto.getDescricao(),
-                produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
-                produto.getData_compra(),categoria),paging).getContent().get(0);
+        try {
+            Pageable paging = PageRequest.of(0, 1);
+            String categoria = trasnformaCategoriasToString(produto.getCategorias());
+            return transformaRetornoProdutoToPage(repository.createProduto(getIdUsuario(false),
+                    produto.getNome(), produto.getDescricao_curta(), produto.getDescricao(),
+                    produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
+                    produto.getData_compra(), categoria,SecurityContextHolder.getContext().getAuthentication().getName()), paging).getContent().get(0);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
     }
 
     @ApiOperation(value = "Atualiza/cadastra foto de produto")
@@ -179,35 +263,73 @@ public class ProdutoController {
                 byte[] bytes = new byte[(int) capa_foto.getSize()];
                 IOUtils.readFully(is,bytes);
                 is.close();
-                return repository.uploadFoto(usuario.get(), id_produto, bytes);
+                return repository.uploadFoto(usuario.get(), id_produto, bytes,SecurityContextHolder.getContext().getAuthentication().getName());
 
-            } catch (IOException e) {
-                e.printStackTrace();
-        }
-        return false;
+            } catch(IOException e) {
+                String className = this.getClass().getSimpleName();
+                String methodName = new Object() {
+                }.getClass().getEnclosingMethod().getName();
+                String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+                String user = SecurityContextHolder.getContext().getAuthentication().getName();
+                logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+                return false;
+            }
     }
     @ApiOperation(value = "Altera dados cadastrais do produto")
     @PutMapping("/altera")
     @ResponseStatus(HttpStatus.OK)
     public Boolean atualiza(@RequestBody Produto produto) {
-        String categoria = trasnformaCategoriasToString(produto.getCategorias());
-        return repository.updateProduto(produto.getId_produto(), produto.getNome(), produto.getDescricao_curta(),
-                produto.getDescricao(),produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
-                produto.getData_compra(),produto.getAtivo(),categoria);
+        try {
+            String categoria = trasnformaCategoriasToString(produto.getCategorias());
+            return repository.updateProduto(produto.getId_produto(), produto.getNome(), produto.getDescricao_curta(),
+                    produto.getDescricao(), produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
+                    produto.getData_compra(), produto.getAtivo(), categoria,SecurityContextHolder.getContext().getAuthentication().getName());
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
     }
 
     @ApiOperation(value = "Ativa ou inativa produto.")
     @DeleteMapping("ativa-inativa")
     @ResponseStatus(HttpStatus.OK)
     public Boolean ativaInativa(@RequestParam String id_produto){
-        return repository.ativaInativaProduto(id_produto);
+        try {
+            return repository.ativaInativaProduto(id_produto,SecurityContextHolder.getContext().getAuthentication().getName());
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
     }
 
     @ApiOperation(value = "Retorna categorias", response = RetornaProduto.class)
     @GetMapping("/categorias")
     @ResponseStatus(HttpStatus.OK)
     public List<RetornaCategorias> retornaCategorias(){
-        return repository.retornaCategorias();
+        try {
+            return repository.retornaCategorias();
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
     }
 
 
