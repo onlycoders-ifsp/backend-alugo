@@ -157,7 +157,7 @@ public class UsuarioController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName();
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
-            return null;
+            return false;
         }
     }
 
@@ -197,7 +197,7 @@ public class UsuarioController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName();
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
-            return null;
+            return false;
         }
     }
 
@@ -215,7 +215,7 @@ public class UsuarioController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName();
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
-            return null;
+            return false;
         }
     }
 
@@ -233,7 +233,7 @@ public class UsuarioController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String userName = SecurityContextHolder.getContext().getAuthentication().getName();
             logRepository.gravaLogBackend(className, methodName, endpoint, userName, e.getMessage(), Throwables.getStackTraceAsString(e));
-            return null;
+            return false;
         }
     }
 
@@ -251,7 +251,7 @@ public class UsuarioController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName();
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
-            return null;
+            return false;
         }
     }
 
@@ -269,7 +269,7 @@ public class UsuarioController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName();
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
-            return null;
+            return false;
         }
     }
 
@@ -287,7 +287,7 @@ public class UsuarioController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String userName = SecurityContextHolder.getContext().getAuthentication().getName();
             logRepository.gravaLogBackend(className, methodName, endpoint, userName, e.getMessage(), Throwables.getStackTraceAsString(e));
-            return null;
+            return false;
         }
     }
 /*

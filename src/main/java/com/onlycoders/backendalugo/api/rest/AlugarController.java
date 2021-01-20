@@ -92,11 +92,11 @@ public class AlugarController {
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?>// Page<RetornaAluguelUsuarioProduto>
     retornaAluguelLocadorLogado(@RequestParam(value = "page",
-                                                required = false,
-                                                defaultValue = "0") int page,
+            required = false,
+            defaultValue = "0") int page,
                                 @RequestParam(value = "size",
-                                              required = false,
-                                              defaultValue = "10") int size,
+                                        required = false,
+                                        defaultValue = "10") int size,
                                 @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
         try {
             Pageable paging = PageRequest.of(page, size);
@@ -122,15 +122,15 @@ public class AlugarController {
                     RetornaUsuario locatario = usuarioRepository.findUsuario(id_locatario).get(0);
                     aluguel.setLocatario(locatario);
 
-                    RetornaProduto produto = produtoRepository.findProduto("0", id_produto, 3, categoria, SecurityContextHolder.getContext().getAuthentication().getName()).get(0);
+                    RetornaProduto produto = produtoRepository.findProduto("0", id_produto, 6, categoria, SecurityContextHolder.getContext().getAuthentication().getName()).get(0);
                     aluguel.setProduto(produto);
                     alugueis.add(aluguel);
                 }
                 int start = (int) paging.getOffset();
                 int end = (start + paging.getPageSize()) > alugueis.size() ? alugueis.size() : (start + paging.getPageSize());
                 return new ResponseEntity<>(new PageImpl<>(alugueis.subList(start, end), paging, alugueis.size()), HttpStatus.OK);
-            }
-            throw new NotFoundException("Nenhum produto alugado");
+            }else
+                return new ResponseEntity<>(new PageImpl<>(new ArrayList<>(), PageRequest.of(1,1), 0), HttpStatus.OK);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -139,7 +139,7 @@ public class AlugarController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName();
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
-            return null;
+            return new ResponseEntity<>(new PageImpl<>(new ArrayList<>(), PageRequest.of(1,1), 0), HttpStatus.OK);
         }
         //return new ResponseEntity<>("Nenhum produto alugado",HttpStatus.OK);
     }
@@ -149,11 +149,11 @@ public class AlugarController {
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?>//Page<RetornaAluguelUsuarioProduto>
     retornaAluguelLocatarioLogado(@RequestParam(value = "page",
-                                                required = false,
-                                                defaultValue = "0") int page,
+            required = false,
+            defaultValue = "0") int page,
                                   @RequestParam(value = "size",
-                                                required = false,
-                                                defaultValue = "10") int size,
+                                          required = false,
+                                          defaultValue = "10") int size,
                                   @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
 
         try {
@@ -166,31 +166,25 @@ public class AlugarController {
 
             Optional<List<RetornaAluguel>> aluguelEfeutuado = Optional.ofNullable(aluguelRepository
                     .retornaAluguel("0", id_locatario, "0", "0", 3, SecurityContextHolder.getContext().getAuthentication().getName()));
-
             if (!aluguelEfeutuado.get().isEmpty()) {
                 for (RetornaAluguel a : aluguelEfeutuado.get()) {
                     RetornaAluguelUsuarioProduto aluguel = new RetornaAluguelUsuarioProduto();
                     id_locador = a.getId_locador();
                     id_produto = a.getId_produto();
-
-
                     aluguel.setAluguel(a);
                     RetornaUsuario locador = usuarioRepository.findUsuario(id_locador).get(0);
                     aluguel.setLocador(locador);
-
                     RetornaUsuario locatario = usuarioRepository.findUsuario(id_locatario).get(0);
                     aluguel.setLocatario(locatario);
-
-                    RetornaProduto produto = produtoRepository.findProduto("0", id_produto, 3, categoria, SecurityContextHolder.getContext().getAuthentication().getName()).get(0);
+                    RetornaProduto produto = produtoRepository.findProduto("0", id_produto, 6, categoria, SecurityContextHolder.getContext().getAuthentication().getName()).get(0);
                     aluguel.setProduto(produto);
-
                     alugueis.add(aluguel);
-
                 }
                 int start = (int) paging.getOffset();
                 int end = (start + paging.getPageSize()) > alugueis.size() ? alugueis.size() : (start + paging.getPageSize());
                 return new ResponseEntity<>(new PageImpl<>(alugueis.subList(start, end), paging, alugueis.size()), HttpStatus.OK);
-            }
+            }else
+                return new ResponseEntity<>(new PageImpl<>(new ArrayList<>(), PageRequest.of(1,1), 0), HttpStatus.OK);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -199,9 +193,8 @@ public class AlugarController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName();
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
-            return null;
+            return new ResponseEntity<>(new PageImpl<>(new ArrayList<>(), PageRequest.of(1,1), 0), HttpStatus.OK);
         }
-        return null;
         //return new ResponseEntity<>("Nenhum aluguel efetuado",HttpStatus.OK);
     }
 
@@ -237,7 +230,7 @@ public class AlugarController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName();
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
-            return null;
+            return new ArrayList<>();
         }
     }
 
@@ -245,10 +238,10 @@ public class AlugarController {
     @GetMapping("/detalhe")
     @ResponseStatus(HttpStatus.OK)
     public Page<RetornaAluguelDetalhe> retornaAluguelProduto(@RequestParam("id_produto") String id_produto,
-                                                      @RequestParam(value = "page",required = false,defaultValue = "0") int page,
-                                                      @RequestParam(value = "size",required = false,defaultValue = "10") int size,
-                                                      @RequestParam(value = "sort",required = false,defaultValue = "valor_ganho") String sortBy,
-                                                      @RequestParam(value = "order",required = false,defaultValue = "desc") String order) {
+                                                             @RequestParam(value = "page",required = false,defaultValue = "0") int page,
+                                                             @RequestParam(value = "size",required = false,defaultValue = "10") int size,
+                                                             @RequestParam(value = "sort",required = false,defaultValue = "valor_ganho") String sortBy,
+                                                             @RequestParam(value = "order",required = false,defaultValue = "desc") String order) {
         try {
             List<RetornaAluguelDetalhe> detAlugeis = aluguelRepository.retornaAluguelDetalhe(id_produto, SecurityContextHolder.getContext().getAuthentication().getName());
             //List<AluguelDetalhe> detalhe = new ArrayList<>();
@@ -270,7 +263,7 @@ public class AlugarController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName();
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
-            return null;
+            return new PageImpl<>(new ArrayList<>(), PageRequest.of(1,1), 0);
         }
     }
 

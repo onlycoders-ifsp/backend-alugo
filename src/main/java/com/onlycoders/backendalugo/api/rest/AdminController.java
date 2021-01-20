@@ -79,7 +79,7 @@ public class AdminController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName();
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
-            return null;
+            return new PageImpl<>(new ArrayList<>(),PageRequest.of(1,1),0);
         }
     }
 
@@ -106,7 +106,7 @@ public class AdminController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName();
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
-            return null;
+            return new PageImpl<>(new ArrayList<>(),PageRequest.of(1,1),0);
         }
     }
 
@@ -132,7 +132,7 @@ public class AdminController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName();
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
-            return null;
+            return new PageImpl<>(new ArrayList<>(),PageRequest.of(1,1),0);
         }
     }
 
