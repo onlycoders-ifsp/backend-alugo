@@ -1,6 +1,11 @@
 package com.onlycoders.backendalugo.api.rest;
 import com.google.common.base.Throwables;
+import com.onlycoders.backendalugo.model.entity.Meses;
 import com.onlycoders.backendalugo.model.entity.admin.LogErros;
+import com.onlycoders.backendalugo.model.entity.logs.ErrosBackendMetodo;
+import com.onlycoders.backendalugo.model.entity.logs.ErrosControllerMetodos;
+import com.onlycoders.backendalugo.model.entity.logs.RetornoErrosBackendController;
+import com.onlycoders.backendalugo.model.entity.logs.RetornoErrosBackendMetodos;
 import com.onlycoders.backendalugo.model.entity.produto.templates.Categorias;
 import com.onlycoders.backendalugo.model.entity.produto.templates.DtAlugadas;
 import com.onlycoders.backendalugo.model.entity.produto.templates.ProdutoAluguel;
@@ -133,6 +138,59 @@ public class AdminController {
             String user = SecurityContextHolder.getContext().getAuthentication().getName();
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return new PageImpl<>(new ArrayList<>(),PageRequest.of(1,1),0);
+        }
+    }
+
+    @ApiOperation(value = "Retorna log backend", response = LogErros.class)
+    @GetMapping("/log-erros-backend")
+    @ResponseStatus(HttpStatus.OK)
+    public List<ErrosControllerMetodos> retornaLogsBackend(){
+        String usuario = SecurityContextHolder.getContext().getAuthentication().getName();
+        try{
+            String[] mes;
+            String[] mesDescricao;
+            String[] mesQuantidade;
+            List<RetornoErrosBackendController> retornoErrosBackendController = logRepository.retornaErrosController(usuario);
+            List<ErrosBackendMetodo> errosBackendMetodos = null;
+            List<ErrosControllerMetodos> errosControllerMetodos = new ArrayList<>();
+            List<Meses> mesesMetodos = null;
+            List<Meses> mesesController = null;
+            for(RetornoErrosBackendController retController : retornoErrosBackendController){
+                List<RetornoErrosBackendMetodos> retornoErrosBackendMetodos = logRepository.retornaErrosMetodo(retController.getController(),usuario);
+                errosBackendMetodos = new ArrayList<>();
+                for(RetornoErrosBackendMetodos retMetodos : retornoErrosBackendMetodos) {
+                    if (retMetodos.getMes().contains(";")) {
+                        mes = retMetodos.getMes().split(";");
+                        mesDescricao = mes[0].split(",");
+                        mesQuantidade = mes[1].split(",");
+                        mesesMetodos = new ArrayList<>();
+                        for (int i = 0; i < mesDescricao.length; i++) {
+                            mesesMetodos.add(new Meses(mesDescricao[i], Integer.valueOf(mesQuantidade[i])));
+                        }
+                    }
+                    errosBackendMetodos.add(new ErrosBackendMetodo(retMetodos.getMetodo(), retMetodos.getEndpoint(), retMetodos.getQuantidade(), mesesMetodos));
+                }
+                if (retController.getMes().contains(";")){
+                    mes = retController.getMes().split(";");
+                    mesDescricao = mes[0].split(",");
+                    mesQuantidade = mes[1].split(",");
+                    mesesController = new ArrayList<>();
+                    for(int i = 0;i<mesDescricao.length;i++) {
+                        mesesController.add(new Meses(mesDescricao[i], Integer.valueOf(mesQuantidade[i])));
+                    }
+                }
+                errosControllerMetodos.add(new ErrosControllerMetodos(retController.getController(),retController.getQuantidade(),mesesController,errosBackendMetodos));
+            }
+            return errosControllerMetodos;
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage()==null) ? "" : e.getMessage(), Throwables.getStackTraceAsString(e));
+            return new ArrayList<>();
         }
     }
 
