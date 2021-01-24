@@ -2,10 +2,7 @@ package com.onlycoders.backendalugo.api.rest;
 import com.google.common.base.Throwables;
 import com.onlycoders.backendalugo.model.entity.Meses;
 import com.onlycoders.backendalugo.model.entity.admin.LogErros;
-import com.onlycoders.backendalugo.model.entity.logs.ErrosBackendMetodo;
-import com.onlycoders.backendalugo.model.entity.logs.ErrosControllerMetodos;
-import com.onlycoders.backendalugo.model.entity.logs.RetornoErrosBackendController;
-import com.onlycoders.backendalugo.model.entity.logs.RetornoErrosBackendMetodos;
+import com.onlycoders.backendalugo.model.entity.logs.*;
 import com.onlycoders.backendalugo.model.entity.produto.templates.Categorias;
 import com.onlycoders.backendalugo.model.entity.produto.templates.DtAlugadas;
 import com.onlycoders.backendalugo.model.entity.produto.templates.ProdutoAluguel;
@@ -115,7 +112,7 @@ public class AdminController {
         }
     }
 
-    @ApiOperation(value = "Retorna produtos não publicados", response = ProdutoAluguel.class)
+    @ApiOperation(value = "Retorna produtos não publicados", response = LogErros.class)
     @GetMapping("/publicar-produtos")
     @ResponseStatus(HttpStatus.OK)
     public Page<ProdutoAluguel>
@@ -150,13 +147,13 @@ public class AdminController {
             String[] mes;
             String[] mesDescricao;
             String[] mesQuantidade;
-            List<RetornoErrosBackendController> retornoErrosBackendController = logRepository.retornaErrosController(usuario);
+            List<RetornoErrosBackendController> retornoErrosBackendController = adminRepository.retornaErrosController(usuario);
             List<ErrosBackendMetodo> errosBackendMetodos = null;
             List<ErrosControllerMetodos> errosControllerMetodos = new ArrayList<>();
             List<Meses> mesesMetodos = null;
             List<Meses> mesesController = null;
             for(RetornoErrosBackendController retController : retornoErrosBackendController){
-                List<RetornoErrosBackendMetodos> retornoErrosBackendMetodos = logRepository.retornaErrosMetodo(retController.getController(),usuario);
+                List<RetornoErrosBackendMetodos> retornoErrosBackendMetodos = adminRepository.retornaErrosMetodo(retController.getController(),usuario);
                 errosBackendMetodos = new ArrayList<>();
                 for(RetornoErrosBackendMetodos retMetodos : retornoErrosBackendMetodos) {
                     if (retMetodos.getMes().contains(";")) {
@@ -194,6 +191,70 @@ public class AdminController {
         }
     }
 
+    @ApiOperation(value = "Retorna erros procedure agrupados", response = ErrosProcedureAgrupado.class)
+    @GetMapping("/log-erros-banco")
+    @ResponseStatus(HttpStatus.OK)
+    public List<ErrosProcedureAgrupado> retornaErrosProcedureAgurapado(){
+        try{
+            String usuario = SecurityContextHolder.getContext().getAuthentication().getName();
+            List<RetornaErrosProcedureAgrupado> errosProcedureAgrupado = adminRepository.retornaErrosProcedureAgrupado(usuario);
+            String[] mes;
+            String[] mesDescricao;
+            String[] mesQuantidade;
+            List<Meses> meses = null;
+            List<ErrosProcedureAgrupado> errosProcedureAgrupados = new ArrayList<>();
+            for(RetornaErrosProcedureAgrupado retProcedure : errosProcedureAgrupado){
+                if (retProcedure.getMes().contains(";")) {
+                    mes = retProcedure.getMes().split(";");
+                    mesDescricao = mes[0].split(",");
+                    mesQuantidade = mes[1].split(",");
+                    meses = new ArrayList<>();
+                    for (int i = 0; i < mesDescricao.length; i++) {
+                        meses.add(new Meses(mesDescricao[i], Integer.valueOf(mesQuantidade[i])));
+                    }
+                }
+                errosProcedureAgrupados.add(new ErrosProcedureAgrupado(retProcedure.getProcedure(),retProcedure.getQuantidade(),meses));
+            }
+            return errosProcedureAgrupados;
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage()==null) ? "" : e.getMessage(), Throwables.getStackTraceAsString(e));
+            return new ArrayList<>();
+        }
+    }
+
+    @ApiOperation(value = "Retorna erros backend detalhado", response = ErrosProcedureAgrupado.class)
+    @GetMapping("/log-erros-backend-detalhe")
+    @ResponseStatus(HttpStatus.OK)
+    public Page<RetornaLogBackendDetalhe> retornaLogsBackendDetalhe(@RequestParam(value = "page",required = false,defaultValue = "0") int page,
+                                                                    @RequestParam(value = "size",required = false,defaultValue = "10") int size,
+                                                                    @RequestParam(value = "sort",required = false,defaultValue = "controller") String sortBy,
+                                                                    @RequestParam(value = "order",required = false,defaultValue = "desc") String order){
+        try {
+            String usuario = SecurityContextHolder.getContext().getAuthentication().getName();
+            Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
+            List<RetornaLogBackendDetalhe> retornaLogBackendDetalhes = adminRepository.retornaLogBackendDetalhe(usuario);
+
+            int start = (int) paging.getOffset();
+            int end = (start + paging.getPageSize()) > retornaLogBackendDetalhes.size() ? retornaLogBackendDetalhes.size() : (start + paging.getPageSize());
+            return new PageImpl<RetornaLogBackendDetalhe>(retornaLogBackendDetalhes.subList(start, end), paging, retornaLogBackendDetalhes.size());//listPa;
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return new PageImpl<>(new ArrayList<>(),PageRequest.of(1,1),0);
+        }
+
+    }
     public Page <ProdutoAluguel> transformaRetornoProdutoToPage(List<RetornaProduto> ret, Pageable page){
         List<ProdutoAluguel> listPa = new ArrayList<>();
         String[] dtAluguel;

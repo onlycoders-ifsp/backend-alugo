@@ -21,6 +21,9 @@ public class LogErros {
     @JsonAlias("tabela")
     String tabela;
 
+    @JsonAlias("usuario")
+    String usuario;
+
     @JsonAlias("erro")
     String erro;
 
@@ -52,6 +55,14 @@ public class LogErros {
 
     public void setTabela(String tabela) {
         this.tabela = tabela;
+    }
+
+    public String getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(String usuario) {
+        this.usuario = usuario;
     }
 
     public String getErro() {
