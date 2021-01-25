@@ -1,6 +1,7 @@
 package com.onlycoders.backendalugo.model.repository;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguel;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguelDetalhe;
+import com.onlycoders.backendalugo.model.entity.email.RetornoAlugueisNotificacao;
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -53,4 +54,11 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
             nativeQuery = true)
     List<RetornaAluguelDetalhe> retornaAluguelDetalhe(@Param("id_produto") String id_produto,
                                                       @Param("user") String user);
+
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Query(value = "SELECT *FROM FN_RETORNA_ALUGUEIS_NOTIFICACAO(:usuario)" +
+            "AS (PRODUTONOME TEXT, LOCADORNOME TEXT," +
+            "LOCADOREMAIL TEXT, LOCATARIONOME TEXT," +
+            "LOCATARIOEMAIL TEXT);",nativeQuery = true)
+    List<RetornoAlugueisNotificacao> retornaAlugueisNotificacao(@Param("usuario") String usuario);
 }

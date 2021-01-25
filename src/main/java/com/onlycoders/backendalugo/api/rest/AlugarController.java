@@ -5,12 +5,15 @@ import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguelU
 import com.onlycoders.backendalugo.model.entity.aluguel.Aluguel;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguel;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguelDetalhe;
+import com.onlycoders.backendalugo.model.entity.email.RetornoAlugueisNotificacao;
+import com.onlycoders.backendalugo.model.entity.email.TemplateEmails;
 import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario;
 import com.onlycoders.backendalugo.model.repository.AluguelRepository;
 import com.onlycoders.backendalugo.model.repository.LogRepository;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
+import com.onlycoders.backendalugo.service.EmailService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import javassist.NotFoundException;
@@ -18,14 +21,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import javax.mail.MessagingException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalTime;
 import java.util.*;
 
 @RestController
@@ -44,6 +50,9 @@ public class AlugarController {
 
     @Autowired
     private LogRepository logRepository;
+
+    @Autowired
+    private EmailService emailService;
 
     public AlugarController(AluguelRepository aluguelRepository) {
         this.aluguelRepository = aluguelRepository;
@@ -281,5 +290,35 @@ public class AlugarController {
             throw new NullPointerException("Usuario não encontrado");
         }
         return login;
+    }
+
+    //1x cada 15 minutos
+    @Scheduled(cron = "0 */15 * * * ?")
+    public void enviaNotificacaoAluguel(){
+        try {
+            System.out.println(LocalTime.now() + " - Iniciando verificação de notificacao de alugueis");
+            String usuario = "alugoMail";
+            List<RetornoAlugueisNotificacao> alugueisNotificacao = aluguelRepository.retornaAlugueisNotificacao(usuario);
+            System.out.println("Foram encontrados " + alugueisNotificacao.size() * 2 + " emails para enviar.");
+            int cont = 0;
+            for (RetornoAlugueisNotificacao ret : alugueisNotificacao) {
+                String bodyMailLocador = new TemplateEmails().notificaAluguelLocador(ret.getLocadorNome(), ret.getProdutoNome(), ret.getLocatarioNome());
+                String bodyMailLocatario = new TemplateEmails().notificaAluguelLocatario(ret.getLocatarioNome(), ret.getProdutoNome(), ret.getLocadorNome());
+                //System.out.println("Enviando email para locador " + ret.getLocadorEmail());
+                emailService.sendEmail(ret.getLocadorEmail(), "Notificação de aluguel", bodyMailLocador);
+                //System.out.println("Enviando email para locatario " + ret.getLocatarioEmail());
+                emailService.sendEmail(ret.getLocatarioEmail(), "Notificação de aluguel", bodyMailLocatario);
+                cont++;
+            }
+            System.out.println(LocalTime.now() + " - Foram enviados " + cont * 2 + " emails.");
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = "alugoMail";
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+        }
     }
 }
