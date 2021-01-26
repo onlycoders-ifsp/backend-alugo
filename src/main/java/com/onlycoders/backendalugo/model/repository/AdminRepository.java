@@ -1,6 +1,7 @@
 package com.onlycoders.backendalugo.model.repository;
 
 import com.onlycoders.backendalugo.model.entity.admin.LogErros;
+import com.onlycoders.backendalugo.model.entity.email.RetornoUsuarioProdutoNoficacao;
 import com.onlycoders.backendalugo.model.entity.logs.RetornaErrosProcedureAgrupado;
 import com.onlycoders.backendalugo.model.entity.logs.RetornaLogBackendDetalhe;
 import com.onlycoders.backendalugo.model.entity.logs.RetornoErrosBackendController;
@@ -39,24 +40,36 @@ public interface AdminRepository extends JpaRepository<LogErros,Integer> {
             nativeQuery = true)
     List<RetornaUsuario> findUsuario(@Param("id") String id,@Param("user") String user);
 
-    @Transactional()
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "select *from FN_RETORNA_LOG_BACKEND_CONTROLLER_MES(:usuario)" +
             "as (controller text, quantidade int, mes text);",nativeQuery = true)
     List<RetornoErrosBackendController> retornaErrosController(@Param("usuario") String usuario);
 
-    @Transactional()
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "select *from FN_RETORNA_LOG_BACKEND_METODOS_MES(:controller,:usuario)" +
             "as (metodo text, endpoint text, quantidade int, mes text);",nativeQuery = true)
     List<RetornoErrosBackendMetodos> retornaErrosMetodo(@Param("controller") String controller,
                                                         @Param("usuario") String usuario);
 
-    @Transactional()
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "select *from FN_RETORNA_LOG_MES(:usuario)" +
             "as (procedure text, quantidade int, mes text);",nativeQuery = true)
     List<RetornaErrosProcedureAgrupado> retornaErrosProcedureAgrupado(@Param("usuario") String usuario);
 
-    @Transactional()
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "select * FROM FN_RETORNA_LOG_BACKEND_DETALHE()" +
                     "AS (CONTROLLER TEXT, METODO TEXT, ENDPOINT TEXT, USUARIO TEXT, MESSAGE TEXT, STACKTRACE TEXT);",nativeQuery = true)
     List<RetornaLogBackendDetalhe> retornaLogBackendDetalhe(@Param("usuario") String usuario);
+
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Query(value = "select FN_REJEITA_PRODUTO(:id_produto,:motivo,:usuario);", nativeQuery = true)
+    RetornoUsuarioProdutoNoficacao rejeitaProduto(@Param("id_produto") String id_produto,
+                                                  @Param("motivo") String motivo,
+                                                  @Param("usuario") String usuario);
+
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Query(value = "select FN_APROVA_PRODUTO(:id_produto,:motivo,:usuario);", nativeQuery = true)
+    RetornoUsuarioProdutoNoficacao aprovaProduto(@Param("id_produto") String id_produto,
+                                                  @Param("motivo") String motivo,
+                                                  @Param("usuario") String usuario);
 }

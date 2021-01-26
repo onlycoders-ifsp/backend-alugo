@@ -2,6 +2,9 @@ package com.onlycoders.backendalugo.api.rest;
 import com.google.common.base.Throwables;
 import com.onlycoders.backendalugo.model.entity.Meses;
 import com.onlycoders.backendalugo.model.entity.admin.LogErros;
+import com.onlycoders.backendalugo.model.entity.email.RetornoAlugueisNotificacao;
+import com.onlycoders.backendalugo.model.entity.email.RetornoUsuarioProdutoNoficacao;
+import com.onlycoders.backendalugo.model.entity.email.TemplateEmails;
 import com.onlycoders.backendalugo.model.entity.logs.*;
 import com.onlycoders.backendalugo.model.entity.produto.templates.Categorias;
 import com.onlycoders.backendalugo.model.entity.produto.templates.DtAlugadas;
@@ -11,6 +14,7 @@ import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario
 import com.onlycoders.backendalugo.model.repository.AdminRepository;
 import com.onlycoders.backendalugo.model.repository.LogRepository;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
+import com.onlycoders.backendalugo.service.EmailService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,9 +44,12 @@ public class AdminController {
     @Autowired
     private LogRepository logRepository;
 
+    @Autowired
+    private EmailService emailService;
+
     @ApiOperation(value = "Deleta usuário")
     @DeleteMapping("inativa-usuario")
-    public Boolean deletar(@RequestParam String id_usuario) {
+    public Boolean deletarUsuario(@RequestParam String id_usuario) {
         try{
             return adminRepository.deleteUserById(id_usuario,SecurityContextHolder.getContext().getAuthentication().getName());
         }catch(Exception e) {
@@ -112,7 +119,7 @@ public class AdminController {
         }
     }
 
-    @ApiOperation(value = "Retorna produtos não publicados", response = LogErros.class)
+    @ApiOperation(value = "Retorna produtos não publicados", response = ProdutoAluguel.class)
     @GetMapping("/publicar-produtos")
     @ResponseStatus(HttpStatus.OK)
     public Page<ProdutoAluguel>
@@ -135,6 +142,52 @@ public class AdminController {
             String user = SecurityContextHolder.getContext().getAuthentication().getName();
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return new PageImpl<>(new ArrayList<>(),PageRequest.of(1,1),0);
+        }
+    }
+
+    @ApiOperation(value = "Reprovar produtos")
+    @GetMapping("/reprovar-produto")
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean rejeitaProduto(@RequestParam("id_produto")String idProduto,
+                                  @RequestParam("motivo") String motivo){
+        try{
+            String usuario = SecurityContextHolder.getContext().getAuthentication().getName();
+            RetornoUsuarioProdutoNoficacao ret = adminRepository.rejeitaProduto(idProduto,motivo,usuario);
+            String mailBody = new TemplateEmails().produtoRejeitado(ret.getNomeUsuario(),ret.getNomeProduto(),motivo);
+            emailService.sendEmail(ret.getEmailUsuario(),"Cadastro de produto", mailBody);
+            return true;
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
+    @ApiOperation(value = "Aprovar produtos")
+    @GetMapping("/aprovar-produto")
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean aprovaProduto(@RequestParam("id_produto")String idProduto,
+                                  @RequestParam("motivo") String motivo){
+        try{
+            String usuario = SecurityContextHolder.getContext().getAuthentication().getName();
+            RetornoUsuarioProdutoNoficacao ret = adminRepository.aprovaProduto(idProduto,motivo,usuario);
+            String mailBody = new TemplateEmails().produtoAceito(ret.getNomeUsuario(),ret.getNomeProduto());
+            emailService.sendEmail(ret.getEmailUsuario(),"Cadastro de produto", mailBody);
+            return true;
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
         }
     }
 
