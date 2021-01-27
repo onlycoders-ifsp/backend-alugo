@@ -1,5 +1,6 @@
 package com.onlycoders.backendalugo.api.rest;
 import com.google.common.base.Throwables;
+import com.onlycoders.backendalugo.model.entity.email.TemplateEmails;
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
 import com.onlycoders.backendalugo.model.entity.produto.templates.*;
 import com.onlycoders.backendalugo.model.repository.LogRepository;
@@ -58,7 +59,7 @@ public class ProdutoController {
         try {
             Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
             Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(transformaRetornoProdutoToPage(repository
-                    .findProduto(getIdUsuario(false), "0", 1, categoria,SecurityContextHolder.getContext().getAuthentication().getName()), paging));
+                    .findProduto(getIdUsuario(false), "0", 1, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging));
         /*if (!produtos.get().getContent().isEmpty()) {
             //return new ResponseEntity<>(produtos.get(), HttpStatus.OK);
 
@@ -72,8 +73,8 @@ public class ProdutoController {
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
-            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            String[] user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|");
+            logRepository.gravaLogBackend(className, methodName, endpoint, user[0], e.getMessage(), Throwables.getStackTraceAsString(e));
             return new PageImpl<>(new ArrayList<>(),PageRequest.of(1,1),0);
         }
     }
@@ -87,7 +88,7 @@ public class ProdutoController {
         try{
             Pageable paging = PageRequest.of(0, 1);
             Optional<ProdutoAluguel> produtos = Optional.ofNullable(transformaRetornoProdutoToPage(
-                    repository.findProduto(getIdUsuario(false), id_produto, 2, categoria,SecurityContextHolder.getContext().getAuthentication().getName()), paging)
+                    repository.findProduto(getIdUsuario(false), id_produto, 2, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging)
                     .getContent().get(0));
         /*if (produtos.isPresent()) {
             return new ResponseEntity<>(produtos.get(), HttpStatus.OK);
@@ -101,7 +102,7 @@ public class ProdutoController {
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return new ProdutoAluguel();
         }
@@ -118,11 +119,10 @@ public class ProdutoController {
                     @RequestParam(value = "order",required = false,defaultValue = "desc") String order,
                     @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
         try{
-
             Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
             //System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().build().getPath());
             Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(
-                    transformaRetornoProdutoToPage(repository.findProduto("0", "0", 4, categoria,SecurityContextHolder.getContext().getAuthentication().getName()), paging));
+                    transformaRetornoProdutoToPage(repository.findProduto("0", "0", 4, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging));
         /*if (!produtos.get().isEmpty()) {
             return new ResponseEntity<>(produtos.get(), HttpStatus.OK);
         }*/
@@ -135,7 +135,7 @@ public class ProdutoController {
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage()==null) ? "" : e.getMessage(), Throwables.getStackTraceAsString(e));
             return new PageImpl<>(new ArrayList<>(),PageRequest.of(1,1),0);
         }
@@ -152,7 +152,7 @@ public class ProdutoController {
         try {
             Pageable paging = PageRequest.of(0, 1);
             Optional<ProdutoAluguel> produtos = Optional.ofNullable(transformaRetornoProdutoToPage(
-                    repository.findProduto("0", id_produto, 3, categoria,SecurityContextHolder.getContext().getAuthentication().getName()), paging)
+                    repository.findProduto("0", id_produto, 3, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging)
                     .getContent()
                     .get(0));
         /*if (produtos.isPresent()) {
@@ -165,7 +165,7 @@ public class ProdutoController {
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return new ProdutoAluguel();
         }
@@ -188,7 +188,7 @@ public class ProdutoController {
         try {
             Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
             Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(
-                    transformaRetornoProdutoToPage(repository.findProduto("0", produto, 3, categoria,SecurityContextHolder.getContext().getAuthentication().getName()), paging));
+                    transformaRetornoProdutoToPage(repository.findProduto("0", produto, 3, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging));
         /*if (!produtos.get().getContent().isEmpty()) {
             return new ResponseEntity<>(produtos.get(), HttpStatus.OK);
         }*/
@@ -199,8 +199,8 @@ public class ProdutoController {
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
-            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            String[] user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|");
+            logRepository.gravaLogBackend(className, methodName, endpoint, user[0], e.getMessage(), Throwables.getStackTraceAsString(e));
             return new PageImpl<>(new ArrayList<>(),PageRequest.of(1,1),0);
         }
         //throw new NotFoundException("Nenhum produto encontrado");
@@ -219,15 +219,15 @@ public class ProdutoController {
         try {
             Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
             return transformaRetornoProdutoToPage(
-                    repository.findProduto(id_usuario, "0", 1, categoria,SecurityContextHolder.getContext().getAuthentication().getName()), paging);
+                    repository.findProduto(id_usuario, "0", 1, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
-            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            String[] user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|");
+            logRepository.gravaLogBackend(className, methodName, endpoint, user[0], e.getMessage(), Throwables.getStackTraceAsString(e));
             return new PageImpl<>(new ArrayList<>(),PageRequest.of(1,1),0);
         }
     }
@@ -235,25 +235,27 @@ public class ProdutoController {
     @ApiOperation(value = "Cadastra novo produto do usuario logado")
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
-    public ProdutoAluguel cadastra(@RequestBody Produto produto){
+    public Boolean cadastra(@RequestBody Produto produto){
         try {
-            String usuario = SecurityContextHolder.getContext().getAuthentication().getName();
+            String[] usuario = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|");
             Pageable paging = PageRequest.of(0, 1);
             String categoria = trasnformaCategoriasToString(produto.getCategorias());
             ProdutoAluguel p = transformaRetornoProdutoToPage(repository.createProduto(getIdUsuario(false),
                     produto.getNome(), produto.getDescricao_curta(), produto.getDescricao(),
                     produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
-                    produto.getData_compra(), categoria, usuario), paging).getContent().get(0);
-            return  p;
+                    produto.getData_compra(), categoria, usuario[0]), paging).getContent().get(0);
+            String mailBody = new TemplateEmails().cadastroProduto(usuario[0],p.getNome());
+            emailService.sendEmail(usuario[1],"Cadastro de produto", mailBody);
+            return true;
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
-            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
-            return new ProdutoAluguel();
+            String[] user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|");
+            logRepository.gravaLogBackend(className, methodName, endpoint, user[0], e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
         }
     }
 
@@ -270,15 +272,15 @@ public class ProdutoController {
             byte[] bytes = new byte[(int) capa_foto.getSize()];
             IOUtils.readFully(is,bytes);
             is.close();
-            return repository.uploadFoto(usuario.get(), id_produto, bytes,SecurityContextHolder.getContext().getAuthentication().getName());
+            return repository.uploadFoto(usuario.get(), id_produto, bytes,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
 
         } catch(IOException e) {
             String className = this.getClass().getSimpleName();
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
-            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            String[] user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|");
+            logRepository.gravaLogBackend(className, methodName, endpoint, user[0], e.getMessage(), Throwables.getStackTraceAsString(e));
             return false;
         }
     }
@@ -290,15 +292,15 @@ public class ProdutoController {
             String categoria = trasnformaCategoriasToString(produto.getCategorias());
             return repository.updateProduto(produto.getId_produto(), produto.getNome(), produto.getDescricao_curta(),
                     produto.getDescricao(), produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
-                    produto.getData_compra(), produto.getAtivo(), categoria,SecurityContextHolder.getContext().getAuthentication().getName());
+                    produto.getData_compra(), produto.getAtivo(), categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
-            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            String[] user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|");
+            logRepository.gravaLogBackend(className, methodName, endpoint, user[0], e.getMessage(), Throwables.getStackTraceAsString(e));
             return false;
         }
     }
@@ -308,15 +310,15 @@ public class ProdutoController {
     @ResponseStatus(HttpStatus.OK)
     public Boolean ativaInativa(@RequestParam String id_produto){
         try {
-            return repository.ativaInativaProduto(id_produto,SecurityContextHolder.getContext().getAuthentication().getName());
+            return repository.ativaInativaProduto(id_produto,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
-            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            String[] user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|");
+            logRepository.gravaLogBackend(className, methodName, endpoint, user[0], e.getMessage(), Throwables.getStackTraceAsString(e));
             return false;
         }
     }
@@ -333,8 +335,8 @@ public class ProdutoController {
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
-            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            String[] user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|");
+            logRepository.gravaLogBackend(className, methodName, endpoint, user[0], e.getMessage(), Throwables.getStackTraceAsString(e));
             return new ArrayList<>();
         }
     }

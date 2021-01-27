@@ -39,7 +39,7 @@ import java.util.Optional;
 public class UsuarioController {
 
     private UsuarioRepository repository;
-    
+
     @Autowired
     public UsuarioController(UsuarioRepository repository) {
         this.repository = repository;
@@ -60,7 +60,7 @@ public class UsuarioController {
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return null;
         }
@@ -72,8 +72,8 @@ public class UsuarioController {
     @ResponseStatus(HttpStatus.OK)
     public RetornaUsuario retornaUsuario(@RequestParam String id_usuario) {
 
-            return repository.findUsuario(id_usuario).get(0);
- }
+        return repository.findUsuario(id_usuario).get(0);
+    }
 
  /*
     @ApiOperation(value = "Retorna dados de todos os usuarios", response = RetornaUsuario.class)
@@ -97,8 +97,8 @@ public class UsuarioController {
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
     public RetornaUsuario salvar(@RequestBody Usuario usuario){
-       //validaCampos(usuario.getLogin(), usuario.getCpf(), usuario.getEmail(),
-       //        usuario.getCelular(), usuario.getNome(), false);
+        //validaCampos(usuario.getLogin(), usuario.getCpf(), usuario.getEmail(),
+        //        usuario.getCelular(), usuario.getNome(), false);
         try {
             return repository
                     .createUsuarioMin(usuario.getNome(), usuario.getEmail().toLowerCase(), usuario.getLogin(),
@@ -109,7 +109,7 @@ public class UsuarioController {
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return null;
         }
@@ -134,7 +134,7 @@ public class UsuarioController {
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return false;
         }
@@ -155,7 +155,7 @@ public class UsuarioController {
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return false;
         }
@@ -177,7 +177,7 @@ public class UsuarioController {
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return null;
         }
@@ -195,7 +195,7 @@ public class UsuarioController {
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return false;
         }
@@ -213,7 +213,7 @@ public class UsuarioController {
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return false;
         }
@@ -231,7 +231,7 @@ public class UsuarioController {
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+            String userName = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, userName, e.getMessage(), Throwables.getStackTraceAsString(e));
             return false;
         }
@@ -249,7 +249,7 @@ public class UsuarioController {
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return false;
         }
@@ -267,7 +267,7 @@ public class UsuarioController {
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return false;
         }
@@ -285,57 +285,57 @@ public class UsuarioController {
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+            String userName = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, userName, e.getMessage(), Throwables.getStackTraceAsString(e));
             return false;
         }
     }
-/*
-    private void validaCampos(String login, String cpf, String email, String celular, String nome, Boolean isUpdate) {
-        if(celular.isEmpty() || celular == null){
-            throw new NullPointerException("Celular inválido");
+    /*
+        private void validaCampos(String login, String cpf, String email, String celular, String nome, Boolean isUpdate) {
+            if(celular.isEmpty() || celular == null){
+                throw new NullPointerException("Celular inválido");
+            }
+
+            if(nome.isEmpty() || nome == null){
+                throw new NullPointerException("Nome inválido");
+            }
+
+            if(login.isEmpty() || login == null) {
+                throw new NullPointerException("Login inválido");
+            }
+
+            else if(isUpdate){
+                if(repository.validaDadouUpdate(login,getIdUsuario(),3)){
+                    throw new NullPointerException("Login já existe");
+                }
+                else if(repository.validaDadouUpdate(cpf, getIdUsuario(),1)){
+                    throw new NullPointerException("CPF já existe");
+                }
+                else if(repository.validaDadouUpdate(email,getIdUsuario(),2)){
+                    throw new NullPointerException("Email já existe");
+                }
+            }
+            else {
+
+                if (repository.validaDado(login, 3)) {
+                    throw new NullPointerException("Login já existe");
+                }
+
+                if (cpf.isEmpty() || cpf == null) {
+                    throw new NullPointerException("CPF inválido");
+                } else if (repository.validaDado(cpf, 1)) {
+                    throw new NullPointerException("CPF já existe");
+                }
+
+                if (email.isEmpty() || email == null || !email.contains("@")) {
+                    throw new NullPointerException("Email inválido");
+                } else if (repository.validaDado(email, 2)) {
+                    throw new NullPointerException("Email já existe");
+                }
+            }
+            //  return valida = repository.validaCampos(login, cpf, email);
         }
-
-        if(nome.isEmpty() || nome == null){
-            throw new NullPointerException("Nome inválido");
-        }
-
-        if(login.isEmpty() || login == null) {
-            throw new NullPointerException("Login inválido");
-        }
-
-        else if(isUpdate){
-            if(repository.validaDadouUpdate(login,getIdUsuario(),3)){
-                throw new NullPointerException("Login já existe");
-            }
-            else if(repository.validaDadouUpdate(cpf, getIdUsuario(),1)){
-                throw new NullPointerException("CPF já existe");
-            }
-            else if(repository.validaDadouUpdate(email,getIdUsuario(),2)){
-                throw new NullPointerException("Email já existe");
-            }
-        }
-        else {
-
-            if (repository.validaDado(login, 3)) {
-                throw new NullPointerException("Login já existe");
-            }
-
-            if (cpf.isEmpty() || cpf == null) {
-                throw new NullPointerException("CPF inválido");
-            } else if (repository.validaDado(cpf, 1)) {
-                throw new NullPointerException("CPF já existe");
-            }
-
-            if (email.isEmpty() || email == null || !email.contains("@")) {
-                throw new NullPointerException("Email inválido");
-            } else if (repository.validaDado(email, 2)) {
-                throw new NullPointerException("Email já existe");
-            }
-        }
-        //  return valida = repository.validaCampos(login, cpf, email);
-    }
-*/
+    */
     public String getIdUsuario(){
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

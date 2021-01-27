@@ -1,16 +1,15 @@
 package com.onlycoders.backendalugo.model.entity.email;
 
 public class TemplateEmails {
-    String usuario = "Olá [[usuarioNome]],";
-    String equipe = "<br>Atenciosamente,<br>Equipe aluGo.";
+    String usuario = "Olá [[usuarioNome]],<br>";
+    String equipe = "<br><br>Atenciosamente,<br>Equipe aluGo.";
 
     public String cadastroProduto(String usuarioNome, String produtoNome) {
         String mailBody =  usuario +
                 "<br>Recebemos o cadastro do produto [[nomeProduto]] " +
                 "Seu produto irá passar por uma análise, para aprovação ou não da publicação na plataforma." +
                 "<br>Iremos te atualizar sobre qualquer atualização." +
-                equipe.replace("[[usuarioNome]]",usuarioNome)
-                      .replace("[[nomeProduto]]",produtoNome);
+                equipe;
         return mailBody.replace("[[usuarioNome]]",usuarioNome).replace("[[nomeProduto]]",produtoNome);
     }
 
@@ -27,8 +26,8 @@ public class TemplateEmails {
 
     public String usuarioInativado(String usuarioNome, String obs) {
         String mailBody = usuario +
-                "<br>Você desrespeitou nossos teemos de serviço e seu perfil foi bloqueado para acesso em nossa plataforma com o seguinte motivo:" +
-                "<br>[[observacao]]." +
+                "<br>Você desrespeitou nossos termos de serviço e seu perfil foi bloqueado para acesso em nossa plataforma com o seguinte motivo:" +
+                "<br>[[observacao]]" +
                 "<br>Caso queira contestar o bloqueio, entre em contato com nosso suporte." +
                 equipe;
         return mailBody.replace("[[usuarioNome]]",usuarioNome)
@@ -101,6 +100,7 @@ public class TemplateEmails {
                 .replace("[[produtoNome]]",produtoNome)
                 .replace("[[locatarioNome]]", locatarioNome);
     }
+
     public String notificaAluguelLocatario(String locatarioNome, String produtoNome, String locadorNome){
         String mailBody = usuario +
                 "<br>Faltam duas horas para a retirada do produto, [[produtoNome]]," +

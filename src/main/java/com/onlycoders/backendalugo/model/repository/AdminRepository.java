@@ -7,6 +7,7 @@ import com.onlycoders.backendalugo.model.entity.logs.RetornaLogBackendDetalhe;
 import com.onlycoders.backendalugo.model.entity.logs.RetornoErrosBackendController;
 import com.onlycoders.backendalugo.model.entity.logs.RetornoErrosBackendMetodos;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario;
+import org.hibernate.annotations.Type;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,10 +21,11 @@ import java.util.List;
 public interface AdminRepository extends JpaRepository<LogErros,Integer> {
 
     @Transactional()
-    @Query(value = "SELECT FN_ATIVA_INATIVA_USUARIO(:id,:user);",
-            nativeQuery = true)
-    Boolean deleteUserById(@Param("id") String id,
-                           @Param("user") String user);
+    @Query(value = "SELECT FN_ATIVA_INATIVA_USUARIO(:id,:user,:motivo);",nativeQuery = true)
+    //@Type(type = "com.onlycoders.backendalugo.configuracao.GenericArrayUserType")
+    Boolean activateDesactivateUserById(@Param("id") String id,
+                                        @Param("user") String user,
+                                        @Param("motivo") String motivo);
 
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "SELECT *FROM FN_RETORNA_LOG_ERROS(:user) " +
