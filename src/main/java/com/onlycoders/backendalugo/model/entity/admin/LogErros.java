@@ -1,12 +1,8 @@
 package com.onlycoders.backendalugo.model.entity.admin;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
@@ -24,6 +20,9 @@ public class LogErros {
 
     @JsonAlias("tabela")
     String tabela;
+
+    @JsonAlias("usuario")
+    String usuario;
 
     @JsonAlias("erro")
     String erro;
@@ -56,6 +55,14 @@ public class LogErros {
 
     public void setTabela(String tabela) {
         this.tabela = tabela;
+    }
+
+    public String getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(String usuario) {
+        this.usuario = usuario;
     }
 
     public String getErro() {
