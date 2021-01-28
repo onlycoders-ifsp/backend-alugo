@@ -25,6 +25,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,7 +50,7 @@ public class AdminController {
 
     @ApiOperation(value = "Desativa e ativa usuário")
     @DeleteMapping("inativa-usuario")
-    public Boolean activateDesactivateUserById(@RequestParam String id_usuario, @RequestParam String motivo) {
+    public Boolean activateDesactivateUserById(@RequestParam String id_usuario, @RequestParam(value = "motivo",defaultValue = "",required = false) String motivo) {
         try{
             String usuario = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             if(adminRepository.activateDesactivateUserById(id_usuario,usuario,motivo)){
@@ -294,12 +295,14 @@ public class AdminController {
     @ResponseStatus(HttpStatus.OK)
     public Page<RetornaLogBackendDetalhe> retornaLogsBackendDetalhe(@RequestParam(value = "page",required = false,defaultValue = "0") int page,
                                                                     @RequestParam(value = "size",required = false,defaultValue = "10") int size,
-                                                                    @RequestParam(value = "sort",required = false,defaultValue = "controller") String sortBy,
+                                                                    @RequestParam(value = "sort",required = false,defaultValue = "usuario") String sortBy,
                                                                     @RequestParam(value = "order",required = false,defaultValue = "desc") String order){
         try {
             String usuario = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
-            Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
+            //Sort sort = Sort.by((order.equalsIgnoreCase("desc")) ? Sort.Direction.DESC : Sort.Direction.ASC,sortBy);
+            Pageable paging = PageRequest.of(page, size, Sort.by((order.equalsIgnoreCase("desc")) ? Sort.Order.by(sortBy) : Sort.Order.desc(sortBy)));
             List<RetornaLogBackendDetalhe> retornaLogBackendDetalhes = adminRepository.retornaLogBackendDetalhe(usuario);
+            //retornaLogBackendDetalhes.sort(Comparator.comparing(RetornaLogBackendDetalhe::getUsuario));
 
             int start = (int) paging.getOffset();
             int end = (start + paging.getPageSize()) > retornaLogBackendDetalhes.size() ? retornaLogBackendDetalhes.size() : (start + paging.getPageSize());

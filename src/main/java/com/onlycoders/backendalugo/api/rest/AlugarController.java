@@ -283,7 +283,7 @@ public class AlugarController {
             throw new NullPointerException("Usuario não logado");
         }
 
-        login = usuarioRepository.retornaIdUsuario(auth.getName());
+        login = usuarioRepository.retornaIdUsuario(auth.getName().split("\\|")[0]);
         if (login.isEmpty() || login == null) {
             throw new NullPointerException("Usuario não encontrado");
         }

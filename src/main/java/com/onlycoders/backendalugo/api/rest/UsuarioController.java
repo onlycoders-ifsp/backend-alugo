@@ -345,7 +345,7 @@ public class UsuarioController {
             throw new NullPointerException("Usuario não logado");
         }
 
-        login = repository.retornaIdUsuario(auth.getName());
+        login = repository.retornaIdUsuario(auth.getName().split("\\|")[0]);
         if (login.isEmpty() || login == null) {
             throw new NullPointerException("Usuario não encontrado");
         }

@@ -7,6 +7,7 @@ import com.onlycoders.backendalugo.model.repository.LogRepository;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import com.onlycoders.backendalugo.service.EmailService;
+import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import javassist.NotFoundException;
@@ -235,18 +236,19 @@ public class ProdutoController {
     @ApiOperation(value = "Cadastra novo produto do usuario logado")
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
-    public Boolean cadastra(@RequestBody Produto produto){
+    public ProdutoAluguel cadastra(@RequestBody Produto produto){
         try {
             String[] usuario = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|");
             Pageable paging = PageRequest.of(0, 1);
             String categoria = trasnformaCategoriasToString(produto.getCategorias());
-            ProdutoAluguel p = transformaRetornoProdutoToPage(repository.createProduto(getIdUsuario(false),
+            List<RetornaProduto> r =  repository.createProduto(getIdUsuario(false),
                     produto.getNome(), produto.getDescricao_curta(), produto.getDescricao(),
                     produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
-                    produto.getData_compra(), categoria, usuario[0]), paging).getContent().get(0);
+                    produto.getData_compra(), categoria, usuario[0]);
+            ProdutoAluguel p = transformaRetornoProdutoToPage(r, paging).getContent().get(0);
             String mailBody = new TemplateEmails().cadastroProduto(usuario[0],p.getNome());
             emailService.sendEmail(usuario[1],"Cadastro de produto", mailBody);
-            return true;
+            return p;
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -255,7 +257,7 @@ public class ProdutoController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String[] user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|");
             logRepository.gravaLogBackend(className, methodName, endpoint, user[0], e.getMessage(), Throwables.getStackTraceAsString(e));
-            return false;
+            return new ProdutoAluguel();
         }
     }
 
@@ -290,9 +292,11 @@ public class ProdutoController {
     public Boolean atualiza(@RequestBody Produto produto) {
         try {
             String categoria = trasnformaCategoriasToString(produto.getCategorias());
+            //String idUsuario = getIdUsuario(false);
+            //System.out.println(produto);
             return repository.updateProduto(produto.getId_produto(), produto.getNome(), produto.getDescricao_curta(),
                     produto.getDescricao(), produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
-                    produto.getData_compra(), produto.getAtivo(), categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
+                    produto.getData_compra(), produto.getAtivo(), categoria, SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -300,7 +304,7 @@ public class ProdutoController {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String[] user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|");
-            logRepository.gravaLogBackend(className, methodName, endpoint, user[0], e.getMessage(), Throwables.getStackTraceAsString(e));
+            logRepository.gravaLogBackend(className, methodName, endpoint, user[0], (e.getMessage()==null)?"":e.getMessage(), Throwables.getStackTraceAsString(e));
             return false;
         }
     }
@@ -343,7 +347,7 @@ public class ProdutoController {
 
 
     public String trasnformaCategoriasToString(List<Categorias> listCategorias){
-        String categoria = null;
+        String categoria = "";
         for(Categorias c : listCategorias) {
             if (categoria.isEmpty()){
                 categoria = c.getIdCategoria();
@@ -364,8 +368,7 @@ public class ProdutoController {
             else
                 return "0";
         }
-
-        login = repositoryUsuario.retornaIdUsuario(auth.getName());
+        login = repositoryUsuario.retornaIdUsuario(auth.getName().split("\\|")[0]);
         if (login.isEmpty() || login == null) {
             if(!pesquisa)
                 throw new NullPointerException("Usuario não encontrado");
