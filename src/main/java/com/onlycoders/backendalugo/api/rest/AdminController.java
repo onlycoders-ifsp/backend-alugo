@@ -2,6 +2,9 @@ package com.onlycoders.backendalugo.api.rest;
 import com.google.common.base.Throwables;
 import com.onlycoders.backendalugo.model.entity.Meses;
 import com.onlycoders.backendalugo.model.entity.admin.LogErros;
+import com.onlycoders.backendalugo.model.entity.email.RetornoAlugueisNotificacao;
+import com.onlycoders.backendalugo.model.entity.email.RetornoUsuarioProdutoNoficacao;
+import com.onlycoders.backendalugo.model.entity.email.TemplateEmails;
 import com.onlycoders.backendalugo.model.entity.logs.*;
 import com.onlycoders.backendalugo.model.entity.produto.templates.Categorias;
 import com.onlycoders.backendalugo.model.entity.produto.templates.DtAlugadas;
@@ -11,6 +14,7 @@ import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario
 import com.onlycoders.backendalugo.model.repository.AdminRepository;
 import com.onlycoders.backendalugo.model.repository.LogRepository;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
+import com.onlycoders.backendalugo.service.EmailService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +25,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,18 +45,29 @@ public class AdminController {
     @Autowired
     private LogRepository logRepository;
 
-    @ApiOperation(value = "Deleta usuário")
+    @Autowired
+    private EmailService emailService;
+
+    @ApiOperation(value = "Desativa e ativa usuário")
     @DeleteMapping("inativa-usuario")
-    public Boolean deletar(@RequestParam String id_usuario) {
+    public Boolean activateDesactivateUserById(@RequestParam String id_usuario, @RequestParam(value = "motivo",defaultValue = "",required = false) String motivo) {
         try{
-            return adminRepository.deleteUserById(id_usuario,SecurityContextHolder.getContext().getAuthentication().getName());
+            String usuario = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            if(adminRepository.activateDesactivateUserById(id_usuario,usuario,motivo)){
+                RetornaUsuario dadosUsuario = adminRepository.findUsuario(id_usuario,usuario).get(0);
+                //System.out.println(dadosUsuario.getNome() + "|" + dadosUsuario.getEmail());
+                String bodyMail = (dadosUsuario.getAtivo()) ?
+                        new TemplateEmails().usuarioAtivado(dadosUsuario.getNome()) : new TemplateEmails().usuarioInativado(dadosUsuario.getNome(),motivo);
+                emailService.sendEmail(dadosUsuario.getEmail(),"Status da conta",bodyMail);
+            }
+            return true;
         }catch(Exception e) {
             String className = this.getClass().getSimpleName();
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
-            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage()==null)?"":e.getMessage(), Throwables.getStackTraceAsString(e));
             return false;
         }
     }
@@ -68,7 +84,7 @@ public class AdminController {
                            defaultValue = "10") int size) {
         try {
             Pageable paging = PageRequest.of(page, size);
-            List<RetornaUsuario> listUsuarios = adminRepository.findUsuario("0",SecurityContextHolder.getContext().getAuthentication().getName());
+            List<RetornaUsuario> listUsuarios = adminRepository.findUsuario("0",SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
 
             int start = (int) paging.getOffset();
             int end = (start + paging.getPageSize()) > listUsuarios.size() ? listUsuarios.size() : (start + paging.getPageSize());
@@ -79,7 +95,7 @@ public class AdminController {
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return new PageImpl<>(new ArrayList<>(),PageRequest.of(1,1),0);
         }
@@ -96,7 +112,7 @@ public class AdminController {
         Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
 
         try {
-            List<LogErros> listErros = adminRepository.retornaErros(SecurityContextHolder.getContext().getAuthentication().getName());
+            List<LogErros> listErros = adminRepository.retornaErros(SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
             int start = (int) paging.getOffset();
             int end = (start + paging.getPageSize()) > listErros.size() ? listErros.size() : (start + paging.getPageSize());
             return new PageImpl<>(listErros.subList(start, end), paging, listErros.size());
@@ -106,13 +122,13 @@ public class AdminController {
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return new PageImpl<>(new ArrayList<>(),PageRequest.of(1,1),0);
         }
     }
 
-    @ApiOperation(value = "Retorna produtos não publicados", response = LogErros.class)
+    @ApiOperation(value = "Retorna produtos não publicados", response = ProdutoAluguel.class)
     @GetMapping("/publicar-produtos")
     @ResponseStatus(HttpStatus.OK)
     public Page<ProdutoAluguel>
@@ -124,7 +140,7 @@ public class AdminController {
         Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
         try {
             Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(
-                    transformaRetornoProdutoToPage(produtoRepository.findProduto("0", "0", 2, categoria,SecurityContextHolder.getContext().getAuthentication().getName()), paging));
+                    transformaRetornoProdutoToPage(produtoRepository.findProduto("0", "0", 2, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging));
             return produtos.get();
         }
         catch(Exception e) {
@@ -132,9 +148,55 @@ public class AdminController {
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return new PageImpl<>(new ArrayList<>(),PageRequest.of(1,1),0);
+        }
+    }
+
+    @ApiOperation(value = "Reprovar produtos")
+    @GetMapping("/reprovar-produto")
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean rejeitaProduto(@RequestParam("id_produto")String idProduto,
+                                  @RequestParam("motivo") String motivo){
+        try{
+            String usuario = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            RetornoUsuarioProdutoNoficacao ret = adminRepository.rejeitaProduto(idProduto,motivo,usuario);
+            String mailBody = new TemplateEmails().produtoRejeitado(ret.getNomeUsuario(),ret.getNomeProduto(),motivo);
+            emailService.sendEmail(ret.getEmailUsuario(),"Cadastro de produto", mailBody);
+            return true;
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
+    @ApiOperation(value = "Aprovar produtos")
+    @GetMapping("/aprovar-produto")
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean aprovaProduto(@RequestParam("id_produto")String idProduto,
+                                 @RequestParam("motivo") String motivo){
+        try{
+            String usuario = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            RetornoUsuarioProdutoNoficacao ret = adminRepository.aprovaProduto(idProduto,motivo,usuario);
+            String mailBody = new TemplateEmails().produtoAceito(ret.getNomeUsuario(),ret.getNomeProduto());
+            emailService.sendEmail(ret.getEmailUsuario(),"Cadastro de produto", mailBody);
+            return true;
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
         }
     }
 
@@ -142,7 +204,7 @@ public class AdminController {
     @GetMapping("/log-erros-backend")
     @ResponseStatus(HttpStatus.OK)
     public List<ErrosControllerMetodos> retornaLogsBackend(){
-        String usuario = SecurityContextHolder.getContext().getAuthentication().getName();
+        String usuario = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
         try{
             String[] mes;
             String[] mesDescricao;
@@ -185,7 +247,7 @@ public class AdminController {
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage()==null) ? "" : e.getMessage(), Throwables.getStackTraceAsString(e));
             return new ArrayList<>();
         }
@@ -196,7 +258,7 @@ public class AdminController {
     @ResponseStatus(HttpStatus.OK)
     public List<ErrosProcedureAgrupado> retornaErrosProcedureAgurapado(){
         try{
-            String usuario = SecurityContextHolder.getContext().getAuthentication().getName();
+            String usuario = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             List<RetornaErrosProcedureAgrupado> errosProcedureAgrupado = adminRepository.retornaErrosProcedureAgrupado(usuario);
             String[] mes;
             String[] mesDescricao;
@@ -222,7 +284,7 @@ public class AdminController {
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage()==null) ? "" : e.getMessage(), Throwables.getStackTraceAsString(e));
             return new ArrayList<>();
         }
@@ -233,23 +295,25 @@ public class AdminController {
     @ResponseStatus(HttpStatus.OK)
     public Page<RetornaLogBackendDetalhe> retornaLogsBackendDetalhe(@RequestParam(value = "page",required = false,defaultValue = "0") int page,
                                                                     @RequestParam(value = "size",required = false,defaultValue = "10") int size,
-                                                                    @RequestParam(value = "sort",required = false,defaultValue = "controller") String sortBy,
+                                                                    @RequestParam(value = "sort",required = false,defaultValue = "usuario") String sortBy,
                                                                     @RequestParam(value = "order",required = false,defaultValue = "desc") String order){
         try {
-            String usuario = SecurityContextHolder.getContext().getAuthentication().getName();
-            Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
+            String usuario = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            //Sort sort = Sort.by((order.equalsIgnoreCase("desc")) ? Sort.Direction.DESC : Sort.Direction.ASC,sortBy);
+            Pageable paging = PageRequest.of(page, size, Sort.by((order.equalsIgnoreCase("desc")) ? Sort.Order.by(sortBy) : Sort.Order.desc(sortBy)));
             List<RetornaLogBackendDetalhe> retornaLogBackendDetalhes = adminRepository.retornaLogBackendDetalhe(usuario);
+            //retornaLogBackendDetalhes.sort(Comparator.comparing(RetornaLogBackendDetalhe::getUsuario));
 
             int start = (int) paging.getOffset();
             int end = (start + paging.getPageSize()) > retornaLogBackendDetalhes.size() ? retornaLogBackendDetalhes.size() : (start + paging.getPageSize());
-            return new PageImpl<RetornaLogBackendDetalhe>(retornaLogBackendDetalhes.subList(start, end), paging, retornaLogBackendDetalhes.size());//listPa;
+            return new PageImpl<>(retornaLogBackendDetalhes.subList(start, end), paging, retornaLogBackendDetalhes.size());//listPa;
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = SecurityContextHolder.getContext().getAuthentication().getName();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return new PageImpl<>(new ArrayList<>(),PageRequest.of(1,1),0);
         }

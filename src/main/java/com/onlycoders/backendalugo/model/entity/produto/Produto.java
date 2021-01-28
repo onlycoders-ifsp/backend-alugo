@@ -31,8 +31,7 @@ import java.util.List;
 @Entity
 public class Produto {
 
-    @JsonIgnore
-    @JsonAlias({"id_usuario"})
+    @JsonAlias("id_usuario")
     private String id_usuario;
 
     @Id
