@@ -21,6 +21,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import sun.text.normalizer.Utility;
 
 import javax.servlet.http.Part;
 import java.io.IOException;
@@ -120,6 +121,7 @@ public class ProdutoController {
                     @RequestParam(value = "order",required = false,defaultValue = "desc") String order,
                     @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
         try{
+            //System.out.println(ServletUriComponentsBuilder..build().getHost());
             Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
             //System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().build().getPath());
             Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(
@@ -266,15 +268,13 @@ public class ProdutoController {
     @ResponseStatus(HttpStatus.OK)
     public Boolean atualizaCadastrafoto(@RequestParam Part capa_foto,
                                         @RequestParam String id_produto) throws NotFoundException {
-        Optional<String> usuario = Optional.ofNullable(Optional
-                .of(getIdUsuario(false))
-                .orElseThrow(() -> new NotFoundException("Usuario não logado")));
+        String usuario = getIdUsuario(false);
         try{
             InputStream is = capa_foto.getInputStream();
             byte[] bytes = new byte[(int) capa_foto.getSize()];
             IOUtils.readFully(is,bytes);
             is.close();
-            return repository.uploadFoto(usuario.get(), id_produto, bytes,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
+            return repository.uploadFoto(usuario, id_produto, bytes,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
 
         } catch(IOException e) {
             String className = this.getClass().getSimpleName();

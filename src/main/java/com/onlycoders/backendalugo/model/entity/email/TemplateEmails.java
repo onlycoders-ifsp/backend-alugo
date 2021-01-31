@@ -4,6 +4,15 @@ public class TemplateEmails {
     String usuario = "Olá [[usuarioNome]],<br>";
     String equipe = "<br><br>Atenciosamente,<br>Equipe aluGo.";
 
+    public String cadastroUsuario(String usuarioNome, String verificationURL) {
+        String mailBody =  usuario +
+                "<br>Obrigado por se cadastrar em nossa plataforma!" +
+                "<br>Para confirmar o cadastro, clique no link abaixo. " +
+                "<br>[[verificationURL]]" +
+                equipe;
+        return mailBody.replace("[[usuarioNome]]",usuarioNome).replace("[[verificationURL]]",verificationURL);
+    }
+
     public String cadastroProduto(String usuarioNome, String produtoNome) {
         String mailBody =  usuario +
                 "<br>Recebemos o cadastro do produto [[nomeProduto]] " +

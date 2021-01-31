@@ -53,18 +53,15 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
 
     //Insere apenas informações minimas
     @Transactional()
-    @Query(value = "SELECT IDUSUARIO, NOME, LOGIN, EMAIL, CPF, CELULAR, ATIVO" +
-            " FROM FN_INSERIR_USUARIO_MIN(:nome,:email,:login,:senha,:cpf,:celular)" +
-            "AS T(IDUSUARIO TEXT, NOME TEXT, EMAIL TEXT, LOGIN TEXT, CPF TEXT," +
-            "   CELULAR TEXT,DATANASCIMENTO TEXT, CEP TEXT, ENDERECO TEXT," +
-            "   COMPLEMENTO TEXT, BAIRRO TEXT, NUMERO TEXT, ATIVO BOOLEAN, CAPA_FOTO BYTEA)",
+    @Query(value = "SELECT FN_INSERIR_USUARIO_MIN(:nome,:email,:login,:senha,:cpf,:celular,:verificationCode);",
             nativeQuery = true)
-    List <RetornaUsuario> createUsuarioMin(@Param("nome") String nome,
-                                            @Param("email") String email,
-                                            @Param("login") String login,
-                                            @Param("senha") String senha,
-                                            @Param("cpf") String cpf,
-                                            @Param("celular") String celular);
+    Boolean createUsuarioMin(@Param("nome") String nome,
+                            @Param("email") String email,
+                            @Param("login") String login,
+                            @Param("senha") String senha,
+                            @Param("cpf") String cpf,
+                            @Param("celular") String celular,
+                             @Param("verificationCode") String verificationCode);
 
     @Transactional
     @Query(value = "SELECT FN_FOTO_USUARIO(:id_usuario,:foto) ;",nativeQuery = true)
@@ -123,4 +120,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
     Boolean validaDadouUpdate(@Param("dado") String dado,
                        @Param("id_usuario") String id_usuario,
                        @Param("opcao") int opcao);
+
+    @Transactional()
+    @Query(value = "SELECT FN_ATIVA_USUARIO(:key,:usuario);",nativeQuery = true)
+    Boolean ativaUsuario(@Param("key") String key,
+                         @Param("usuario") String usuario);
 }

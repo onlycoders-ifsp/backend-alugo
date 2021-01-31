@@ -6,12 +6,14 @@
  */
 package com.onlycoders.backendalugo.api.rest;
 import com.google.common.base.Throwables;
+import com.onlycoders.backendalugo.model.entity.email.TemplateEmails;
 import com.onlycoders.backendalugo.model.entity.usuario.Usuario;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.AlteraSenha;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RequestUsuario;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario;
 import com.onlycoders.backendalugo.model.repository.LogRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
+import com.onlycoders.backendalugo.service.EmailService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import javassist.NotFoundException;
@@ -30,6 +32,7 @@ import javax.servlet.http.Part;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @Api(value = "Usuarios")
@@ -47,6 +50,9 @@ public class UsuarioController {
 
     @Autowired
     private LogRepository logRepository;
+
+    @Autowired
+    private EmailService emailService;
 
     @ApiOperation(value = "Retorna dados do usuario logado", response = RetornaUsuario.class)
     @GetMapping("/usuario-logado")
@@ -93,16 +99,44 @@ public class UsuarioController {
 
   */
 
+    @ApiOperation(value = "Verifica código de ativação")
+    @GetMapping("/verficacao-email")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Boolean verificaCodigo(@RequestParam("code") String code){
+        String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+        try {
+            Boolean ativo = repository.ativaUsuario(code, user);
+            System.out.println(ativo);
+            return ativo;
+        }catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
     @ApiOperation(value = "Cadastro de usuário", response = RetornaUsuario.class)
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
-    public RetornaUsuario salvar(@RequestBody Usuario usuario){
+    public Boolean salvar(@RequestBody Usuario usuario,@RequestParam("url")String url){
         //validaCampos(usuario.getLogin(), usuario.getCpf(), usuario.getEmail(),
         //        usuario.getCelular(), usuario.getNome(), false);
         try {
-            return repository
+            String site = url;
+            String verificationCode = UUID.randomUUID().toString();
+            site += "/valida-cadastro?key=" + verificationCode;
+            if(repository
                     .createUsuarioMin(usuario.getNome(), usuario.getEmail().toLowerCase(), usuario.getLogin(),
-                            usuario.getSenha(), usuario.getCpf(), usuario.getCelular()).get(0);
+                            usuario.getSenha(), usuario.getCpf(), usuario.getCelular(), verificationCode)){
+                String mailBody = new TemplateEmails().cadastroUsuario(usuario.getNome(),site);
+                emailService.sendEmail(usuario.getEmail(),"Registro de usuário",mailBody);
+                return true;
+            }
+            else
+                return false;
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -119,15 +153,13 @@ public class UsuarioController {
     @PutMapping("/upload-foto")
     @ResponseStatus(HttpStatus.CREATED)
     public Boolean atualizaFoto(@RequestParam Part capa_foto) throws NotFoundException {
-        Optional<String> usuario = Optional.ofNullable(Optional
-                .of(getIdUsuario())
-                .orElseThrow(() -> new NotFoundException("Usuario não logado")));
+        String usuario = getIdUsuario();
         try{
             InputStream is = capa_foto.getInputStream();
             byte[] bytes = new byte[(int) capa_foto.getSize()];
             IOUtils.readFully(is,bytes);
             is.close();
-            return repository.uploadFoto(usuario.get(), bytes);
+            return repository.uploadFoto(usuario, bytes);
 
         } catch(IOException e) {
             String className = this.getClass().getSimpleName();
