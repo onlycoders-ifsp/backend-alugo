@@ -100,7 +100,7 @@ public class TemplateEmails {
         return mailBody.replace("[[usuarioNome]]",usuarioNome).replace("[[nomeProduto]]",produtoNome);
     }
 
-    public String notificaAluguelLocador(String locadorNome, String produtoNome, String locatarioNome){
+    public String notificaAluguelLocadorInicio(String locadorNome, String produtoNome, String locatarioNome){
         String mailBody = usuario +
                 "<br>Faltam duas horas para a entrega de seu produto, [[produtoNome]]," +
                 " para [[locatarioNome]]."
@@ -110,7 +110,7 @@ public class TemplateEmails {
                 .replace("[[locatarioNome]]", locatarioNome);
     }
 
-    public String notificaAluguelLocatario(String locatarioNome, String produtoNome, String locadorNome){
+    public String notificaAluguelLocatarioInicio(String locatarioNome, String produtoNome, String locadorNome){
         String mailBody = usuario +
                 "<br>Faltam duas horas para a retirada do produto, [[produtoNome]]," +
                 " do locador [[locadorNome]]."
@@ -118,5 +118,25 @@ public class TemplateEmails {
         return mailBody.replace("[[usuarioNome]]",locatarioNome)
                 .replace("[[produtoNome]]",produtoNome)
                 .replace("[[locadorNome]]",locadorNome);
+    }
+
+    public String notificaAluguelLocatarioFim(String locatarioNome, String produtoNome, String locadorNome){
+        String mailBody = usuario +
+                "<br>Faltam duas horas para a devolução do produto, [[produtoNome]]," +
+                " do locador [[locadorNome]]."
+                + equipe;
+        return mailBody.replace("[[usuarioNome]]",locatarioNome)
+                .replace("[[produtoNome]]",produtoNome)
+                .replace("[[locadorNome]]",locadorNome);
+    }
+
+    public String notificaAluguelLocadorFim(String locadorNome, String produtoNome, String locatarioNome){
+        String mailBody = usuario +
+                "<br>Faltam duas horas para a devoluçao do seu produto, [[produtoNome]]," +
+                " pelo [[locatarioNome]]."
+                + equipe;
+        return mailBody.replace("[[usuarioNome]]",locadorNome)
+                .replace("[[produtoNome]]",produtoNome)
+                .replace("[[locatarioNome]]", locatarioNome);
     }
 }

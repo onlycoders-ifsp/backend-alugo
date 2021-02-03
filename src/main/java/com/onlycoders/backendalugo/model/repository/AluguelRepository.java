@@ -1,6 +1,7 @@
 package com.onlycoders.backendalugo.model.repository;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguel;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguelDetalhe;
+import com.onlycoders.backendalugo.model.entity.email.RetornaDadosLocadorLocatario;
 import com.onlycoders.backendalugo.model.entity.email.RetornoAlugueisNotificacao;
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -56,9 +57,42 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
                                                       @Param("user") String user);
 
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
-    @Query(value = "SELECT *FROM FN_RETORNA_ALUGUEIS_NOTIFICACAO(:usuario)" +
+    @Query(value = "SELECT *FROM FN_RETORNA_ALUGUEIS_NOTIFICACAO_INICIO(:usuario)" +
+            "AS (IDALUGUEL TEXT,PRODUTONOME TEXT, LOCADORNOME TEXT," +
+            "LOCADOREMAIL TEXT, LOCATARIONOME TEXT," +
+            "LOCATARIOEMAIL TEXT);",nativeQuery = true)
+    List<RetornoAlugueisNotificacao> retornaAlugueisNotificacaoInicio(@Param("usuario") String usuario);
+
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Query(value = "SELECT *FROM FN_RETORNA_ALUGUEIS_NOTIFICACAO_FIM(:usuario)" +
+            "AS (IDALUGUEL TEXT,PRODUTONOME TEXT, LOCADORNOME TEXT," +
+            "LOCADOREMAIL TEXT, LOCATARIONOME TEXT," +
+            "LOCATARIOEMAIL TEXT);",nativeQuery = true)
+    List<RetornoAlugueisNotificacao> retornaAlugueisNotificacaoFim(@Param("usuario") String usuario);
+
+    @Transactional()
+    @Query(value = "SELECT FN_STATUS_ALUGUEL(:id_aluguel,:status,:usuario);",nativeQuery = true)
+    void alteraStatusAluguel(@Param("id_aluguel") String id_aluguel,
+                                @Param("status") int status,
+                                @Param("usuario") String usuario);
+
+    @Transactional()
+    @Query(value = "SELECT FN_SALVA_DETALHE_ALUGUEL(:id_aluguel,:cep,:logradouro,:bairro," +
+            ":descricao,:data_hora,:tipo,:usuario);",nativeQuery = true)
+    Boolean salvaDetalheAluguel(@Param("id_aluguel") String id_aluguel,
+                                @Param("cep") String cep,
+                                @Param("logradouro") String logradouro,
+                                @Param("bairro") String bairro,
+                                @Param("descricao") String descricao,
+                                @Param("data_hora") String data_hora,
+                                @Param("tipo") String tipo,
+                                @Param("usuario") String usuario);
+
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Query(value = "SELECT *FROM FN_RETORNA_DADOS_LOCADOR_LOCATARIO(:id_aluguel,:usuario)" +
             "AS (PRODUTONOME TEXT, LOCADORNOME TEXT," +
             "LOCADOREMAIL TEXT, LOCATARIONOME TEXT," +
             "LOCATARIOEMAIL TEXT);",nativeQuery = true)
-    List<RetornoAlugueisNotificacao> retornaAlugueisNotificacao(@Param("usuario") String usuario);
+    RetornoAlugueisNotificacao retornaDadosLocadorLocatario(@Param("id_aluguel") String id_aluguel,
+                                                              @Param("usuario") String usuario);
 }
