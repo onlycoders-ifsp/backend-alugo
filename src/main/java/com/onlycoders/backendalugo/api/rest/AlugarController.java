@@ -241,6 +241,7 @@ public class AlugarController {
         }
     }
 
+
     @ApiOperation(value = "Retorna detalhes do aluguel")
     @GetMapping("/detalhe")
     @ResponseStatus(HttpStatus.OK)
@@ -319,4 +320,30 @@ public class AlugarController {
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
         }
     }
+
+
+    @ApiOperation(value = "Salva dados de entrega e devolução do produto")
+    @PostMapping("/entrega-devolucao")
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean inserirAluguelEncontro(@RequestBody Aluguel aluguel) throws ParseException {
+        try {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(new Date());
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            sdf.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo"));
+
+            return aluguelRepository.efetuaAluguel(getIdUsuario(), aluguel.getId_produto(),
+                    aluguel.getData_inicio(), aluguel.getData_fim(), aluguel.getValor_aluguel(), SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
 }
