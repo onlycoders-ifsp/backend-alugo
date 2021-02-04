@@ -37,4 +37,7 @@ public interface RetornaAluguelDetalhe {
 
     @JsonGetter("data_devolucao")
     public String getData_devolucao();
+
+    @JsonGetter("status_aluguel")
+    public int getStatus_aluguel();
 }

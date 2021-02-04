@@ -1,6 +1,7 @@
 package com.onlycoders.backendalugo.model.entity.aluguel.template;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonGetter;
 
 public interface RetornaAluguel {
 
@@ -27,4 +28,7 @@ public interface RetornaAluguel {
 
     @JsonAlias("data_saque")
     public String getData_saque();
+
+    @JsonGetter("status_aluguel")
+    public int getStatus_aluguel();
 }

@@ -1,6 +1,7 @@
 package com.onlycoders.backendalugo.model.repository;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguel;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguelDetalhe;
+import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaChecklist;
 import com.onlycoders.backendalugo.model.entity.email.RetornaDadosLocadorLocatario;
 import com.onlycoders.backendalugo.model.entity.email.RetornoAlugueisNotificacao;
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
@@ -29,7 +30,7 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
     @Query(value = "Select *FROM FN_RETORNA_ALUGUEL(:id_locador,:id_locatario,:id_aluguel,:id_produto,:op,:user)" +
                    "AS T (ID_ALUGUEL TEXT, ID_PRODUTO TEXT, ID_LOCATARIO TEXT," +
                     "ID_LOCADOR TEXT, DATA_INICIO TEXT, DATA_FIM TEXT," +
-                    "VALOR_ALUGUEL DOUBLE PRECISION, DATA_SAQUE TEXT)",
+                    "VALOR_ALUGUEL DOUBLE PRECISION, DATA_SAQUE TEXT, STATUS_ALUGUEL INT)",
             nativeQuery = true)
     List<RetornaAluguel> retornaAluguel(@Param("id_locador") String id_locador,
                                         @Param("id_locatario") String id_locatario,
@@ -51,7 +52,7 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
     @Query(value = "Select *FROM FN_RETORNA_ALUGUEL_DETALHE(:id_produto,:user)" +
             "AS T (ID_PRODUTO TEXT, NOME_PRODUTO TEXT, FOTO_PRODUTO BYTEA, ID_LOCATARIO TEXT," +
             "NOME_LOCATARIO TEXT, FOTO_LOCATARIO BYTEA, DATA_INICIO TEXT, DATA_FIM TEXT," +
-            "VALOR_ALUGUEL DOUBLE PRECISION, VALOR_GANHO DOUBLE PRECISION, DATA_DEVOLUCAO TEXT)",
+            "VALOR_ALUGUEL DOUBLE PRECISION, VALOR_GANHO DOUBLE PRECISION, DATA_DEVOLUCAO TEXT, STATUS_ALUGUEL INT)",
             nativeQuery = true)
     List<RetornaAluguelDetalhe> retornaAluguelDetalhe(@Param("id_produto") String id_produto,
                                                       @Param("user") String user);
@@ -93,7 +94,6 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
             "AS (PRODUTONOME TEXT, LOCADORNOME TEXT," +
             "LOCADOREMAIL TEXT, LOCATARIONOME TEXT," +
             "LOCATARIOEMAIL TEXT);",nativeQuery = true)
-
     List<RetornoAlugueisNotificacao> retornaAlugueisNotificacao(@Param("usuario") String usuario);
 
     @Transactional
@@ -118,4 +118,44 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
 
     RetornoAlugueisNotificacao retornaDadosLocadorLocatario(@Param("id_aluguel") String id_aluguel,
                                                               @Param("usuario") String usuario);
+
+    @Transactional()
+    @Query(value = "SELECT FN_GRVAVA_CHK_DEVOLUCAO(:id_aluguel,:descricao,:foto,:usuario);",nativeQuery = true)
+    Boolean gravaCheckListDevolucao(@Param("id_aluguel") String id_aluguel,
+                                     @Param("descricao") String descricao,
+                                     @Param("foto") byte[] foto,
+                                     @Param("usuario") String usuario);
+
+    @Transactional()
+    @Query(value = "SELECT FN_GRVAVA_CHK_ENTREGA(:id_aluguel,:descricao,foto,:usuario);",nativeQuery = true)
+    Boolean gravaCheckListEntrega(@Param("id_aluguel") String id_aluguel,
+                                  @Param("descricao") String descricao,
+                                  @Param("foto") byte[] foto,
+                                  @Param("usuario") String usuario);
+
+    @Transactional()
+    @Query(value = "SELECT FN_APROVA_REPROVA_CHK_DEVOLUCAO(:id_aluguel,:ok,:usuario);",nativeQuery = true)
+    Boolean aprovaReprovaCheckListDevolucao(@Param("id_aluguel") String id_aluguel,
+                                  @Param("ok") Boolean ok,
+                                  @Param("usuario") String usuario);
+
+    @Transactional()
+    @Query(value = "SELECT FN_APROVA_REPROVA_CHK_ENTREGA(:id_aluguel,:ok,:usuario);",nativeQuery = true)
+    Boolean aprovaReprovaCheckListEntrega(@Param("id_aluguel") String id_aluguel,
+                                  @Param("ok") Boolean ok,
+                                  @Param("usuario") String usuario);
+
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Query(value = "SELECT *FROM FN_RETORNA_CHK_ENTREGA(:id_aluguel,:usuario)" +
+            "AS (IDALUGUEL TEXT, DESCRICAO TEXT," +
+            "FOTOPRODUTO BYTEA, OKLOCADOR BOOLEAN);",nativeQuery = true)
+    RetornaChecklist retornaCheckListEntrega(@Param("id_aluguel") String id_aluguel,
+                                             @Param("usuario") String usuario);
+
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Query(value = "SELECT *FROM FN_RETORNA_CHK_DEVOLUCAO(:id_aluguel,:usuario)" +
+            "AS (IDALUGUEL TEXT, DESCRICAO TEXT," +
+            "FOTOPRODUTO BYTEA, OKLOCADOR BOOLEAN);",nativeQuery = true)
+    RetornaChecklist retornaCheckListDevolucao(@Param("id_aluguel") String id_aluguel,
+                                               @Param("usuario") String usuario);
 }
