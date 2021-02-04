@@ -432,10 +432,10 @@ public class AlugarController {
     @ApiOperation(value = "Aprova/Reprova checklist de entrega")
     @GetMapping("/checklist/aceite-entrega")
     @ResponseStatus(HttpStatus.OK)
-    Boolean aceiteChecklistEntrega(@Param("id_aluguel") String idAluguel,@Param("ok") Boolean ok){
+    Boolean aceiteChecklistEntrega(@Param("id_aluguel") String idAluguel,@Param("ok") Boolean ok, @RequestParam(value = "motivoRecusa",required = false,defaultValue = "") String motivoRecusa){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
-            return aluguelRepository.aprovaReprovaCheckListEntrega(idAluguel,ok,user);
+            return aluguelRepository.aprovaReprovaCheckListEntrega(idAluguel,ok,motivoRecusa,user);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -451,10 +451,10 @@ public class AlugarController {
     @ApiOperation(value = "Aprova/Reprova checklist de devolucao")
     @GetMapping("/checklist/aceite-devolucao")
     @ResponseStatus(HttpStatus.OK)
-    Boolean aceiteChecklistDevolucao(@Param("id_aluguel") String idAluguel,@Param("ok") Boolean ok){
+    Boolean aceiteChecklistDevolucao(@Param("id_aluguel") String idAluguel,@Param("ok") Boolean ok, @RequestParam(value = "motivoRecusa",required = false,defaultValue = "") String motivoRecusa){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
-            return aluguelRepository.aprovaReprovaCheckListDevolucao(idAluguel,ok,user);
+            return aluguelRepository.aprovaReprovaCheckListDevolucao(idAluguel,ok,motivoRecusa,user);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
