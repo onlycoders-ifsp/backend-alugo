@@ -370,11 +370,14 @@ public class AlugarController {
     Boolean salvaChecklistEntrega(@Param("checklist") Checklist checklist, @RequestParam(value = "foto",required = false,defaultValue = "") Part foto){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
-            InputStream is = foto.getInputStream();
-            byte[] bytes = new byte[(int) foto.getSize()];
-            IOUtils.readFully(is,bytes);
-            is.close();
-            return aluguelRepository.gravaCheckListEntrega(checklist.getId_aluguel(),checklist.getDescricao(),bytes,user);
+            byte[] bytes = new byte[0];
+            if(!foto.toString().isEmpty()) {
+                InputStream is = foto.getInputStream();
+                bytes = new byte[(int) foto.getSize()];
+                IOUtils.readFully(is, bytes);
+                is.close();
+            }
+            return aluguelRepository.gravaCheckListEntrega(checklist.getId_aluguel(), checklist.getDescricao(), bytes, user);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -393,11 +396,14 @@ public class AlugarController {
     Boolean salvaChecklistDevolucao(@Param("checklist") Checklist checklist, @RequestParam(value = "foto",required = false,defaultValue = "") Part foto){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
-            InputStream is = foto.getInputStream();
-            byte[] bytes = new byte[(int) foto.getSize()];
-            IOUtils.readFully(is,bytes);
-            is.close();
-            return aluguelRepository.gravaCheckListDevolucao(checklist.getId_aluguel(),checklist.getDescricao(),bytes,user);
+            byte[] bytes = new byte[0];
+            if(!foto.toString().isEmpty()) {
+                InputStream is = foto.getInputStream();
+                bytes = new byte[(int) foto.getSize()];
+                IOUtils.readFully(is, bytes);
+                is.close();
+            }
+            return aluguelRepository.gravaCheckListDevolucao(checklist.getId_aluguel(), checklist.getDescricao(), bytes, user);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -410,8 +416,8 @@ public class AlugarController {
         }
     }
 
-    @ApiOperation(value = "Grava checklist de entrega")
-    @GetMapping("/checklist/grava-entrega")
+    @ApiOperation(value = "retorna checklist de entrega")
+    @GetMapping("/checklist/retorna-entrega")
     @ResponseStatus(HttpStatus.OK)
     RetornaChecklist retornaChecklistEntrega(@Param("id_aluguel") String idAluguel){
         try{
@@ -430,7 +436,7 @@ public class AlugarController {
     }
 
     @ApiOperation(value = "Aprova/Reprova checklist de entrega")
-    @GetMapping("/checklist/aceite-entrega")
+    @PutMapping("/checklist/aceite-entrega")
     @ResponseStatus(HttpStatus.OK)
     Boolean aceiteChecklistEntrega(@Param("id_aluguel") String idAluguel,@Param("ok") Boolean ok, @RequestParam(value = "motivoRecusa",required = false,defaultValue = "") String motivoRecusa){
         try{
@@ -449,7 +455,7 @@ public class AlugarController {
     }
 
     @ApiOperation(value = "Aprova/Reprova checklist de devolucao")
-    @GetMapping("/checklist/aceite-devolucao")
+    @PutMapping("/checklist/aceite-devolucao")
     @ResponseStatus(HttpStatus.OK)
     Boolean aceiteChecklistDevolucao(@Param("id_aluguel") String idAluguel,@Param("ok") Boolean ok, @RequestParam(value = "motivoRecusa",required = false,defaultValue = "") String motivoRecusa){
         try{
@@ -464,6 +470,23 @@ public class AlugarController {
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return false;
+        }
+    }
+    @ApiOperation(value = "Retorna destalhes do encontro do aluguel")
+    @GetMapping("/encontro")
+    @ResponseStatus(HttpStatus.OK)
+    RetornaAluguelEncontro retornaAluguelEncontro(@Param("id_aluguel") String idAluguel){
+        try{
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            return aluguelRepository.retornaAluguelEncontro(idAluguel,user);
+        }catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
         }
     }
 

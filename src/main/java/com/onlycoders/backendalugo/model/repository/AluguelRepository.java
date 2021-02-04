@@ -1,6 +1,7 @@
 package com.onlycoders.backendalugo.model.repository;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguel;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguelDetalhe;
+import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguelEncontro;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaChecklist;
 import com.onlycoders.backendalugo.model.entity.email.RetornoAlugueisNotificacao;
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
@@ -144,4 +145,13 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
             "FOTOPRODUTO BYTEA, OKLOCADOR BOOLEAN);",nativeQuery = true)
     RetornaChecklist retornaCheckListDevolucao(@Param("id_aluguel") String id_aluguel,
                                                @Param("usuario") String usuario);
+
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Query(value = "SELECT *FROM FN_RETORNA_ALUGUEL_ENCONTRO(:id_aluguel,:usuario)" +
+            "AS (IDALUGUEL TEXT, CEPENTREGA TEXT, LOGRADOUROENTREGA TEXT, BAIRROENTREGA TEXT," +
+            "DESCRICAOENTREGA TEXT, DATAENTREGA TEXT, CEPDEVOLUCAO TEXT, LOGRADOURODEVOLUCAO TEXT," +
+            "BAIRRODEVOLUCAO TEXT, DESCRICAODEVOLUCAO TEXT, DATADEVOLUCAO TEXT, ACEIT_LOCADOR BOOLEAN," +
+            "OSERVACAORECUSA TEXT);",nativeQuery = true)
+    RetornaAluguelEncontro retornaAluguelEncontro(@Param("id_aluguel") String id_aluguel,
+                                                   @Param("usuario") String usuario);
 }
