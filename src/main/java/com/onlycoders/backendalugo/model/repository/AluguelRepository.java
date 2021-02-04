@@ -63,10 +63,11 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
     List<RetornoAlugueisNotificacao> retornaAlugueisNotificacao(@Param("usuario") String usuario);
 
     @Transactional
-    @Query(value = "Select FN_INSERE_ALUGUEL_ENCONTRO(:id_aluguel, :cep_entrega, :logradouro_entrega," +
+    @Query(value = "Select FN_INSERE_ALUGUEL_ENCONTRO(:id_usuario, :id_aluguel, :cep_entrega, :logradouro_entrega," +
             ":bairro_entrega, :descricao_entrega,:data_entrega, :cep_devolucao, :logradouro_devolucao," +
             ":bairro_devolucao, :descricao_devolucao, :data_devolucao, :aceite_locador, :observacao_recusa)",nativeQuery = true)
-    Boolean insereAluguelEncontro(@Param("id_aluguel") String id_aluguel,
+    Boolean insereAluguelEncontro(@Param("id_usuario") String id_usuario,
+                                  @Param("id_aluguel") String id_aluguel,
                                   @Param("cep_entrega") String cep_entrega,
                                   @Param("logradouro_entrega") String logradouro_entrega,
                                   @Param("bairro_entrega") String bairro_entrega,
