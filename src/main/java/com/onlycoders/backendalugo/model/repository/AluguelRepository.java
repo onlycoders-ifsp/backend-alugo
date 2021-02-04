@@ -153,7 +153,7 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
 
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "SELECT *FROM FN_RETORNA_CHK_DEVOLUCAO(:id_aluguel,:usuario)" +
-            "AS (IDALUGUEL TEXT, DESCRICAO TEXT," +
+            "AS (ID_ALUGUEL TEXT, DESCRICAO TEXT," +
             "FOTO_PRODUTO BYTEA, OK_LOCADOR BOOLEAN);",nativeQuery = true)
     RetornaChecklist retornaCheckListDevolucao(@Param("id_aluguel") String id_aluguel,
                                                @Param("usuario") String usuario);
