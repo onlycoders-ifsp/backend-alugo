@@ -1,6 +1,7 @@
 package com.onlycoders.backendalugo.api.rest;
 
 import com.google.common.base.Throwables;
+import com.onlycoders.backendalugo.model.entity.AluguelEncontro;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguelUsuarioProduto;
 import com.onlycoders.backendalugo.model.entity.aluguel.Aluguel;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguel;
@@ -8,6 +9,7 @@ import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguelD
 import com.onlycoders.backendalugo.model.entity.email.RetornaDadosLocadorLocatario;
 import com.onlycoders.backendalugo.model.entity.email.RetornoAlugueisNotificacao;
 import com.onlycoders.backendalugo.model.entity.email.TemplateEmails;
+import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaCategorias;
 import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario;
 import com.onlycoders.backendalugo.model.repository.AluguelRepository;
@@ -23,6 +25,7 @@ import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -242,7 +245,6 @@ public class AlugarController {
             return new ArrayList<>();
         }
     }
-
     @ApiOperation(value = "Realiza a baixa do pagamento no sistema e envia os emails.")
     @GetMapping("/pagamento")
     @ResponseStatus(HttpStatus.OK)
@@ -362,6 +364,51 @@ public class AlugarController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = "alugoMail";
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+        }
+    }
+
+
+    @ApiOperation(value = "Salva dados de entrega e devolução do produto")
+    @PostMapping("/entrega-devolucao")
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean inserirAluguelEncontro(@RequestBody AluguelEncontro aluguelEncontro) throws ParseException {
+        try {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(new Date());
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            sdf.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo"));
+
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+
+            String logado = getIdUsuario();
+
+            if(!logado.isEmpty()){
+                    return aluguelRepository.insereAluguelEncontro(user, aluguelEncontro.getId_aluguel(),
+                            aluguelEncontro.getCep_entrega(),
+                            aluguelEncontro.getLogradouro_entrega(),
+                            aluguelEncontro.getBairro_entrega(),
+                            aluguelEncontro.getDescricao_entrega(),
+                            aluguelEncontro.getData_entrega(),
+                            aluguelEncontro.getCep_devolucao(),
+                            aluguelEncontro.getLogradouro_devolucao(),
+                            aluguelEncontro.getBairro_devolucao(),
+                            aluguelEncontro.getDescricao_devolucao(),
+                            aluguelEncontro.getData_devolucao(),
+                            aluguelEncontro.isAceite_locador(),
+                            aluguelEncontro.getObservacao_recusa());
+                }else{
+                return false;
+            }
+        }
+
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
         }
     }
 }
