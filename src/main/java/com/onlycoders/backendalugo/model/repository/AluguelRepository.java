@@ -106,10 +106,16 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
 
     @Transactional()
     @Query(value = "SELECT FN_GRVAVA_CHK_DEVOLUCAO(:id_aluguel,:descricao,:foto,:usuario);",nativeQuery = true)
-    Boolean gravaCheckListDevolucao(@Param("id_aluguel") String id_aluguel,
+    Boolean gravaCheckListDevolucaoFoto(@Param("id_aluguel") String id_aluguel,
                                      @Param("descricao") String descricao,
                                      @Param("foto") byte[] foto,
                                      @Param("usuario") String usuario);
+
+    @Transactional()
+    @Query(value = "SELECT FN_GRVAVA_CHK_DEVOLUCAO(:id_aluguel,:descricao,:usuario);",nativeQuery = true)
+    Boolean gravaCheckListDevolucao(@Param("id_aluguel") String id_aluguel,
+                                    @Param("descricao") String descricao,
+                                    @Param("usuario") String usuario);
 
     @Transactional()
     @Query(value = "SELECT FN_GRVAVA_CHK_ENTREGA(:id_aluguel,:descricao,:foto,:usuario);",nativeQuery = true)
@@ -148,10 +154,10 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
 
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "SELECT *FROM FN_RETORNA_ALUGUEL_ENCONTRO(:id_aluguel,:usuario)" +
-            "AS (IDALUGUEL TEXT, CEPENTREGA TEXT, LOGRADOUROENTREGA TEXT, BAIRROENTREGA TEXT," +
-            "DESCRICAOENTREGA TEXT, DATAENTREGA TEXT, CEPDEVOLUCAO TEXT, LOGRADOURODEVOLUCAO TEXT," +
-            "BAIRRODEVOLUCAO TEXT, DESCRICAODEVOLUCAO TEXT, DATADEVOLUCAO TEXT, ACEIT_LOCADOR BOOLEAN," +
-            "OSERVACAORECUSA TEXT);",nativeQuery = true)
+            "AS (ID_ALUGUEL TEXT, CEP_ENTREGA TEXT, LOGRADOURO_ENTREGA TEXT, BAIRRO_ENTREGA TEXT," +
+            "DESCRICAO_ENTREGA TEXT, DATA_ENTREGA TEXT, CEP_DEVOLUCAO TEXT, LOGRADOURO_DEVOLUCAO TEXT," +
+            "BAIRRO_DEVOLUCAO TEXT, DESCRICAO_DEVOLUCAO TEXT, DATA_DEVOLUCAO TEXT, ACEITE_LOCADOR BOOLEAN," +
+            "OBSERVACAO_RECUSA TEXT);",nativeQuery = true)
     RetornaAluguelEncontro retornaAluguelEncontro(@Param("id_aluguel") String id_aluguel,
                                                    @Param("usuario") String usuario);
 }

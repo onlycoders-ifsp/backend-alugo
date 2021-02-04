@@ -15,6 +15,7 @@ import com.onlycoders.backendalugo.model.repository.LogRepository;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import com.onlycoders.backendalugo.service.EmailService;
+import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import javassist.NotFoundException;
@@ -367,11 +368,11 @@ public class AlugarController {
     @ApiOperation(value = "Salva checklist entrega")
     @PostMapping("/checklist/salva-entrega")
     @ResponseStatus(HttpStatus.OK)
-    Boolean salvaChecklistEntrega(@Param("checklist") Checklist checklist, @RequestParam(value = "foto",required = false,defaultValue = "") Part foto){
+    Boolean salvaChecklistEntrega(@Param("checklist") Checklist checklist, @RequestParam(value = "foto",required = false) Part foto){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             byte[] bytes = new byte[0];
-            if(!foto.toString().isEmpty()) {
+            if(foto != null) {
                 InputStream is = foto.getInputStream();
                 bytes = new byte[(int) foto.getSize()];
                 IOUtils.readFully(is, bytes);
@@ -393,17 +394,22 @@ public class AlugarController {
     @ApiOperation(value = "Salva checklist devolucao")
     @PostMapping("/checklist/salva-devolucao")
     @ResponseStatus(HttpStatus.OK)
-    Boolean salvaChecklistDevolucao(@Param("checklist") Checklist checklist, @RequestParam(value = "foto",required = false,defaultValue = "") Part foto){
+    Boolean salvaChecklistDevolucao(@Param("checklist") Checklist checklist, @RequestParam(value = "foto",required = false) Part foto){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             byte[] bytes = new byte[0];
-            if(!foto.toString().isEmpty()) {
+            if(foto != null) {
+                System.out.println("foto");
                 InputStream is = foto.getInputStream();
                 bytes = new byte[(int) foto.getSize()];
                 IOUtils.readFully(is, bytes);
                 is.close();
+                return aluguelRepository.gravaCheckListDevolucaoFoto(checklist.getId_aluguel(), checklist.getDescricao(), bytes, user);
             }
-            return aluguelRepository.gravaCheckListDevolucao(checklist.getId_aluguel(), checklist.getDescricao(), bytes, user);
+            else {
+                System.out.println(2);
+                return aluguelRepository.gravaCheckListDevolucao(checklist.getId_aluguel(), checklist.getDescricao(), user);
+            }
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -411,7 +417,7 @@ public class AlugarController {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
-            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage()==null)?"":e.getMessage(), Throwables.getStackTraceAsString(e));
             return false;
         }
     }
@@ -475,7 +481,7 @@ public class AlugarController {
     @ApiOperation(value = "Retorna destalhes do encontro do aluguel")
     @GetMapping("/encontro")
     @ResponseStatus(HttpStatus.OK)
-    RetornaAluguelEncontro retornaAluguelEncontro(@Param("id_aluguel") String idAluguel){
+    RetornaAluguelEncontro retornaAluguelEncontro(@RequestParam("id_aluguel") String idAluguel){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             return aluguelRepository.retornaAluguelEncontro(idAluguel,user);

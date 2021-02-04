@@ -8,10 +8,10 @@ public interface RetornaAluguelEncontro {
     String getId_aluguel();
 
     @JsonGetter("cep_entrega")
-    String getcep();
+    String getCep_entrega();
 
     @JsonGetter("logradouro_entrega")
-    String getLogradouro();
+    String getLogradouro_entrega();
 
     @JsonGetter("bairro_entrega")
     String getBairro_entrega();
@@ -29,7 +29,7 @@ public interface RetornaAluguelEncontro {
     String getLogradouro_devolucao();
 
     @JsonGetter("bairro_devolucao")
-    String getBairr_devolucao();
+    String getBairro_devolucao();
 
     @JsonGetter("descricao_devolucao")
     String getDescricao_devolucao();
