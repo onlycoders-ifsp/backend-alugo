@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 public interface RetornaChecklist {
 
     @JsonAlias("id_aluguel")
-    String getIdAluguel();
+    String getId_aluguel();
 
     @JsonAlias("descricao")
     String getDescricao();
@@ -13,6 +13,6 @@ public interface RetornaChecklist {
     @JsonAlias("foto")
     String getFoto();
 
-    @JsonAlias("ok_locatario")
-    String getOkLocatario();
+    @JsonAlias("ok_locador")
+    String getOk_locador();
 }

@@ -1,10 +1,9 @@
 package com.onlycoders.backendalugo.model.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.repository.query.Param;
 
 import javax.persistence.*;
 
@@ -14,20 +13,44 @@ import javax.persistence.*;
 @NoArgsConstructor
 public class AluguelEncontro {
 
+    @JsonAlias("id_aluguel")
     @Id
     private String id_aluguel;
-    private String id_usuario;
+
+    @JsonAlias("cep_entrega")
     private String cep_entrega;
+
+    @JsonAlias("logradouro_entrega")
     private String logradouro_entrega;
+
+    @JsonAlias("bairro_entrega")
     private String bairro_entrega;
+
+    @JsonAlias("descricao_entrega")
     private String descricao_entrega;
+
+    @JsonAlias("data_entrega")
     private String data_entrega;
+
+    @JsonAlias("cep_devolucao")
     private String cep_devolucao;
+    
+    @JsonAlias("logradouro_devolucao")
     private String logradouro_devolucao;
+
+    @JsonAlias("bairro_devolucao")
     private String bairro_devolucao;
+
+    @JsonAlias("descricao_devolucao")
     private String descricao_devolucao;
+
+    @JsonAlias("data_devolucao")
     private String data_devolucao;
+
+    @JsonAlias("aceite_locador")
     private boolean aceite_locador;
+
+    @JsonAlias("observacao_recusa")
     private String observacao_recusa;
 
     public String getId_aluguel() {
@@ -36,14 +59,6 @@ public class AluguelEncontro {
 
     public void setId_aluguel(String id_aluguel) {
         this.id_aluguel = id_aluguel;
-    }
-
-    public String getId_usuario() {
-        return id_usuario;
-    }
-
-    public void setId_usuario(String id_usuario) {
-        this.id_usuario = id_usuario;
     }
 
     public String getCep_entrega() {

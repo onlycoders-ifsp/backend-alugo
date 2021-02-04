@@ -86,11 +86,10 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
                                                               @Param("usuario") String usuario);
 
     @Transactional
-    @Query(value = "Select FN_INSERE_ALUGUEL_ENCONTRO(:id_usuario, :id_aluguel, :cep_entrega, :logradouro_entrega," +
+    @Query(value = "Select FN_INSERE_ALUGUEL_ENCONTRO(:id_aluguel, :cep_entrega, :logradouro_entrega," +
             ":bairro_entrega, :descricao_entrega,:data_entrega, :cep_devolucao, :logradouro_devolucao," +
-            ":bairro_devolucao, :descricao_devolucao, :data_devolucao, :aceite_locador, :observacao_recusa)",nativeQuery = true)
-    Boolean insereAluguelEncontro(@Param("id_usuario") String id_usuario,
-                                  @Param("id_aluguel") String id_aluguel,
+            ":bairro_devolucao, :descricao_devolucao, :data_devolucao, :aceite_locador, :observacao_recusa, :id_usuario);",nativeQuery = true)
+    Boolean insereAluguelEncontro(@Param("id_aluguel") String id_aluguel,
                                   @Param("cep_entrega") String cep_entrega,
                                   @Param("logradouro_entrega") String logradouro_entrega,
                                   @Param("bairro_entrega") String bairro_entrega,
@@ -102,7 +101,8 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
                                   @Param("descricao_devolucao") String descricao_devolucao,
                                   @Param("data_devolucao") String data_devolucao,
                                   @Param("aceite_locador") boolean aceite_locador,
-                                  @Param("observacao_recusa") String observacao_recusa);
+                                  @Param("observacao_recusa") String observacao_recusa,
+                                  @Param("id_usuario") String id_usuario);
 
     @Transactional()
     @Query(value = "SELECT FN_GRVAVA_CHK_DEVOLUCAO(:id_aluguel,:descricao,:foto,:usuario);",nativeQuery = true)
@@ -146,15 +146,15 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
 
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "SELECT *FROM FN_RETORNA_CHK_ENTREGA(:id_aluguel,:usuario)" +
-            "AS (IDALUGUEL TEXT, DESCRICAO TEXT," +
-            "FOTOPRODUTO BYTEA, OKLOCADOR BOOLEAN);",nativeQuery = true)
+            "AS (ID_ALUGUEL TEXT, DESCRICAO TEXT," +
+            "FOTO_PRODUTO BYTEA, OK_LOCADOR BOOLEAN);",nativeQuery = true)
     RetornaChecklist retornaCheckListEntrega(@Param("id_aluguel") String id_aluguel,
                                              @Param("usuario") String usuario);
 
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "SELECT *FROM FN_RETORNA_CHK_DEVOLUCAO(:id_aluguel,:usuario)" +
             "AS (IDALUGUEL TEXT, DESCRICAO TEXT," +
-            "FOTOPRODUTO BYTEA, OKLOCADOR BOOLEAN);",nativeQuery = true)
+            "FOTO_PRODUTO BYTEA, OK_LOCADOR BOOLEAN);",nativeQuery = true)
     RetornaChecklist retornaCheckListDevolucao(@Param("id_aluguel") String id_aluguel,
                                                @Param("usuario") String usuario);
 

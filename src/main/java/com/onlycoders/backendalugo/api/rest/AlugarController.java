@@ -26,6 +26,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.SaveContextOnUpdateOrErrorResponseWrapper;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.servlet.http.Part;
@@ -311,7 +312,7 @@ public class AlugarController {
             String logado = getIdUsuario();
 
             if(!logado.isEmpty()){
-                    return aluguelRepository.insereAluguelEncontro(user, aluguelEncontro.getId_aluguel(),
+                    return aluguelRepository.insereAluguelEncontro(aluguelEncontro.getId_aluguel(),
                             aluguelEncontro.getCep_entrega(),
                             aluguelEncontro.getLogradouro_entrega(),
                             aluguelEncontro.getBairro_entrega(),
@@ -323,7 +324,7 @@ public class AlugarController {
                             aluguelEncontro.getDescricao_devolucao(),
                             aluguelEncontro.getData_devolucao(),
                             aluguelEncontro.isAceite_locador(),
-                            aluguelEncontro.getObservacao_recusa());
+                            aluguelEncontro.getObservacao_recusa(),user);
                 }else{
                 return false;
             }
