@@ -6,6 +6,7 @@ import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguelU
 import com.onlycoders.backendalugo.model.entity.aluguel.Aluguel;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguel;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguelDetalhe;
+import com.onlycoders.backendalugo.model.entity.email.RetornaDadosLocadorLocatario;
 import com.onlycoders.backendalugo.model.entity.email.RetornoAlugueisNotificacao;
 import com.onlycoders.backendalugo.model.entity.email.TemplateEmails;
 import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaCategorias;
@@ -33,6 +34,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.*;
 
 @RestController
@@ -243,7 +245,30 @@ public class AlugarController {
             return new ArrayList<>();
         }
     }
-
+    @ApiOperation(value = "Realiza a baixa do pagamento no sistema e envia os emails.")
+    @GetMapping("/pagamento")
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean salvaPagamento(@RequestParam("id_aluguel") String id_aluguel) {
+        try {
+            String usuario = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            aluguelRepository.alteraStatusAluguel(id_aluguel, 11, usuario);
+            RetornoAlugueisNotificacao r = aluguelRepository.retornaDadosLocadorLocatario(id_aluguel,usuario);
+            String locadorMail = new TemplateEmails().confirmacaoAluguelLocador(r.getLocadorNome(),r.getProdutoNome());
+            String locatarioMail = new TemplateEmails().confirmacaoAluguelLocatario(r.getLocatarioNome(),r.getProdutoNome());
+            emailService.sendEmail(r.getLocadorEmail(),"Confirmação de pagamento", locadorMail);
+            emailService.sendEmail(r.getLocatarioEmail(),"Confirmação de pagamento", locatarioMail);
+            return true;
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
 
     @ApiOperation(value = "Retorna detalhes do aluguel")
     @GetMapping("/detalhe")
@@ -298,21 +323,39 @@ public class AlugarController {
     @Scheduled(cron = "0 */15 * * * ?")
     public void enviaNotificacaoAluguel(){
         try {
-            System.out.println(LocalTime.now() + " - Iniciando verificação de notificacao de alugueis");
+            System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Iniciando verificação de notificacao de alugueis para entrega do produto");
             String usuario = "alugoMail";
-            List<RetornoAlugueisNotificacao> alugueisNotificacao = aluguelRepository.retornaAlugueisNotificacao(usuario);
+            List<RetornoAlugueisNotificacao> alugueisNotificacao = aluguelRepository.retornaAlugueisNotificacaoInicio(usuario);
             System.out.println("Foram encontrados " + alugueisNotificacao.size() * 2 + " emails para enviar.");
             int cont = 0;
             for (RetornoAlugueisNotificacao ret : alugueisNotificacao) {
-                String bodyMailLocador = new TemplateEmails().notificaAluguelLocador(ret.getLocadorNome(), ret.getProdutoNome(), ret.getLocatarioNome());
-                String bodyMailLocatario = new TemplateEmails().notificaAluguelLocatario(ret.getLocatarioNome(), ret.getProdutoNome(), ret.getLocadorNome());
+                String bodyMailLocador = new TemplateEmails().notificaAluguelLocadorInicio(ret.getLocadorNome(), ret.getProdutoNome(), ret.getLocatarioNome());
+                String bodyMailLocatario = new TemplateEmails().notificaAluguelLocatarioInicio(ret.getLocatarioNome(), ret.getProdutoNome(), ret.getLocadorNome());
                 //System.out.println("Enviando email para locador " + ret.getLocadorEmail());
                 emailService.sendEmail(ret.getLocadorEmail(), "Notificação de aluguel", bodyMailLocador);
                 //System.out.println("Enviando email para locatario " + ret.getLocatarioEmail());
                 emailService.sendEmail(ret.getLocatarioEmail(), "Notificação de aluguel", bodyMailLocatario);
+                aluguelRepository.alteraStatusAluguel(ret.getIdAluguel(),12,usuario); //Aguardando entrega
                 cont++;
             }
-            System.out.println(LocalTime.now() + " - Foram enviados " + cont * 2 + " emails.");
+            System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Foram enviados " + cont * 2 + " emails para entrega de produto.");
+
+            System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Iniciando verificação de notificacao de alugueis para devolução do produto");
+
+            alugueisNotificacao = aluguelRepository.retornaAlugueisNotificacaoFim(usuario);
+            System.out.println("Foram encontrados " + alugueisNotificacao.size() * 2 + " emails para enviar.");
+            cont = 0;
+            for (RetornoAlugueisNotificacao ret : alugueisNotificacao) {
+                String bodyMailLocador = new TemplateEmails().notificaAluguelLocadorFim(ret.getLocadorNome(), ret.getProdutoNome(), ret.getLocatarioNome());
+                String bodyMailLocatario = new TemplateEmails().notificaAluguelLocatarioFim(ret.getLocatarioNome(), ret.getProdutoNome(), ret.getLocadorNome());
+                //System.out.println("Enviando email para locador " + ret.getLocadorEmail());
+                emailService.sendEmail(ret.getLocadorEmail(), "Notificação de aluguel", bodyMailLocador);
+                //System.out.println("Enviando email para locatario " + ret.getLocatarioEmail());
+                emailService.sendEmail(ret.getLocatarioEmail(), "Notificação de aluguel", bodyMailLocatario);
+                aluguelRepository.alteraStatusAluguel(ret.getIdAluguel(),10,usuario); //Aguardando devolução
+                cont++;
+            }
+            System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Foram enviados " + cont * 2 + " emails para devolução de produto.");
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();

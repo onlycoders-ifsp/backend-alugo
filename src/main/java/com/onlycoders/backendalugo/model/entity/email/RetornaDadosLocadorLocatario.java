@@ -2,13 +2,7 @@ package com.onlycoders.backendalugo.model.entity.email;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 
-public interface RetornoAlugueisNotificacao {
-
-    @JsonAlias("id_aluguel")
-    String getIdAluguel();
-
-    @JsonAlias("produto_nome")
-    String getProdutoNome();
+public interface RetornaDadosLocadorLocatario {
 
     @JsonAlias("locador_nome")
     String getLocadorNome();
