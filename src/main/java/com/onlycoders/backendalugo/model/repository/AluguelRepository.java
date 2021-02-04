@@ -119,9 +119,15 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
 
     @Transactional()
     @Query(value = "SELECT FN_GRVAVA_CHK_ENTREGA(:id_aluguel,:descricao,:foto,:usuario);",nativeQuery = true)
-    Boolean gravaCheckListEntrega(@Param("id_aluguel") String id_aluguel,
+    Boolean gravaCheckListEntregaFoto(@Param("id_aluguel") String id_aluguel,
                                   @Param("descricao") String descricao,
                                   @Param("foto") byte[] foto,
+                                  @Param("usuario") String usuario);
+
+    @Transactional()
+    @Query(value = "SELECT FN_GRVAVA_CHK_ENTREGA(:id_aluguel,:descricao,:usuario);",nativeQuery = true)
+    Boolean gravaCheckListEntrega(@Param("id_aluguel") String id_aluguel,
+                                  @Param("descricao") String descricao,
                                   @Param("usuario") String usuario);
 
     @Transactional()

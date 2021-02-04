@@ -4,10 +4,8 @@ import com.google.common.base.Throwables;
 import com.onlycoders.backendalugo.model.entity.AluguelEncontro;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.*;
 import com.onlycoders.backendalugo.model.entity.aluguel.Aluguel;
-import com.onlycoders.backendalugo.model.entity.email.RetornaDadosLocadorLocatario;
 import com.onlycoders.backendalugo.model.entity.email.RetornoAlugueisNotificacao;
 import com.onlycoders.backendalugo.model.entity.email.TemplateEmails;
-import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaCategorias;
 import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario;
 import com.onlycoders.backendalugo.model.repository.AluguelRepository;
@@ -15,7 +13,6 @@ import com.onlycoders.backendalugo.model.repository.LogRepository;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import com.onlycoders.backendalugo.service.EmailService;
-import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import javassist.NotFoundException;
@@ -26,15 +23,12 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
 import javax.servlet.http.Part;
-import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -368,17 +362,20 @@ public class AlugarController {
     @ApiOperation(value = "Salva checklist entrega")
     @PostMapping("/checklist/salva-entrega")
     @ResponseStatus(HttpStatus.OK)
-    Boolean salvaChecklistEntrega(@Param("checklist") Checklist checklist, @RequestParam(value = "foto",required = false) Part foto){
+    Boolean salvaChecklistEntrega(@RequestBody Checklist checklist, @RequestParam(value = "foto",required = false) Part foto){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
-            byte[] bytes = new byte[0];
+            byte[] bytes;
             if(foto != null) {
                 InputStream is = foto.getInputStream();
                 bytes = new byte[(int) foto.getSize()];
                 IOUtils.readFully(is, bytes);
                 is.close();
+                return aluguelRepository.gravaCheckListEntregaFoto(checklist.getId_aluguel(), checklist.getDescricao(), bytes, user);
             }
-            return aluguelRepository.gravaCheckListEntrega(checklist.getId_aluguel(), checklist.getDescricao(), bytes, user);
+            else{
+                return aluguelRepository.gravaCheckListEntrega(checklist.getId_aluguel(), checklist.getDescricao(), user);
+            }
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -394,12 +391,11 @@ public class AlugarController {
     @ApiOperation(value = "Salva checklist devolucao")
     @PostMapping("/checklist/salva-devolucao")
     @ResponseStatus(HttpStatus.OK)
-    Boolean salvaChecklistDevolucao(@Param("checklist") Checklist checklist, @RequestParam(value = "foto",required = false) Part foto){
+    Boolean salvaChecklistDevolucao(@RequestBody Checklist checklist, @RequestParam(value = "foto",required = false) Part foto){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
-            byte[] bytes = new byte[0];
+            byte[] bytes;
             if(foto != null) {
-                System.out.println("foto");
                 InputStream is = foto.getInputStream();
                 bytes = new byte[(int) foto.getSize()];
                 IOUtils.readFully(is, bytes);
@@ -407,7 +403,6 @@ public class AlugarController {
                 return aluguelRepository.gravaCheckListDevolucaoFoto(checklist.getId_aluguel(), checklist.getDescricao(), bytes, user);
             }
             else {
-                System.out.println(2);
                 return aluguelRepository.gravaCheckListDevolucao(checklist.getId_aluguel(), checklist.getDescricao(), user);
             }
         }
