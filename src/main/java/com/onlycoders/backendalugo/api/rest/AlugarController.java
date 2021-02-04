@@ -308,27 +308,22 @@ public class AlugarController {
             sdf.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo"));
 
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
-
-            String logado = getIdUsuario();
-
-            if(!logado.isEmpty()){
-                    return aluguelRepository.insereAluguelEncontro(aluguelEncontro.getId_aluguel(),
-                            aluguelEncontro.getCep_entrega(),
-                            aluguelEncontro.getLogradouro_entrega(),
-                            aluguelEncontro.getBairro_entrega(),
-                            aluguelEncontro.getDescricao_entrega(),
-                            aluguelEncontro.getData_entrega(),
-                            aluguelEncontro.getCep_devolucao(),
-                            aluguelEncontro.getLogradouro_devolucao(),
-                            aluguelEncontro.getBairro_devolucao(),
-                            aluguelEncontro.getDescricao_devolucao(),
-                            aluguelEncontro.getData_devolucao(),
-                            aluguelEncontro.isAceite_locador(),
-                            aluguelEncontro.getObservacao_recusa(),user);
-                }else{
-                return false;
+            System.out.println(aluguelEncontro.getId_aluguel());
+            System.out.println(aluguelEncontro.getData_devolucao());
+                return aluguelRepository.insereAluguelEncontro(aluguelEncontro.getId_aluguel(),
+                        aluguelEncontro.getCep_entrega(),
+                        aluguelEncontro.getLogradouro_entrega(),
+                        aluguelEncontro.getBairro_entrega(),
+                        aluguelEncontro.getDescricao_entrega(),
+                        aluguelEncontro.getData_entrega(),
+                        aluguelEncontro.getCep_devolucao(),
+                        aluguelEncontro.getLogradouro_devolucao(),
+                        aluguelEncontro.getBairro_devolucao(),
+                        aluguelEncontro.getDescricao_devolucao(),
+                        aluguelEncontro.getData_devolucao(),
+                        aluguelEncontro.isAceite_locador(),
+                        aluguelEncontro.getObservacao_recusa(),user);
             }
-        }
 
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -336,7 +331,7 @@ public class AlugarController {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
-            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage()==null)?"":e.getMessage(), Throwables.getStackTraceAsString(e));
             return false;
         }
     }

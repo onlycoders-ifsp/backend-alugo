@@ -34,7 +34,7 @@ public class AluguelEncontro {
 
     @JsonAlias("cep_devolucao")
     private String cep_devolucao;
-    
+
     @JsonAlias("logradouro_devolucao")
     private String logradouro_devolucao;
 
