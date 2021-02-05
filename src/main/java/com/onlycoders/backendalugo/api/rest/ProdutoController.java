@@ -152,7 +152,7 @@ public class ProdutoController {
         try {
             Pageable paging = PageRequest.of(0, 1);
             Optional<ProdutoAluguel> produtos = Optional.ofNullable(transformaRetornoProdutoToPage(
-                    repository.findProduto("0", id_produto, 3, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging)
+                    repository.findProduto("0", id_produto, 7, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging)
                     .getContent()
                     .get(0));
         /*if (produtos.isPresent()) {
