@@ -6,7 +6,7 @@
  */
 package com.onlycoders.backendalugo.api.rest;
 import com.google.common.base.Throwables;
-import com.onlycoders.backendalugo.model.entity.email.TemplateEmails;
+import com.onlycoders.backendalugo.model.entity.email.templatesEmails.TemplateEmails;
 import com.onlycoders.backendalugo.model.entity.usuario.Usuario;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.AlteraSenha;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RequestUsuario;
@@ -31,7 +31,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.servlet.http.Part;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController

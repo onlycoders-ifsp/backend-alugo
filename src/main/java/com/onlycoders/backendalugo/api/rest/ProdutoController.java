@@ -1,6 +1,6 @@
 package com.onlycoders.backendalugo.api.rest;
 import com.google.common.base.Throwables;
-import com.onlycoders.backendalugo.model.entity.email.TemplateEmails;
+import com.onlycoders.backendalugo.model.entity.email.templatesEmails.TemplateEmails;
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
 import com.onlycoders.backendalugo.model.entity.produto.templates.*;
 import com.onlycoders.backendalugo.model.repository.LogRepository;
