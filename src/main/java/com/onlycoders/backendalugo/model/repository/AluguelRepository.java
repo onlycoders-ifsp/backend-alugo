@@ -1,8 +1,5 @@
 package com.onlycoders.backendalugo.model.repository;
-import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguel;
-import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguelDetalhe;
-import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguelEncontro;
-import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaChecklist;
+import com.onlycoders.backendalugo.model.entity.aluguel.template.*;
 import com.onlycoders.backendalugo.model.entity.email.RetornoAlugueisNotificacao;
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -165,5 +162,25 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
             "BAIRRO_DEVOLUCAO TEXT, DESCRICAO_DEVOLUCAO TEXT, DATA_DEVOLUCAO TEXT, ACEITE_LOCADOR BOOLEAN," +
             "OBSERVACAO_RECUSA TEXT);",nativeQuery = true)
     RetornaAluguelEncontro retornaAluguelEncontro(@Param("id_aluguel") String id_aluguel,
+                                                   @Param("usuario") String usuario);
+
+    @Transactional()
+    @Query(value = "SELECT FN_SALVA_AVALIACAO(:id_aluguel,:comentario,:nota,:tipo,:usuario);",nativeQuery = true)
+    Boolean salvaAvaliacao(@Param("id_aluguel") String id_aluguel,
+                            @Param("comentario") String comentario,
+                            @Param("nota") Double nota,
+                            @Param("tipo") int tipo,
+                           @Param("usuario") String usuario);
+
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Query(value = "SELECT *FROM FN_RETORNA_AVALIACAO_PRODUTO(:id_produto,:usuario)" +
+            "AS (NOME_AVALIADOR TEXT, COMENTARIO TEXT, NOTA DECIMAL(2,1));",nativeQuery = true)
+    List<RetornaAvaliacoes> retornaAvaliacaoProduto(@Param("id_produto") String id_aluguel,
+                                                    @Param("usuario") String usuario);
+
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Query(value = "SELECT *FROM FN_RETORNA_AVALIACAO_LOCATARIO(:id_usuario,:usuario)" +
+            "AS (NOME_AVALIADOR TEXT, COMENTARIO TEXT, NOTA DECIMAL(2,1));",nativeQuery = true)
+    List<RetornaAvaliacoes> retornaAvaliacaoLocatario(@Param("id_usuario") String id_aluguel,
                                                    @Param("usuario") String usuario);
 }

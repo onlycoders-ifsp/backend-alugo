@@ -18,7 +18,7 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
             "as (ID_USUARIO TEXT, ID_PRODUTO TEXT, NOME TEXT, DESCRICAO_CURTA TEXT, " +
             "  DESCRICAO TEXT, VALOR_BASE_DIARIA DECIMAL(16,2), VALOR_BASE_MENSAL DECIMAL(16,2)," +
             "  VALOR_PRODUTO DECIMAL(16,2), DATA_COMPRA TEXT, QTD_ALUGUEIS NUMERIC(16), " +
-            "  TOTAL_GANHOS DECIMAL(16,2), MEDIA_AVALIACAO DECIMAL(6,1), DT_ALUGUEL TEXT," +
+            "  TOTAL_GANHOS DECIMAL(16,2), MEDIA_AVALIACAO DECIMAL(2,1), DT_ALUGUEL TEXT," +
             "  CATEGORIAS TEXT, CAPA_FOTO BYTEA , ATIVO BOOLEAN, PUBLICADO BOOLEAN);",
             nativeQuery = true)
     List<RetornaProduto> findProduto(@Param("id_usuario") String id_usuario,

@@ -486,6 +486,82 @@ public class AlugarController {
         }
     }
 
+    @ApiOperation(value = "Salva avaliação do produto")
+    @PostMapping("/avaliacao/grava/produto")
+    @ResponseStatus(HttpStatus.OK)
+    Boolean salvaAvaliacaoProduto(@RequestBody Avalicao avalicao){
+        try{
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            return aluguelRepository.salvaAvaliacao(avalicao.getId_aluguel(),avalicao.getComentario(),avalicao.getNota(),1,user);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
+    @ApiOperation(value = "Salva avaliação do produto")
+    @PostMapping("/avaliacao/grava/locatario")
+    @ResponseStatus(HttpStatus.OK)
+    Boolean salvaAvaliacaoLocatario(@RequestBody Avalicao avalicao){
+        try{
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            return aluguelRepository.salvaAvaliacao(avalicao.getId_aluguel(),avalicao.getComentario(),avalicao.getNota(),2,user);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
+    @ApiOperation(value = "Retorna avaliacoes produto")
+    @GetMapping("/avaliacao/retorna/produto")
+    @ResponseStatus(HttpStatus.OK)
+    List<RetornaAvaliacoes> retornaAvaliacoesProduto(@Param("id_produto") String id_produto){
+        try{
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            return aluguelRepository.retornaAvaliacaoProduto(id_produto,user);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
+    }
+
+    @ApiOperation(value = "Retorna avaliacoes locatario")
+    @GetMapping("/avaliacao/retorna/locatario")
+    @ResponseStatus(HttpStatus.OK)
+    List<RetornaAvaliacoes> retornaAvaliacoesLocatario(@Param("id_usuario") String id_usuario){
+        try{
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            return aluguelRepository.retornaAvaliacaoLocatario(id_usuario,user);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
+    }
+
     public String getIdUsuario(){
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

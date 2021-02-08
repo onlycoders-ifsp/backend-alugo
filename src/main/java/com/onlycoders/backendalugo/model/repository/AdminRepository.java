@@ -36,8 +36,9 @@ public interface AdminRepository extends JpaRepository<LogErros,Integer> {
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "Select *From FN_RETORNA_USUARIO(:id,:user) " +
             "AS T(IDUSUARIO TEXT, NOME TEXT, EMAIL TEXT, LOGIN TEXT, CPF TEXT, CELULAR TEXT," +
-            "            DATANASCIMENTO TEXT, CEP TEXT, ENDERECO TEXT, " +
-            "            COMPLEMENTO TEXT, BAIRRO TEXT, NUMERO TEXT, ATIVO BOOLEAN, CAPA_FOTO BYTEA);",
+            "DATANASCIMENTO TEXT, CEP TEXT, ENDERECO TEXT, " +
+            "COMPLEMENTO TEXT, BAIRRO TEXT, NUMERO TEXT, ATIVO BOOLEAN, CAPA_FOTO BYTEA," +
+            "LOCATARIO_AVALIACAO DECIMAL(2,1), LOCADOR_AVALIACAO DECIMAL(2,1));",
             //@Query(value = "Select u.*From Usuarios u",
             nativeQuery = true)
     List<RetornaUsuario> findUsuario(@Param("id") String id,@Param("user") String user);
