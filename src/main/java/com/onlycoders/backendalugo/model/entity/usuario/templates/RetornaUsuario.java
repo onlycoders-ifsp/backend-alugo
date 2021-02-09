@@ -57,4 +57,7 @@ public interface RetornaUsuario{
 
     @JsonAlias("locador_avaliacao")
     public Double getLocador_avaliacao();
+
+    @JsonAlias("produto_avaliacao")
+    public Double getProduto_avaliacao();
 }

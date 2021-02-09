@@ -505,13 +505,32 @@ public class AlugarController {
         }
     }
 
-    @ApiOperation(value = "Salva avaliação do produto")
+    @ApiOperation(value = "Salva avaliação do locatário(Locador para locatario)")
     @PostMapping("/avaliacao/grava/locatario")
     @ResponseStatus(HttpStatus.OK)
     Boolean salvaAvaliacaoLocatario(@RequestBody Avalicao avalicao){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             return aluguelRepository.salvaAvaliacao(avalicao.getId_aluguel(),avalicao.getComentario(),avalicao.getNota(),2,user);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
+    @ApiOperation(value = "Salva avaliação do locador(Locatario para locador)")
+    @PostMapping("/avaliacao/grava/locador")
+    @ResponseStatus(HttpStatus.OK)
+    Boolean salvaAvaliacaoLocador(@RequestBody Avalicao avalicao){
+        try{
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            return aluguelRepository.salvaAvaliacao(avalicao.getId_aluguel(),avalicao.getComentario(),avalicao.getNota(),3,user);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -550,6 +569,25 @@ public class AlugarController {
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             return aluguelRepository.retornaAvaliacaoLocatario(id_usuario,user);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
+    }
+
+    @ApiOperation(value = "Retorna avaliacoes locador")
+    @GetMapping("/avaliacao/retorna/locador")
+    @ResponseStatus(HttpStatus.OK)
+    List<RetornaAvaliacoes> retornaAvaliacoesLocador(@Param("id_usuario") String id_usuario){
+        try{
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            return aluguelRepository.retornaAvaliacaoLocador(id_usuario,user);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();

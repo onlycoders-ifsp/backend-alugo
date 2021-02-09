@@ -183,4 +183,10 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
             "AS (NOME_AVALIADOR TEXT, COMENTARIO TEXT, NOTA DECIMAL(2,1));",nativeQuery = true)
     List<RetornaAvaliacoes> retornaAvaliacaoLocatario(@Param("id_usuario") String id_aluguel,
                                                    @Param("usuario") String usuario);
+
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Query(value = "SELECT *FROM FN_RETORNA_AVALIACAO_LOCADOR(:id_usuario,:usuario)" +
+            "AS (NOME_AVALIADOR TEXT, COMENTARIO TEXT, NOTA DECIMAL(2,1));",nativeQuery = true)
+    List<RetornaAvaliacoes> retornaAvaliacaoLocador(@Param("id_usuario") String id_aluguel,
+                                                      @Param("usuario") String usuario);
 }

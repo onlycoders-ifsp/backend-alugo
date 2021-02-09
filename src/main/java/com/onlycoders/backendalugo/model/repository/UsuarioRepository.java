@@ -26,7 +26,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
             "AS T(IDUSUARIO TEXT, NOME TEXT, EMAIL TEXT, LOGIN TEXT, CPF TEXT, CELULAR TEXT," +
     "            DATANASCIMENTO TEXT, CEP TEXT, ENDERECO TEXT, " +
     "            COMPLEMENTO TEXT, BAIRRO TEXT, NUMERO TEXT, ATIVO BOOLEAN, CAPA_FOTO BYTEA," +
-    "            LOCATARIO_AVALIACAO DECIMAL(2,1), LOCADOR_AVALIACAO DECIMAL(2,1));",
+    "            LOCATARIO_AVALIACAO DECIMAL(2,1), LOCADOR_AVALIACAO DECIMAL(2,1)," +
+    "            PRODUTO_AVALIACAO DECIMAL(2,1));",
     //@Query(value = "Select u.*From Usuarios u",
     nativeQuery = true)
     List<RetornaUsuario> findUsuario(@Param("id") String id);
