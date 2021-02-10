@@ -244,21 +244,37 @@ public class AlugarController {
             return new ArrayList<>();
         }
     }
-
     @ApiOperation(value = "Realiza a baixa do pagamento no sistema e envia os emails.")
-    @GetMapping("/pagamento")
+    @GetMapping("/pagamento/efetua")
     @ResponseStatus(HttpStatus.OK)
-    public Boolean salvaPagamento(@RequestParam("id_aluguel") String id_aluguel,@RequestParam("url_pagamento") String url_pagamento) {
+    public Boolean salvaPagamento(@RequestParam("id_aluguel") String id_aluguel) {
         try {
             String usuario = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            aluguelRepository.alteraStatusAluguel(id_aluguel, 11, usuario);
             RetornoAlugueisNotificacao r = aluguelRepository.retornaDadosLocadorLocatario(id_aluguel,usuario);
             String locadorMail = new TemplateEmails().pagamentoAluguelDono(r.getLocadorNome(),r.getProdutoNome());
             String locatarioMail = new TemplateEmails().pagamentoAluguelLocatario(r.getLocatarioNome(),r.getProdutoNome());
             emailService.sendEmail(r.getLocadorEmail(),"Confirmação de pagamento", locadorMail);
             emailService.sendEmail(r.getLocatarioEmail(),"Confirmação de pagamento", locatarioMail);
-            aluguelRepository.alteraStatusAluguel(id_aluguel, 11, usuario);
-            aluguelRepository.salvaUrlPagamento(id_aluguel, url_pagamento,usuario);
             return true;
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
+    @ApiOperation(value = "Salva URL Pagamento")
+    @PutMapping("/pagamento/url-pagamento")
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean salvaUrl(@RequestParam String id_aluguel,@RequestParam String url_pagamento) {
+        try {
+            return aluguelRepository.salvaUrlPagamento(id_aluguel, url_pagamento,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
