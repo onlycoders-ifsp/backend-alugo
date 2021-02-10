@@ -15,7 +15,7 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
     @Transactional
     @Query(value = "Select FN_EFETUA_ALUGUEL(:id_usuario, :id_produto, :data_inicio," +
             ":data_fim, :valor_aluguel,:user)",nativeQuery = true)
-    Boolean efetuaAluguel(@Param("id_usuario") String id_usuario,
+    String efetuaAluguel(@Param("id_usuario") String id_usuario,
                           @Param("id_produto") String id_produto,
                           @Param("data_inicio") String data_inicio,
                           @Param("data_fim") String data_fim,
@@ -189,4 +189,11 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
             "AS (NOME_AVALIADOR TEXT, COMENTARIO TEXT, NOTA DECIMAL(2,1));",nativeQuery = true)
     List<RetornaAvaliacoes> retornaAvaliacaoLocador(@Param("id_usuario") String id_aluguel,
                                                       @Param("usuario") String usuario);
+
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Query(value = "SELECT *FROM FN_SALVA_URL_PAGAMENTO(:id_aluguel,:url_pagamento,:usuario)" +
+            "AS (NOME_AVALIADOR TEXT, COMENTARIO TEXT, NOTA DECIMAL(2,1));",nativeQuery = true)
+    Boolean salvaUrlPagamento(@Param("id_aluguel") String id_aluguel,
+                            @Param("url_pagamento") String url_pagamento,
+                            @Param("usuario") String usuario);
 }

@@ -63,7 +63,7 @@ public class AlugarController {
     @ApiOperation(value = "Efetua aluguel do usuario logado. Param id_produto")
     @PostMapping("/aluguel-efetua")
     @ResponseStatus(HttpStatus.OK)
-    public Boolean EfetuaAluguel(@RequestBody Aluguel aluguel) throws ParseException {
+    public String EfetuaAluguel(@RequestBody Aluguel aluguel) throws ParseException {
         try {
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(new Date());
@@ -94,7 +94,7 @@ public class AlugarController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
-            return false;
+            return "";
         }
     }
 
@@ -244,18 +244,20 @@ public class AlugarController {
             return new ArrayList<>();
         }
     }
+
     @ApiOperation(value = "Realiza a baixa do pagamento no sistema e envia os emails.")
     @GetMapping("/pagamento")
     @ResponseStatus(HttpStatus.OK)
-    public Boolean salvaPagamento(@RequestParam("id_aluguel") String id_aluguel) {
+    public Boolean salvaPagamento(@RequestParam("id_aluguel") String id_aluguel,@RequestParam("url_pagamento") String url_pagamento) {
         try {
             String usuario = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
-            aluguelRepository.alteraStatusAluguel(id_aluguel, 11, usuario);
             RetornoAlugueisNotificacao r = aluguelRepository.retornaDadosLocadorLocatario(id_aluguel,usuario);
             String locadorMail = new TemplateEmails().pagamentoAluguelDono(r.getLocadorNome(),r.getProdutoNome());
             String locatarioMail = new TemplateEmails().pagamentoAluguelLocatario(r.getLocatarioNome(),r.getProdutoNome());
             emailService.sendEmail(r.getLocadorEmail(),"Confirmação de pagamento", locadorMail);
             emailService.sendEmail(r.getLocatarioEmail(),"Confirmação de pagamento", locatarioMail);
+            aluguelRepository.alteraStatusAluguel(id_aluguel, 11, usuario);
+            aluguelRepository.salvaUrlPagamento(id_aluguel, url_pagamento,usuario);
             return true;
         }
         catch(Exception e) {
