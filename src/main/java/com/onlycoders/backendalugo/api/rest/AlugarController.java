@@ -546,7 +546,7 @@ public class AlugarController {
     @ApiOperation(value = "Retorna avaliacoes produto")
     @GetMapping("/avaliacao/retorna/produto")
     @ResponseStatus(HttpStatus.OK)
-    List<RetornaAvaliacoes> retornaAvaliacoesProduto(@Param("id_produto") String id_produto){
+    List<RetornaAvaliacoes> retornaAvaliacoesProduto(@RequestParam("id_produto") String id_produto){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             return aluguelRepository.retornaAvaliacaoProduto(id_produto,user);
@@ -565,7 +565,7 @@ public class AlugarController {
     @ApiOperation(value = "Retorna avaliacoes locatario")
     @GetMapping("/avaliacao/retorna/locatario")
     @ResponseStatus(HttpStatus.OK)
-    List<RetornaAvaliacoes> retornaAvaliacoesLocatario(@Param("id_usuario") String id_usuario){
+    List<RetornaAvaliacoes> retornaAvaliacoesLocatario(@RequestParam("id_usuario") String id_usuario){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             return aluguelRepository.retornaAvaliacaoLocatario(id_usuario,user);
@@ -584,7 +584,7 @@ public class AlugarController {
     @ApiOperation(value = "Retorna avaliacoes locador")
     @GetMapping("/avaliacao/retorna/locador")
     @ResponseStatus(HttpStatus.OK)
-    List<RetornaAvaliacoes> retornaAvaliacoesLocador(@Param("id_usuario") String id_usuario){
+    List<RetornaAvaliacoes> retornaAvaliacoesLocador(@RequestParam("id_usuario") String id_usuario){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             return aluguelRepository.retornaAvaliacaoLocador(id_usuario,user);
