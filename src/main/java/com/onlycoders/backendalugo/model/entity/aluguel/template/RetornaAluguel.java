@@ -31,4 +31,7 @@ public interface RetornaAluguel {
 
     @JsonGetter("status_aluguel")
     public int getStatus_aluguel();
+
+    @JsonGetter("url_pagamento")
+    public String getUrl_pagamento();
 }
