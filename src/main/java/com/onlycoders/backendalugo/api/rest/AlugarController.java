@@ -252,6 +252,7 @@ public class AlugarController {
             return new ArrayList<>();
         }
     }
+
     @ApiOperation(value = "Realiza a baixa do pagamento no sistema e envia os emails.")
     @GetMapping("/pagamento/efetua")
     @ResponseStatus(HttpStatus.OK)
@@ -378,9 +379,12 @@ public class AlugarController {
                 System.out.println("Encontro cadastrado");
                 RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(aluguelEncontro.getId_aluguel(),user);
                 RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(aluguelEncontro.getId_aluguel(),user);
+                System.out.println("feito leitura do banco");
+                System.out.println(r.getId_aluguel());
                 String locadorMail = new TemplateEmails().informaLocalLocatario(dados.getLocadorNome(),r.getLogradouro_entrega(),r.getBairro_entrega(),r.getCep_entrega(),
                         r.getDescricao_entrega(),r.getData_entrega(),r.getLogradouro_devolucao(),r.getBairro_devolucao(),r.getCep_devolucao(),r.getDescricao_devolucao(),r.getData_devolucao(),
                         dados.getLocatarioNome(),dados.getProdutoNome(), r.getPeriodo(),r.getValor());
+                System.out.println("arquivo de email carregado");
                 emailService.sendEmail(dados.getLocadorEmail(),"Confirmação de encontro",locadorMail);
                 return true;
             }
@@ -560,7 +564,7 @@ public class AlugarController {
     @ApiOperation(value = "Confirma encontro do aluguel")
     @GetMapping("/confirma-encontro")
     @ResponseStatus(HttpStatus.OK)
-    Boolean retornaAluguelEncontro(@RequestParam("id_aluguel") String id_aluguel, @RequestParam("ok") Boolean ok, @RequestParam(value = "motivo", required = false, defaultValue = "") String motivo){
+    Boolean confirmaAluguelEncontro(@RequestParam("id_aluguel") String id_aluguel, @RequestParam("ok") Boolean ok, @RequestParam(value = "motivo", required = false, defaultValue = "") String motivo){
         try{
             if(!ok){
                 System.out.println("Recusa");
@@ -572,7 +576,7 @@ public class AlugarController {
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             if(ok) {
                 System.out.println("Altera status");
-                aluguelRepository.alteraStatusAluguel(id_aluguel, 7, user);
+                aluguelRepository.alteraStatusAluguel(id_aluguel, 1, user);
             }
             return aluguelRepository.confirmaEncontro(id_aluguel,ok,(ok) ? "" : motivo,user);
         }catch(Exception e) {

@@ -1,14 +1,8 @@
 package com.onlycoders.backendalugo.model.entity.email.templatesEmails;
 
 import java.io.*;
-import java.nio.file.Paths;
 
 public class TemplateEmails {
-
-    public String cadastroUsuario(String usuarioNome, String verificationURL) throws IOException {
-        String mailBody = leTemplate("CadastroProduto.html");
-        return mailBody.replace("[[usuarioNome]]", usuarioNome).replace("[[verificationURL]]", verificationURL);
-    }
 
     public String cadastroProduto(String usuarioNome, String produtoNome) throws IOException {
         String mailBody = leTemplate("CadastrProduto.html");
@@ -148,10 +142,21 @@ public class TemplateEmails {
                 .replace("[[celularLocatario]]",celularLocatario);
     }
 
+    public String confirmaCadastro(String usuarioNome, String urlCadastro) throws IOException {
+        String mailBody = leTemplate("UsuarioCadastro.html");
+        return mailBody.replace("[[usuarioNome]]", usuarioNome)
+                .replace("[[urlCadastro]]",urlCadastro);
+    }
+
     String leTemplate(String arquivo) throws IOException {
-        String path = Paths.get(arquivo).toUri().toString().replace("file:///","").replace(arquivo,"");
+        //String path = Paths.get(arquivo).toUri().toString().replace("file:///","").replace(arquivo,"");
         StringBuilder contentBuilder = new StringBuilder();
-        BufferedReader in = new BufferedReader(new FileReader(path + "src/main/java/com/onlycoders/backendalugo/model/entity/email/templatesEmails/" + arquivo));
+        BufferedReader in = new BufferedReader(new FileReader(System.getProperty("user.dir") +
+                File.separator + "src" + File.separator + "main" + File.separator + "java" + File.separator + "com" +
+                File.separator + "onlycoders" + File.separator + "backendalugo" + File.separator +
+                "model" + File.separator + "entity" + File.separator + "email" + File.separator +
+                "templatesEmails" + File.separator + arquivo));
+        //BufferedReader in = new BufferedReader(new FileReader(arquivo));
         String str;
         while ((str = in.readLine()) != null) {
             contentBuilder.append(str);

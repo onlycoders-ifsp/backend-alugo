@@ -130,7 +130,7 @@ public class UsuarioController {
             if(repository
                     .createUsuarioMin(usuario.getNome(), usuario.getEmail().toLowerCase(), usuario.getLogin(),
                             usuario.getSenha(), usuario.getCpf(), usuario.getCelular(), verificationCode)){
-                String mailBody = new TemplateEmails().cadastroUsuario(usuario.getNome(),site);
+                String mailBody = new TemplateEmails().confirmaCadastro(usuario.getNome(),site);
                 emailService.sendEmail(usuario.getEmail(),"Registro de usuário",mailBody);
                 return true;
             }
