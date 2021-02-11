@@ -70,7 +70,7 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
 
     @Transactional()
     @Query(value = "SELECT FN_STATUS_ALUGUEL(:id_aluguel,:status,:usuario);",nativeQuery = true)
-    void alteraStatusAluguel(@Param("id_aluguel") String id_aluguel,
+    Boolean alteraStatusAluguel(@Param("id_aluguel") String id_aluguel,
                                 @Param("status") int status,
                                 @Param("usuario") String usuario);
 

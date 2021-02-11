@@ -350,21 +350,17 @@ public class AlugarController {
     @ApiOperation(value = "Salva dados de entrega e devolução do produto")
     @PostMapping("/entrega-devolucao")
     @ResponseStatus(HttpStatus.OK)
-    public Boolean inserirAluguelEncontro(@RequestBody AluguelEncontro aluguelEncontro) throws ParseException {
+    public Boolean inserirAluguelEncontro(@RequestBody AluguelEncontro aluguelEncontro){
         try {
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
 
-            //RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(aluguelEncontro.getId_aluguel(),user);
-            //RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(aluguelEncontro.getId_aluguel(),user);
-            //System.out.println(dados.getLocadorNome());
-            //String locadorMail = new TemplateEmails().informaLocalLocatario(dados.getLocadorNome(),r.getLogradouro_entrega(),r.getBairro_entrega(),r.getCep_entrega(),
-            //        r.getDescricao_entrega(),r.getData_entrega(),r.getLogradouro_devolucao(),r.getBairro_devolucao(),r.getCep_devolucao(),r.getDescricao_devolucao(),r.getData_devolucao(),
-            //        dados.getLocatarioNome(),dados.getProdutoNome(), r.getPeriodo(),r.getValor());
-            //emailService.sendEmail(dados.getLocatarioEmail(),"Confirmação de encontro",locadorMail);
+            Boolean ok = aluguelRepository.alteraStatusAluguel(aluguelEncontro.getId_aluguel(), 9, user);
 
-            aluguelRepository.alteraStatusAluguel(aluguelEncontro.getId_aluguel(), 9, user);
+            if (!ok){
+                System.out.println("deu ruim no status");
+            }
 
-                return aluguelRepository.insereAluguelEncontro(aluguelEncontro.getId_aluguel(),
+            ok  = aluguelRepository.insereAluguelEncontro(aluguelEncontro.getId_aluguel(),
                         aluguelEncontro.getCep_entrega(),
                         aluguelEncontro.getLogradouro_entrega(),
                         aluguelEncontro.getBairro_entrega(),
@@ -377,7 +373,22 @@ public class AlugarController {
                         aluguelEncontro.getData_devolucao(),
                         aluguelEncontro.isAceite_locador(),
                         aluguelEncontro.getObservacao_recusa(),user);
+
+            if (ok){
+                RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(aluguelEncontro.getId_aluguel(),user);
+                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(aluguelEncontro.getId_aluguel(),user);
+                System.out.println(dados.getLocadorNome());
+                System.out.println(r.getLogradouro_entrega());
+                System.out.println(r.getBairro_entrega());
+                String locadorMail = new TemplateEmails().informaLocalLocatario(dados.getLocadorNome(),r.getLogradouro_entrega(),r.getBairro_entrega(),r.getCep_entrega(),
+                        r.getDescricao_entrega(),r.getData_entrega(),r.getLogradouro_devolucao(),r.getBairro_devolucao(),r.getCep_devolucao(),r.getDescricao_devolucao(),r.getData_devolucao(),
+                        dados.getLocatarioNome(),dados.getProdutoNome(), r.getPeriodo(),r.getValor());
+                emailService.sendEmail(dados.getLocatarioEmail(),"Confirmação de encontro",locadorMail);
+                return true;
             }
+            else
+                return false;
+        }
 
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
