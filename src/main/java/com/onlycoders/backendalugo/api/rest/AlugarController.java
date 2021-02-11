@@ -481,10 +481,11 @@ public class AlugarController {
     @ApiOperation(value = "Aprova/Reprova checklist de entrega")
     @PutMapping("/checklist/aceite-entrega")
     @ResponseStatus(HttpStatus.OK)
-    Boolean aceiteChecklistEntrega(@Param("id_aluguel") String idAluguel,@Param("ok") Boolean ok, @Param(value = "motivoRecusa") String motivoRecusa){
+    Boolean aceiteChecklistEntrega(@Param("id_aluguel") String id_aluguel,@Param("ok") Boolean ok, @Param(value = "motivoRecusa") String motivoRecusa){
         try{
+            System.out.println(id_aluguel);
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
-            return aluguelRepository.aprovaReprovaCheckListEntrega(idAluguel,ok,motivoRecusa,user);
+            return aluguelRepository.aprovaReprovaCheckListEntrega(id_aluguel,ok,motivoRecusa,user);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -500,10 +501,11 @@ public class AlugarController {
     @ApiOperation(value = "Aprova/Reprova checklist de devolucao")
     @PutMapping("/checklist/aceite-devolucao")
     @ResponseStatus(HttpStatus.OK)
-    Boolean aceiteChecklistDevolucao(@Param("id_aluguel") String idAluguel,@Param("ok") Boolean ok, @Param(value = "motivoRecusa") String motivoRecusa){
+    Boolean aceiteChecklistDevolucao(@Param("id_aluguel") String id_aluguel,@Param("ok") Boolean ok, @Param(value = "motivoRecusa") String motivoRecusa){
         try{
+            System.out.println(id_aluguel);
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
-            return aluguelRepository.aprovaReprovaCheckListDevolucao(idAluguel,ok,motivoRecusa,user);
+            return aluguelRepository.aprovaReprovaCheckListDevolucao(id_aluguel,ok,motivoRecusa,user);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
