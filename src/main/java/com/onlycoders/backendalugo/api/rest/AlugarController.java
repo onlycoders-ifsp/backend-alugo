@@ -383,7 +383,7 @@ public class AlugarController {
                 String locadorMail = new TemplateEmails().informaLocalLocatario(dados.getLocadorNome(),r.getLogradouro_entrega(),r.getBairro_entrega(),r.getCep_entrega(),
                         r.getDescricao_entrega(),r.getData_entrega(),r.getLogradouro_devolucao(),r.getBairro_devolucao(),r.getCep_devolucao(),r.getDescricao_devolucao(),r.getData_devolucao(),
                         dados.getLocatarioNome(),dados.getProdutoNome(), r.getPeriodo(),r.getValor());
-                emailService.sendEmail(dados.getLocatarioEmail(),"Confirmação de encontro",locadorMail);
+                emailService.sendEmail(dados.getLocadorEmail(),"Confirmação de encontro",locadorMail);
                 return true;
             }
             else
