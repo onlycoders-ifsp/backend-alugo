@@ -128,6 +128,26 @@ public class TemplateEmails {
                 .replace("[[valor]]",valor);
     }
 
+    public String notificaLocadorAluguel(String usuarioNome, String locatarioNome, String nomeProduto, String periodo, String valor, String celularLocatario) throws IOException {
+        String mailBody = leTemplate("DonoSolicitacaoAluguel.html");
+        return mailBody.replace("[[usuarioNome]]", usuarioNome)
+                .replace("[[locatarioNome]]",locatarioNome)
+                .replace("[[nomeProduto]]", nomeProduto)
+                .replace("[[periodo]]",periodo)
+                .replace("[[valorAluguel]]",valor)
+                .replace("[[celularLocatario]]",celularLocatario);
+    }
+
+    public String notificaLocatarioAluguelLocal(String usuarioNome, String locatarioNome, String nomeProduto, String periodo, String valor, String celularLocatario) throws IOException {
+        String mailBody = leTemplate("LocatarioPreenchaLocal.html");
+        return mailBody.replace("[[usuarioNome]]", usuarioNome)
+                .replace("[[locatarioNome]]",locatarioNome)
+                .replace("[[nomeProduto]]", nomeProduto)
+                .replace("[[periodo]]",periodo)
+                .replace("[[valorAluguel]]",valor)
+                .replace("[[celularLocatario]]",celularLocatario);
+    }
+
     String leTemplate(String arquivo) throws IOException {
         String path = Paths.get(arquivo).toUri().toString().replace("file:///","").replace(arquivo,"");
         StringBuilder contentBuilder = new StringBuilder();

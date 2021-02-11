@@ -16,9 +16,15 @@ public interface RetornoAlugueisNotificacao {
     @JsonAlias("locador_email")
     String getLocadorEmail();
 
+    @JsonAlias("locador_celular")
+    String getLocadorCelular();
+
     @JsonAlias("locatario_nome")
     String getLocatarioNome();
 
     @JsonAlias("locatario_email")
     String getLocatarioEmail();
+
+    @JsonAlias("locatario_celular")
+    String getLocatarioCelular();
 }

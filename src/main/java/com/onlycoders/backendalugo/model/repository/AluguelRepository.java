@@ -77,8 +77,8 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "SELECT *FROM FN_RETORNA_DADOS_LOCADOR_LOCATARIO(:id_aluguel,:usuario)" +
             "AS (PRODUTONOME TEXT, LOCADORNOME TEXT," +
-            "LOCADOREMAIL TEXT, LOCATARIONOME TEXT," +
-            "LOCATARIOEMAIL TEXT);",nativeQuery = true)
+            "LOCADOREMAIL TEXT, LOCADORCELULAR TEXT, LOCATARIONOME TEXT," +
+            "LOCATARIOEMAIL TEXT, LOCATARIOCELULAR TEXT);",nativeQuery = true)
     RetornoAlugueisNotificacao retornaDadosLocadorLocatario(@Param("id_aluguel") String id_aluguel,
                                                               @Param("usuario") String usuario);
 

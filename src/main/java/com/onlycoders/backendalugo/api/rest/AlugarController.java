@@ -13,7 +13,6 @@ import com.onlycoders.backendalugo.model.repository.LogRepository;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import com.onlycoders.backendalugo.service.EmailService;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import javassist.NotFoundException;
@@ -66,6 +65,7 @@ public class AlugarController {
     @ResponseStatus(HttpStatus.OK)
     public String EfetuaAluguel(@RequestBody Aluguel aluguel) throws ParseException {
         try {
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(new Date());
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
@@ -84,8 +84,15 @@ public class AlugarController {
             if (!valida.equals("0")) {
                 throw new NullPointerException(valida);
             } else {
-                return aluguelRepository.efetuaAluguel(getIdUsuario(), aluguel.getId_produto(),
+                String idAluguel = aluguelRepository.efetuaAluguel(getIdUsuario(), aluguel.getId_produto(),
                         aluguel.getData_inicio(), aluguel.getData_fim(), aluguel.getValor_aluguel(), SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
+                if(idAluguel.isEmpty())
+                    return null;
+                RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(idAluguel,user);
+                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(idAluguel,user);
+                String locadorMail = new TemplateEmails().notificaLocadorAluguel(dados.getLocadorNome(),dados.getLocatarioNome(),dados.getProdutoNome(),r.getPeriodo(),r.getValor(),dados.getLocatarioCelular());
+                emailService.sendEmail(dados.getLocatarioEmail(),"Solicitação de aluguel",locadorMail);
+                return idAluguel;
             }
         }
         catch(Exception e) {
@@ -269,14 +276,14 @@ public class AlugarController {
             return false;
         }
     }
-/*
+
     @ApiOperation(value = "Salva URL Pagamento")
     @PutMapping("/confirma-aluguel")
     @ResponseStatus(HttpStatus.OK)
     public Boolean confirmaAluguel(@RequestParam("id_aluguel") String id_aluguel,@RequestParam("ok") Boolean ok) {
         try {
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
-            aluguelRepository.alteraStatusAluguel(id_aluguel, 7, user);
+            aluguelRepository.alteraStatusAluguel(id_aluguel, (ok) ? 7 : 5, user);
             RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(id_aluguel,user);
             RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(id_aluguel,user);
             String mailLocatario = new TemplateEmails().informaAceiteLocalLocador(dados.getLocatarioNome(),dados.getLocadorNome(),dados.getProdutoNome(),r.getPeriodo(),r.getValor());
@@ -293,7 +300,7 @@ public class AlugarController {
             return false;
         }
     }
-*/
+
     @ApiOperation(value = "Confirma aluguel")
     @GetMapping("/pagamento/url-pagamento")
     @ResponseStatus(HttpStatus.OK)
@@ -408,6 +415,8 @@ public class AlugarController {
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             byte[] bytes;
+
+            aluguelRepository.alteraStatusAluguel(checklist.getId_aluguel(), 14, user);
             if(foto != null) {
                 InputStream is = foto.getInputStream();
                 bytes = new byte[(int) foto.getSize()];
@@ -437,6 +446,8 @@ public class AlugarController {
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             byte[] bytes;
+
+            aluguelRepository.alteraStatusAluguel(checklist.getId_aluguel(), 15, user);
             if(foto != null) {
                 InputStream is = foto.getInputStream();
                 bytes = new byte[(int) foto.getSize()];
@@ -483,8 +494,8 @@ public class AlugarController {
     @ResponseStatus(HttpStatus.OK)
     Boolean aceiteChecklistEntrega(@Param(value = "id_aluguel") String id_aluguel,@Param(value = "ok") Boolean ok, @Param(value = "motivoRecusa") String motivoRecusa){
         try{
-            System.out.println(id_aluguel);
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            aluguelRepository.alteraStatusAluguel(id_aluguel, 2, user);
             return aluguelRepository.aprovaReprovaCheckListEntrega(id_aluguel,ok,motivoRecusa,user);
         }
         catch(Exception e) {
@@ -503,8 +514,8 @@ public class AlugarController {
     @ResponseStatus(HttpStatus.OK)
     Boolean aceiteChecklistDevolucao(@Param(value = "id_aluguel") String id_aluguel,@Param(value = "ok") Boolean ok, @Param(value = "motivoRecusa") String motivoRecusa){
         try{
-            System.out.println(id_aluguel);
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            aluguelRepository.alteraStatusAluguel(id_aluguel, 3, user);
             return aluguelRepository.aprovaReprovaCheckListDevolucao(id_aluguel,ok,motivoRecusa,user);
         }
         catch(Exception e) {
@@ -517,6 +528,7 @@ public class AlugarController {
             return false;
         }
     }
+
     @ApiOperation(value = "Retorna destalhes do encontro do aluguel")
     @GetMapping("/encontro")
     @ResponseStatus(HttpStatus.OK)
