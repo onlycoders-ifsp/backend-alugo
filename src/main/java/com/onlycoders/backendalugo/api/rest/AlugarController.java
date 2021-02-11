@@ -375,11 +375,9 @@ public class AlugarController {
                         aluguelEncontro.getObservacao_recusa(),user);
 
             if (ok){
+                System.out.println("Encontro cadastrado");
                 RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(aluguelEncontro.getId_aluguel(),user);
                 RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(aluguelEncontro.getId_aluguel(),user);
-                System.out.println(dados.getLocadorNome());
-                System.out.println(r.getLogradouro_entrega());
-                System.out.println(r.getBairro_entrega());
                 String locadorMail = new TemplateEmails().informaLocalLocatario(dados.getLocadorNome(),r.getLogradouro_entrega(),r.getBairro_entrega(),r.getCep_entrega(),
                         r.getDescricao_entrega(),r.getData_entrega(),r.getLogradouro_devolucao(),r.getBairro_devolucao(),r.getCep_devolucao(),r.getDescricao_devolucao(),r.getData_devolucao(),
                         dados.getLocatarioNome(),dados.getProdutoNome(), r.getPeriodo(),r.getValor());
