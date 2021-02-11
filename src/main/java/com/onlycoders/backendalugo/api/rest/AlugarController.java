@@ -269,16 +269,19 @@ public class AlugarController {
             return false;
         }
     }
-
-    /*
+/*
     @ApiOperation(value = "Salva URL Pagamento")
     @PutMapping("/confirma-aluguel")
     @ResponseStatus(HttpStatus.OK)
     public Boolean confirmaAluguel(@RequestParam("id_aluguel") String id_aluguel,@RequestParam("ok") Boolean ok) {
         try {
-
-            aluguelRepository.alteraStatusAluguel(id_aluguel, 11, usuario);
-            return aluguelRepository.salvaUrlPagamento(id_aluguel, url_pagamento,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            aluguelRepository.alteraStatusAluguel(id_aluguel, 7, user);
+            RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(id_aluguel,user);
+            RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(id_aluguel,user);
+            String mailLocatario = new TemplateEmails().informaAceiteLocalLocador(dados.getLocatarioNome(),dados.getLocadorNome(),dados.getProdutoNome(),r.getPeriodo(),r.getValor());
+            emailService.sendEmail(dados.getLocatarioEmail(),"Confirmação do locador",mailLocatario);
+            return true;
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -294,7 +297,7 @@ public class AlugarController {
     @ApiOperation(value = "Confirma aluguel")
     @PutMapping("/pagamento/url-pagamento")
     @ResponseStatus(HttpStatus.OK)
-    public Boolean salvaUrl(@Param("id_aluguel") String id_aluguel,@Param("url_pagamento") String url_pagamento) {
+    public Boolean salvaUrl(@RequestHeader("id_aluguel") String id_aluguel,@RequestHeader("url_pagamento") String url_pagamento) {
         try {
             return aluguelRepository.salvaUrlPagamento(id_aluguel, url_pagamento,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
         }
@@ -541,10 +544,6 @@ public class AlugarController {
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             if(ok) {
                 aluguelRepository.alteraStatusAluguel(id_aluguel, 7, user);
-                RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(id_aluguel,user);
-                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(id_aluguel,user);
-                String mailLocatario = new TemplateEmails().informaAceiteLocalLocador(dados.getLocatarioNome(),dados.getLocadorNome(),dados.getProdutoNome(),r.getPeriodo(),r.getValor());
-                emailService.sendEmail(dados.getLocatarioEmail(),"Confirmação do locador",mailLocatario);
             }
             return aluguelRepository.confirmaEncontro(id_aluguel,ok,(ok) ? "" : motivo,user);
         }catch(Exception e) {

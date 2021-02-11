@@ -54,7 +54,7 @@ public class TemplateEmails {
     }
 
     public String pagamentoAluguelLocatario(String usuarioNome, String produtoNome) throws IOException {
-        String mailBody = leTemplate("LocatarioConfirmacaoPPagamento.html");
+        String mailBody = leTemplate("LocatarioConfirmacaoPagamento.html");
         return mailBody.replace("[[usuarioNome]]", usuarioNome).replace("[[nomeProduto]]", produtoNome);
     }
 
