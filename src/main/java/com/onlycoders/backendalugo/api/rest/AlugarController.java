@@ -562,11 +562,16 @@ public class AlugarController {
     @ResponseStatus(HttpStatus.OK)
     Boolean retornaAluguelEncontro(@RequestParam("id_aluguel") String id_aluguel, @RequestParam("ok") Boolean ok, @RequestParam(value = "motivo", required = false, defaultValue = "") String motivo){
         try{
-            if(!ok && motivo.isEmpty()){
-                throw new NotFoundException("13");
+            if(!ok){
+                System.out.println("Recusa");
+                if(motivo.isEmpty()) {
+                    System.out.println("Motivo vazio");
+                    throw new NotFoundException("13");
+                }
             }
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             if(ok) {
+                System.out.println("Altera status");
                 aluguelRepository.alteraStatusAluguel(id_aluguel, 7, user);
             }
             return aluguelRepository.confirmaEncontro(id_aluguel,ok,(ok) ? "" : motivo,user);
