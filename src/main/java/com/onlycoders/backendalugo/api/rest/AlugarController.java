@@ -264,6 +264,7 @@ public class AlugarController {
             String locatarioMail = new TemplateEmails().pagamentoAluguelLocatario(r.getLocatarioNome(),r.getProdutoNome());
             emailService.sendEmail(r.getLocadorEmail(),"Confirmação de pagamento", locadorMail);
             emailService.sendEmail(r.getLocatarioEmail(),"Confirmação de pagamento", locatarioMail);
+            //String locatarioMailLocal = new TemplateEmails().notificaLocatarioAluguelLocal()
             return true;
         }
         catch(Exception e) {
@@ -353,13 +354,13 @@ public class AlugarController {
         try {
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
 
-            RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(aluguelEncontro.getId_aluguel(),user);
-            RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(aluguelEncontro.getId_aluguel(),user);
-            System.out.println(dados.getLocadorNome());
-            String locadorMail = new TemplateEmails().informaLocalLocatario(dados.getLocadorNome(),r.getLogradouro_entrega(),r.getBairro_entrega(),r.getCep_entrega(),
-                    r.getDescricao_entrega(),r.getData_entrega(),r.getLogradouro_devolucao(),r.getBairro_devolucao(),r.getCep_devolucao(),r.getDescricao_devolucao(),r.getData_devolucao(),
-                    dados.getLocatarioNome(),dados.getProdutoNome(), r.getPeriodo(),r.getValor());
-            emailService.sendEmail(dados.getLocatarioEmail(),"Confirmação de encontro",locadorMail);
+            //RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(aluguelEncontro.getId_aluguel(),user);
+            //RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(aluguelEncontro.getId_aluguel(),user);
+            //System.out.println(dados.getLocadorNome());
+            //String locadorMail = new TemplateEmails().informaLocalLocatario(dados.getLocadorNome(),r.getLogradouro_entrega(),r.getBairro_entrega(),r.getCep_entrega(),
+            //        r.getDescricao_entrega(),r.getData_entrega(),r.getLogradouro_devolucao(),r.getBairro_devolucao(),r.getCep_devolucao(),r.getDescricao_devolucao(),r.getData_devolucao(),
+            //        dados.getLocatarioNome(),dados.getProdutoNome(), r.getPeriodo(),r.getValor());
+            //emailService.sendEmail(dados.getLocatarioEmail(),"Confirmação de encontro",locadorMail);
 
             aluguelRepository.alteraStatusAluguel(aluguelEncontro.getId_aluguel(), 9, user);
 
