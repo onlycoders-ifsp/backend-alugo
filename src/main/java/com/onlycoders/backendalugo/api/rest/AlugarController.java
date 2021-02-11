@@ -479,7 +479,7 @@ public class AlugarController {
     }
 
     @ApiOperation(value = "Aprova/Reprova checklist de entrega")
-    @PutMapping("/checklist/aceite-entrega")
+    @GetMapping("/checklist/aceite-entrega")
     @ResponseStatus(HttpStatus.OK)
     Boolean aceiteChecklistEntrega(@Param(value = "id_aluguel") String id_aluguel,@Param(value = "ok") Boolean ok, @Param(value = "motivoRecusa") String motivoRecusa){
         try{
@@ -499,7 +499,7 @@ public class AlugarController {
     }
 
     @ApiOperation(value = "Aprova/Reprova checklist de devolucao")
-    @PutMapping("/checklist/aceite-devolucao")
+    @GetMapping("/checklist/aceite-devolucao")
     @ResponseStatus(HttpStatus.OK)
     Boolean aceiteChecklistDevolucao(@Param(value = "id_aluguel") String id_aluguel,@Param(value = "ok") Boolean ok, @Param(value = "motivoRecusa") String motivoRecusa){
         try{
