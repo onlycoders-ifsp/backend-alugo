@@ -13,6 +13,7 @@ import com.onlycoders.backendalugo.model.repository.LogRepository;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import com.onlycoders.backendalugo.service.EmailService;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import javassist.NotFoundException;
@@ -269,10 +270,31 @@ public class AlugarController {
         }
     }
 
+    /*
     @ApiOperation(value = "Salva URL Pagamento")
+    @PutMapping("/confirma-aluguel")
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean confirmaAluguel(@RequestParam("id_aluguel") String id_aluguel,@RequestParam("ok") Boolean ok) {
+        try {
+
+            aluguelRepository.alteraStatusAluguel(id_aluguel, 11, usuario);
+            return aluguelRepository.salvaUrlPagamento(id_aluguel, url_pagamento,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+*/
+    @ApiOperation(value = "Confirma aluguel")
     @PutMapping("/pagamento/url-pagamento")
     @ResponseStatus(HttpStatus.OK)
-    public Boolean salvaUrl(@RequestParam("id_aluguel") String id_aluguel,@RequestParam("url_pagamento") String url_pagamento) {
+    public Boolean salvaUrl(@Param("id_aluguel") String id_aluguel,@Param("url_pagamento") String url_pagamento) {
         try {
             return aluguelRepository.salvaUrlPagamento(id_aluguel, url_pagamento,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
         }
