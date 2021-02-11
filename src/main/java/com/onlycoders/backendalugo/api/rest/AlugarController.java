@@ -88,8 +88,8 @@ public class AlugarController {
                         aluguel.getData_inicio(), aluguel.getData_fim(), aluguel.getValor_aluguel(), SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
                 if(idAluguel.isEmpty())
                     return null;
-                RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(idAluguel,user);
-                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(idAluguel,user);
+                RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(idAluguel.replace("\"",""),user);
+                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(idAluguel.replace("\"",""),user);
                 String locadorMail = new TemplateEmails().notificaLocadorAluguel(dados.getLocadorNome(),dados.getLocatarioNome(),dados.getProdutoNome(),r.getPeriodo(),r.getValor(),dados.getLocatarioCelular());
                 emailService.sendEmail(dados.getLocatarioEmail(),"Solicitação de aluguel",locadorMail);
                 return idAluguel;
