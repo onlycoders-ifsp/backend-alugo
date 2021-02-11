@@ -127,4 +127,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
     @Query(value = "SELECT FN_ATIVA_USUARIO(:key,:usuario);",nativeQuery = true)
     Boolean ativaUsuario(@Param("key") String key,
                          @Param("usuario") String usuario);
+
+
 }

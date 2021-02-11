@@ -97,6 +97,15 @@ public class TemplateEmails {
                 .replace("[[locatarioNome]]", locatarioNome);
     }
 
+    public String aceiteLocalLocatario(String usuarioNome, String locadorNome, String nomeProduto, String periodo, String valor) throws IOException {
+        String mailBody = leTemplate("CadastroProduto.html");
+        return mailBody.replace("[[usuarioNome]]", usuarioNome)
+                .replace("[[locadorNome]]",locadorNome)
+                .replace("[[nomeProduto]]", nomeProduto)
+                .replace("[[periodo]]",periodo)
+                .replace("[[valorAluguel]]",valor);
+    }
+
     String leTemplate(String arquivo) throws IOException {
         String path = Paths.get(arquivo).toUri().toString().replace("file:///","").replace(arquivo,"");
         StringBuilder contentBuilder = new StringBuilder();

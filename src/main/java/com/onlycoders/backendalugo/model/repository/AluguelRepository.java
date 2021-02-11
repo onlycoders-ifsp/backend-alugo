@@ -160,7 +160,7 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
             "AS (ID_ALUGUEL TEXT, CEP_ENTREGA TEXT, LOGRADOURO_ENTREGA TEXT, BAIRRO_ENTREGA TEXT," +
             "DESCRICAO_ENTREGA TEXT, DATA_ENTREGA TEXT, CEP_DEVOLUCAO TEXT, LOGRADOURO_DEVOLUCAO TEXT," +
             "BAIRRO_DEVOLUCAO TEXT, DESCRICAO_DEVOLUCAO TEXT, DATA_DEVOLUCAO TEXT, ACEITE_LOCADOR BOOLEAN," +
-            "OBSERVACAO_RECUSA TEXT);",nativeQuery = true)
+            "OBSERVACAO_RECUSA TEXT, PERIODO TEXT, VALOR TEXT);",nativeQuery = true)
     RetornaAluguelEncontro retornaAluguelEncontro(@Param("id_aluguel") String id_aluguel,
                                                    @Param("usuario") String usuario);
 
@@ -191,9 +191,15 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
                                                       @Param("usuario") String usuario);
 
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
-    @Query(value = "SELECT *FROM FN_SALVA_URL_PAGAMENTO(:id_aluguel,:url_pagamento,:usuario)" +
-            "AS (NOME_AVALIADOR TEXT, COMENTARIO TEXT, NOTA DECIMAL(2,1));",nativeQuery = true)
+    @Query(value = "SELECT FN_SALVA_URL_PAGAMENTO(:id_aluguel,:url_pagamento,:usuario);",nativeQuery = true)
     Boolean salvaUrlPagamento(@Param("id_aluguel") String id_aluguel,
                             @Param("url_pagamento") String url_pagamento,
                             @Param("usuario") String usuario);
+
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Query(value = "SELECT FN_CONFIRMA_ENCONTRO(:id_aluguel,:ok,:motivo,:usuario);",nativeQuery = true)
+    Boolean confirmaEncontro(@Param("id_aluguel") String id_aluguel,
+                              @Param("ok") Boolean ok,
+                              @Param("motivo") String motivo,
+                              @Param("usuario") String usuario);
 }

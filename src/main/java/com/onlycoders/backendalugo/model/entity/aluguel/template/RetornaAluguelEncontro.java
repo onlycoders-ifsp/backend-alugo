@@ -1,5 +1,6 @@
 package com.onlycoders.backendalugo.model.entity.aluguel.template;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonGetter;
 
 public interface RetornaAluguelEncontro {
@@ -42,4 +43,10 @@ public interface RetornaAluguelEncontro {
 
     @JsonGetter("observacao_recusa")
     String getObservacao_recusa();
+
+    @JsonGetter("periodo")
+    String getPeriodo();
+
+    @JsonGetter("valor")
+    String getValor();
 }

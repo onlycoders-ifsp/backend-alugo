@@ -13,9 +13,11 @@ import com.onlycoders.backendalugo.model.repository.LogRepository;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import com.onlycoders.backendalugo.service.EmailService;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import javassist.NotFoundException;
+import net.bytebuddy.implementation.bytecode.Throw;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
@@ -501,6 +503,34 @@ public class AlugarController {
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return null;
+        }
+    }
+
+    @ApiOperation(value = "Confirma encontro do aluguel")
+    @GetMapping("/confirma-encontro")
+    @ResponseStatus(HttpStatus.OK)
+    Boolean retornaAluguelEncontro(@RequestParam("id_aluguel") String id_aluguel, @RequestParam("ok") Boolean ok, @RequestParam(value = "motivo", required = false, defaultValue = "") String motivo){
+        try{
+            if(!ok && motivo.isEmpty()){
+                throw new NotFoundException("13");
+            }
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            if(ok) {
+                aluguelRepository.alteraStatusAluguel(id_aluguel, 7, user);
+                RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(id_aluguel,user);
+                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(id_aluguel,user);
+                String mailLocatario = new TemplateEmails().aceiteLocalLocatario(dados.getLocatarioNome(),dados.getLocadorNome(),dados.getProdutoNome(),r.getPeriodo(),r.getValor());
+                emailService.sendEmail(dados.getLocatarioEmail(),"Confirmação do locador",mailLocatario);
+            }
+            return aluguelRepository.confirmaEncontro(id_aluguel,ok,(ok) ? "" : motivo,user);
+        }catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
         }
     }
 
