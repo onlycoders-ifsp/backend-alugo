@@ -297,7 +297,7 @@ public class AlugarController {
     @ApiOperation(value = "Confirma aluguel")
     @PutMapping("/pagamento/url-pagamento")
     @ResponseStatus(HttpStatus.OK)
-    public Boolean salvaUrl(@RequestHeader("id_aluguel") String id_aluguel,@RequestHeader("url_pagamento") String url_pagamento) {
+    public Boolean salvaUrl(@RequestParam(value = "id_aluguel") String id_aluguel,@RequestParam(value = "url_pagamento") String url_pagamento) {
         try {
             return aluguelRepository.salvaUrlPagamento(id_aluguel, url_pagamento,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
         }
