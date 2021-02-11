@@ -97,13 +97,35 @@ public class TemplateEmails {
                 .replace("[[locatarioNome]]", locatarioNome);
     }
 
-    public String aceiteLocalLocatario(String usuarioNome, String locadorNome, String nomeProduto, String periodo, String valor) throws IOException {
-        String mailBody = leTemplate("CadastroProduto.html");
+    public String informaAceiteLocalLocador(String usuarioNome, String locadorNome, String nomeProduto, String periodo, String valor) throws IOException {
+        String mailBody = leTemplate("LocatarioAluguelAceitoPagar.html");
         return mailBody.replace("[[usuarioNome]]", usuarioNome)
                 .replace("[[locadorNome]]",locadorNome)
                 .replace("[[nomeProduto]]", nomeProduto)
                 .replace("[[periodo]]",periodo)
                 .replace("[[valorAluguel]]",valor);
+    }
+
+    public String informaLocalLocatario(String usuarioNome, String localEntrega, String bairroEntrega, String cepEntrega, String detalheEntrega,
+                                        String dataEntrega,String localDevoluca,String bairroDevolucao, String cepDevolucao,
+                                        String detalheDevolucao, String dataDevolucao, String locatarioNome, String produtoNome,
+                                        String periodo, String valor) throws IOException {
+        String mailBody = leTemplate("DonoAceiteLocal.html");
+        return mailBody.replace("[[usuarioNome]]", usuarioNome)
+                .replace("[[localEntrega]]",localEntrega)
+                .replace("[[bairroEntrega]]", bairroEntrega)
+                .replace("[[cepEntrega]]",cepEntrega)
+                .replace("[[detalheEntrega]]",detalheEntrega)
+                .replace("[[dataEntrega]]",dataEntrega)
+                .replace("[[localDevoluca]]",localDevoluca)
+                .replace("[[bairroDevolucao]]", bairroDevolucao)
+                .replace("[[cepDevolucao]]",cepDevolucao)
+                .replace("[[detalheDevolucao]]",detalheDevolucao)
+                .replace("[[dataDevolucao]]",dataDevolucao)
+                .replace("[[locatarioNome]]",locatarioNome)
+                .replace("[[produtoNome]]",produtoNome)
+                .replace("[[periodo]]",periodo)
+                .replace("[[valor]]",valor);
     }
 
     String leTemplate(String arquivo) throws IOException {

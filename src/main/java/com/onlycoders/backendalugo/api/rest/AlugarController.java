@@ -13,11 +13,9 @@ import com.onlycoders.backendalugo.model.repository.LogRepository;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import com.onlycoders.backendalugo.service.EmailService;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import javassist.NotFoundException;
-import net.bytebuddy.implementation.bytecode.Throw;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
@@ -274,7 +272,7 @@ public class AlugarController {
     @ApiOperation(value = "Salva URL Pagamento")
     @PutMapping("/pagamento/url-pagamento")
     @ResponseStatus(HttpStatus.OK)
-    public Boolean salvaUrl(@RequestParam String id_aluguel,@RequestParam String url_pagamento) {
+    public Boolean salvaUrl(@RequestParam("id_aluguel") String id_aluguel,@RequestParam("url_pagamento") String url_pagamento) {
         try {
             return aluguelRepository.salvaUrlPagamento(id_aluguel, url_pagamento,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
         }
@@ -321,14 +319,18 @@ public class AlugarController {
     @ResponseStatus(HttpStatus.OK)
     public Boolean inserirAluguelEncontro(@RequestBody AluguelEncontro aluguelEncontro) throws ParseException {
         try {
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(new Date());
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            sdf.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo"));
-
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
-            System.out.println(aluguelEncontro.getId_aluguel());
-            System.out.println(aluguelEncontro.getData_devolucao());
+
+            RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(aluguelEncontro.getId_aluguel(),user);
+            RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(aluguelEncontro.getId_aluguel(),user);
+
+            String locadorMail = new TemplateEmails().informaLocalLocatario(dados.getLocadorNome(),r.getLogradouro_entrega(),r.getBairro_entrega(),r.getCep_entrega(),
+                    r.getDescricao_entrega(),r.getData_entrega(),r.getLogradouro_devolucao(),r.getBairro_devolucao(),r.getCep_devolucao(),r.getDescricao_devolucao(),r.getData_devolucao(),
+                    dados.getLocatarioNome(),dados.getProdutoNome(), r.getPeriodo(),r.getValor());
+            emailService.sendEmail(dados.getLocatarioEmail(),"Confirmação de encontro",locadorMail);
+
+            aluguelRepository.alteraStatusAluguel(aluguelEncontro.getId_aluguel(), 9, user);
+
                 return aluguelRepository.insereAluguelEncontro(aluguelEncontro.getId_aluguel(),
                         aluguelEncontro.getCep_entrega(),
                         aluguelEncontro.getLogradouro_entrega(),
@@ -519,7 +521,7 @@ public class AlugarController {
                 aluguelRepository.alteraStatusAluguel(id_aluguel, 7, user);
                 RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(id_aluguel,user);
                 RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(id_aluguel,user);
-                String mailLocatario = new TemplateEmails().aceiteLocalLocatario(dados.getLocatarioNome(),dados.getLocadorNome(),dados.getProdutoNome(),r.getPeriodo(),r.getValor());
+                String mailLocatario = new TemplateEmails().informaAceiteLocalLocador(dados.getLocatarioNome(),dados.getLocadorNome(),dados.getProdutoNome(),r.getPeriodo(),r.getValor());
                 emailService.sendEmail(dados.getLocatarioEmail(),"Confirmação do locador",mailLocatario);
             }
             return aluguelRepository.confirmaEncontro(id_aluguel,ok,(ok) ? "" : motivo,user);
