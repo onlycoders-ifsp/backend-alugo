@@ -295,9 +295,9 @@ public class AlugarController {
     }
 */
     @ApiOperation(value = "Confirma aluguel")
-    @PutMapping("/pagamento/url-pagamento")
+    @GetMapping("/pagamento/url-pagamento")
     @ResponseStatus(HttpStatus.OK)
-    public Boolean salvaUrl(@RequestParam(value = "id_aluguel") String id_aluguel,@RequestParam(value = "url_pagamento") String url_pagamento) {
+    public Boolean salvaUrl(@Param(value = "id_aluguel") String id_aluguel,@Param(value = "url_pagamento") String url_pagamento) {
         try {
             return aluguelRepository.salvaUrlPagamento(id_aluguel, url_pagamento,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
         }
@@ -481,7 +481,7 @@ public class AlugarController {
     @ApiOperation(value = "Aprova/Reprova checklist de entrega")
     @PutMapping("/checklist/aceite-entrega")
     @ResponseStatus(HttpStatus.OK)
-    Boolean aceiteChecklistEntrega(@Param("id_aluguel") String id_aluguel,@Param("ok") Boolean ok, @Param(value = "motivoRecusa") String motivoRecusa){
+    Boolean aceiteChecklistEntrega(@Param(value = "id_aluguel") String id_aluguel,@Param(value = "ok") Boolean ok, @Param(value = "motivoRecusa") String motivoRecusa){
         try{
             System.out.println(id_aluguel);
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
@@ -501,7 +501,7 @@ public class AlugarController {
     @ApiOperation(value = "Aprova/Reprova checklist de devolucao")
     @PutMapping("/checklist/aceite-devolucao")
     @ResponseStatus(HttpStatus.OK)
-    Boolean aceiteChecklistDevolucao(@Param("id_aluguel") String id_aluguel,@Param("ok") Boolean ok, @Param(value = "motivoRecusa") String motivoRecusa){
+    Boolean aceiteChecklistDevolucao(@Param(value = "id_aluguel") String id_aluguel,@Param(value = "ok") Boolean ok, @Param(value = "motivoRecusa") String motivoRecusa){
         try{
             System.out.println(id_aluguel);
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
