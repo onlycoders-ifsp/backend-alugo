@@ -29,8 +29,13 @@ public class EmailService {
 
     @Async
     public void sendEmail(String toUser, String subject, String body) throws MessagingException, IOException {
-        String path = System.getProperty("user.dir");
-        String imagesPath = path + "\\" + "src/main/java/com/onlycoders/backendalugo/model/entity/email/templatesEmails/images/";
+        String imagesPath = System.getProperty("user.dir") +
+                File.separator + "src" + File.separator + "main" + File.separator + "java" + File.separator + "com" +
+                File.separator + "onlycoders" + File.separator + "backendalugo" + File.separator +
+                "model" + File.separator + "entity" + File.separator + "email" + File.separator +
+                "templatesEmails" + File.separator + "images" + File.separator;
+
+        System.out.println(imagesPath);
 
         MimeMultipart content = new MimeMultipart("related");
         MimeMessage message = javaMailSender.createMimeMessage();
@@ -55,6 +60,7 @@ public class EmailService {
         content.addBodyPart(imgAlugo3);
         content.addBodyPart(imgAlugo6);
         message.setContent(content);
+        System.out.println(message);
         javaMailSender.send(message);
     }
 

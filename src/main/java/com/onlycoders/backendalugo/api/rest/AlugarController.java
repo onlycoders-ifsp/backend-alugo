@@ -393,6 +393,7 @@ public class AlugarController {
         }
 
         catch(Exception e) {
+            System.out.println("erro");
             String className = this.getClass().getSimpleName();
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
