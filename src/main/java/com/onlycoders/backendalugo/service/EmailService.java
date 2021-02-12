@@ -29,13 +29,11 @@ public class EmailService {
 
     @Async
     public void sendEmail(String toUser, String subject, String body) throws MessagingException, IOException {
-        String imagesPath = System.getProperty("user.dir") +
+        String path = System.getProperty("user.dir") +
                 File.separator + "src" + File.separator + "main" + File.separator + "java" + File.separator + "com" +
                 File.separator + "onlycoders" + File.separator + "backendalugo" + File.separator +
                 "model" + File.separator + "entity" + File.separator + "email" + File.separator +
                 "templatesEmails" + File.separator + "images" + File.separator;
-
-        System.out.println(imagesPath);
 
         MimeMultipart content = new MimeMultipart("related");
         MimeMessage message = javaMailSender.createMimeMessage();
@@ -49,25 +47,29 @@ public class EmailService {
         helper.setText(body,true);
 
         MimeBodyPart imgAlugo6 = new MimeBodyPart();
-        imgAlugo6.attachFile(imagesPath + "/alugo6.png");
+        imgAlugo6.attachFile(path + "alugo6.png");
         imgAlugo6.setContentID("<alugo6>");
         imgAlugo6.setDisposition(MimeBodyPart.INLINE);
         MimeBodyPart imgAlugo3 = new MimeBodyPart();
-        imgAlugo3.attachFile(imagesPath + "/alugo3.png");
+        imgAlugo3.attachFile(path + "alugo3.png");
         imgAlugo3.setContentID("<alugo3>");
         imgAlugo3.setDisposition(MimeBodyPart.INLINE);
         content.addBodyPart(bodyMail);
         content.addBodyPart(imgAlugo3);
         content.addBodyPart(imgAlugo6);
         message.setContent(content);
-        System.out.println(message);
         javaMailSender.send(message);
     }
 
     @Async
     public void sendEmailAttachment(String toUser, String subject, String body, String fileName) throws MessagingException, IOException {
-        String path = System.getProperty("user.dir");
-        String imagesPath = path + "\\" + "src/main/java/com/onlycoders/backendalugo/model/entity/email/templatesEmails/images/";
+        String path = System.getProperty("user.dir") +
+                File.separator + "src" + File.separator + "main" + File.separator + "java" + File.separator + "com" +
+                File.separator + "onlycoders" + File.separator + "backendalugo" + File.separator +
+                "model" + File.separator + "entity" + File.separator + "email" + File.separator +
+                "templatesEmails" + File.separator + "images" + File.separator;
+        //String imagesPath = path + "\\" + "src/main/java/com/onlycoders/backendalugo/model/entity/email/templatesEmails/images/";
+        System.out.println(path);
 
         MimeMultipart content = new MimeMultipart("related");
         MimeMessage message = javaMailSender.createMimeMessage();
@@ -81,11 +83,11 @@ public class EmailService {
         helper.setText(body,true);
 
         MimeBodyPart imgAlugo6 = new MimeBodyPart();
-        imgAlugo6.attachFile(imagesPath + "/alugo6.png");
+        imgAlugo6.attachFile(path + "alugo6.png");
         imgAlugo6.setContentID("<alugo6>");
         imgAlugo6.setDisposition(MimeBodyPart.INLINE);
         MimeBodyPart imgAlugo3 = new MimeBodyPart();
-        imgAlugo3.attachFile(imagesPath + "/alugo3.png");
+        imgAlugo3.attachFile(path + "alugo3.png");
         imgAlugo3.setContentID("<alugo3>");
         imgAlugo3.setDisposition(MimeBodyPart.INLINE);
         content.addBodyPart(bodyMail);

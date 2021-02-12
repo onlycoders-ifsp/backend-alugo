@@ -119,7 +119,7 @@ public class TemplateEmails {
                 .replace("[[locatarioNome]]",locatarioNome)
                 .replace("[[produtoNome]]",produtoNome)
                 .replace("[[periodo]]",periodo)
-                .replace("[[valor]]",valor);
+                .replace("[[valor]]",valor.replace(".",","));
     }
 
     public String notificaLocadorAluguel(String usuarioNome, String locatarioNome, String nomeProduto, String periodo, String valor, String celularLocatario) throws IOException {

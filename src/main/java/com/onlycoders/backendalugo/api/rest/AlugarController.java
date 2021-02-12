@@ -44,6 +44,7 @@ public class AlugarController {
 
     @Autowired
     UsuarioRepository usuarioRepository;
+
     @Autowired
     ProdutoRepository produtoRepository;
 
@@ -91,7 +92,7 @@ public class AlugarController {
                 RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(idAluguel.replace("\"",""),user);
                 RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(idAluguel.replace("\"",""),user);
                 String locadorMail = new TemplateEmails().notificaLocadorAluguel(dados.getLocadorNome(),dados.getLocatarioNome(),dados.getProdutoNome(),r.getPeriodo(),r.getValor(),dados.getLocatarioCelular());
-                emailService.sendEmail(dados.getLocatarioEmail(),"Solicitação de aluguel",locadorMail);
+                emailService.sendEmail(dados.getLocadorEmail(),"Solicitação de aluguel",locadorMail);
                 return idAluguel;
             }
         }
