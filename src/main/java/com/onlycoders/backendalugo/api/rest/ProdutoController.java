@@ -245,10 +245,9 @@ public class ProdutoController {
                     produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
                     produto.getData_compra(), categoria, usuario[0]);
             System.out.println(idProduto);
-            ProdutoAluguel r = transformaRetornoProdutoToPage(
-                    repository.findProduto("0", idProduto, 7, 0,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging)
-                    .getContent()
-                    .get(0);
+            List<RetornaProduto> ret = repository.findProduto("0", idProduto, 7, 0,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
+            System.out.println(ret.get(0).getNome());
+            ProdutoAluguel r = transformaRetornoProdutoToPage(ret,paging).getContent().get(0);
             System.out.println(r.getNome());
             //ProdutoAluguel p = transformaRetornoProdutoToPage(r, paging).getContent().get(0);
             String mailBody = new TemplateEmails().cadastroProduto(usuario[0],r.getNome());
