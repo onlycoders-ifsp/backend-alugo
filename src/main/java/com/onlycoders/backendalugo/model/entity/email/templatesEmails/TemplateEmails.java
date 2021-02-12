@@ -42,14 +42,18 @@ public class TemplateEmails {
         return mailBody.replace("[[usuarioNome]]", usuarioNome).replace("[[nomeProduto]]", produtoNome);
     }
 
-    public String pagamentoAluguelDono(String usuarioNome, String produtoNome) throws IOException {
+    public String pagamentoAluguelDono(String usuarioNome, String nomeLocatario, String celularLocatario) throws IOException {
         String mailBody = leTemplate("DonoPagamentoRecebido.html");
-        return mailBody.replace("[[usuarioNome]]", usuarioNome).replace("[[nomeProduto]]", produtoNome);
+        return mailBody.replace("[[usuarioNome]]", usuarioNome)
+                .replace("[[nomeLocatario]]", nomeLocatario)
+                .replace("[[celularLocatario]]", celularLocatario);
     }
 
-    public String pagamentoAluguelLocatario(String usuarioNome, String produtoNome) throws IOException {
+    public String pagamentoAluguelLocatario(String usuarioNome, String nomeLocador, String celularLocador) throws IOException {
         String mailBody = leTemplate("LocatarioConfirmacaoPagamento.html");
-        return mailBody.replace("[[usuarioNome]]", usuarioNome).replace("[[nomeProduto]]", produtoNome);
+        return mailBody.replace("[[usuarioNome]]", usuarioNome)
+                .replace("[[nomeLocador]]", nomeLocador)
+                .replace("[[celularLocador]]", celularLocador);
     }
 
     /*
@@ -122,14 +126,22 @@ public class TemplateEmails {
                 .replace("[[valor]]",valor.replace(".",","));
     }
 
-    public String notificaLocadorAluguel(String usuarioNome, String locatarioNome, String nomeProduto, String periodo, String valor, String celularLocatario) throws IOException {
+    public String notificaLocadorAluguel(String usuarioNome, String locatarioNome, String nomeProduto, String periodo, String valor) throws IOException {
         String mailBody = leTemplate("DonoSolicitacaoAluguel.html");
         return mailBody.replace("[[usuarioNome]]", usuarioNome)
                 .replace("[[locatarioNome]]",locatarioNome)
                 .replace("[[nomeProduto]]", nomeProduto)
                 .replace("[[periodo]]",periodo)
-                .replace("[[valorAluguel]]",valor)
-                .replace("[[celularLocatario]]",celularLocatario);
+                .replace("[[valorAluguel]]",valor);
+    }
+
+    public String notificaLocatarioAluguel(String usuarioNome, String locadorNome, String nomeProduto, String periodo, String valor) throws IOException {
+        String mailBody = leTemplate("DonoSolicitacaoAluguel.html");
+        return mailBody.replace("[[usuarioNome]]", usuarioNome)
+                .replace("[[locadorNome]]",locadorNome)
+                .replace("[[nomeProduto]]", nomeProduto)
+                .replace("[[periodo]]",periodo)
+                .replace("[[valorAluguel]]",valor);
     }
 
     public String notificaLocatarioAluguelLocal(String usuarioNome, String locatarioNome, String nomeProduto, String periodo, String valor, String celularLocatario) throws IOException {
@@ -146,6 +158,45 @@ public class TemplateEmails {
         String mailBody = leTemplate("UsuarioCadastro.html");
         return mailBody.replace("[[usuarioNome]]", usuarioNome)
                 .replace("[[urlCadastro]]",urlCadastro);
+    }
+
+    public String notificaChkEntregaLocatario(String locatarioNome) throws IOException {
+        String mailBody = leTemplate("LocatarioChecklistInicial.html");
+        return mailBody.replace("[[usuarioNome]]", locatarioNome);
+    }
+
+    public String notificaChkDevolucaoLocatario(String locatarioNome) throws IOException {
+        String mailBody = leTemplate("LocatarioChecklistFinal.html");
+        return mailBody.replace("[[usuarioNome]]", locatarioNome);
+    }
+
+    public String notificaChkEntregaLocador(String locadorNome) throws IOException {
+        String mailBody = leTemplate("DonoChecklistInicial.html");
+        return mailBody.replace("[[usuarioNome]]", locadorNome);
+    }
+
+    public String notificaChkDevolucaoLocador(String locadorNome) throws IOException {
+        String mailBody = leTemplate("DonoChecklistFinal.html");
+        return mailBody.replace("[[usuarioNome]]", locadorNome);
+    }
+
+    public String notificaLocatarioConfirmaLocal(String usuarioNome, String locadorNome, String nomeProduto, String periodo, String valor) throws IOException {
+        String mailBody = leTemplate("DonoSolicitacaoAluguel.html");
+        return mailBody.replace("[[usuarioNome]]", usuarioNome)
+                .replace("[[locadorNome]]",locadorNome)
+                .replace("[[nomeProduto]]", nomeProduto)
+                .replace("[[periodo]]",periodo)
+                .replace("[[valorAluguel]]",valor);
+    }
+
+    public String notificaAvalicaoLocador(String locadorNome) throws IOException {
+        String mailBody = leTemplate("DonoAvaliacaoLocatario.html");
+        return mailBody.replace("[[usuarioNome]]", locadorNome);
+    }
+
+    public String notificaAvaliacaoLocatario(String locatarioNome) throws IOException {
+        String mailBody = leTemplate("LocatarioAvaliacoes.html");
+        return mailBody.replace("[[usuarioNome]]", locatarioNome);
     }
 
     String leTemplate(String arquivo) throws IOException {
