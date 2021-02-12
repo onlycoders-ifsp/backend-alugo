@@ -246,6 +246,8 @@ public class ProdutoController {
                     produto.getData_compra(), categoria, usuario[0]);
             ProdutoAluguel p = transformaRetornoProdutoToPage(r, paging).getContent().get(0);
             String mailBody = new TemplateEmails().cadastroProduto(usuario[0],p.getNome());
+            System.out.println(usuario[1]);
+            System.out.println(mailBody);
             emailService.sendEmail(usuario[1],"Cadastro de produto", mailBody);
             return p;
         }
