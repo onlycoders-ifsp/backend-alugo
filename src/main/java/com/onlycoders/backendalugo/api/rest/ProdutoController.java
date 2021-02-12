@@ -240,16 +240,22 @@ public class ProdutoController {
             String[] usuario = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|");
             Pageable paging = PageRequest.of(0, 1);
             String categoria = trasnformaCategoriasToString(produto.getCategorias());
-            List<RetornaProduto> r =  repository.createProduto(getIdUsuario(false),
+            String idProduto =  repository.createProduto(getIdUsuario(false),
                     produto.getNome(), produto.getDescricao_curta(), produto.getDescricao(),
                     produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
                     produto.getData_compra(), categoria, usuario[0]);
-            ProdutoAluguel p = transformaRetornoProdutoToPage(r, paging).getContent().get(0);
-            String mailBody = new TemplateEmails().cadastroProduto(usuario[0],p.getNome());
+            System.out.println(idProduto);
+            ProdutoAluguel r = transformaRetornoProdutoToPage(
+                    repository.findProduto("0", idProduto, 7, 0,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging)
+                    .getContent()
+                    .get(0);
+            System.out.println(r.getNome());
+            //ProdutoAluguel p = transformaRetornoProdutoToPage(r, paging).getContent().get(0);
+            String mailBody = new TemplateEmails().cadastroProduto(usuario[0],r.getNome());
             System.out.println(usuario[1]);
             System.out.println(mailBody);
             emailService.sendEmail(usuario[1],"Cadastro de produto", mailBody);
-            return p;
+            return r;
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -258,7 +264,7 @@ public class ProdutoController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String[] user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|");
             logRepository.gravaLogBackend(className, methodName, endpoint, user[0], e.getMessage(), Throwables.getStackTraceAsString(e));
-            return new ProdutoAluguel();
+            return null;
         }
     }
 
