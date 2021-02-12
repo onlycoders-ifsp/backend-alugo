@@ -166,7 +166,7 @@ public class ProdutoController {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
-            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage()==null)?"":e.getMessage(), Throwables.getStackTraceAsString(e));
             return new ProdutoAluguel();
         }
         //throw new NotFoundException("Produto não localizado");
