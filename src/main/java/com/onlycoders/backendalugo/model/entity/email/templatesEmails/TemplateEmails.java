@@ -5,7 +5,7 @@ import java.io.*;
 public class TemplateEmails {
 
     public String cadastroProduto(String usuarioNome, String produtoNome) throws IOException {
-        String mailBody = leTemplate("CadastrProduto.html");
+        String mailBody = leTemplate("CadastroProduto.html");
         return mailBody.replace("[[usuarioNome]]", usuarioNome).replace("[[nomeProduto]]", produtoNome);
     }
 
