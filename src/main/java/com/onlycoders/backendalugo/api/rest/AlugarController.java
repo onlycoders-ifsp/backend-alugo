@@ -257,7 +257,7 @@ public class AlugarController {
     }
 
     @ApiOperation(value = "Confirma aluguel(Dono)")
-    @PutMapping("/confirma-aluguel")
+    @GetMapping("/confirma-aluguel")
     @ResponseStatus(HttpStatus.OK)
     public Boolean confirmaAluguel(@RequestParam("id_aluguel") String id_aluguel,@RequestParam("ok") Boolean ok) {
         try {
