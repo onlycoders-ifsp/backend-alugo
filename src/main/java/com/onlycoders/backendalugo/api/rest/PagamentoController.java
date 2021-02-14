@@ -97,9 +97,11 @@ public class PagamentoController {
                                     @RequestParam(value = "topic",required = false)String topic,
                                     @RequestParam(value = "type",required = false)String type) {
         try {
-            if(!topic.isEmpty())
+            if(!topic.isEmpty()){
+                System.out.println("Topic");
                 return true;
-
+            }
+            System.out.println("payment");
             String tipoRetorno = webHookPagamento.getType();
             System.out.println("tipo retorno: " + tipoRetorno);
             String idPagamento = webHookPagamento.getData().getId();
