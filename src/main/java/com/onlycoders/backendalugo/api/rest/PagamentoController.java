@@ -3,6 +3,7 @@ package com.onlycoders.backendalugo.api.rest;
 import com.google.common.base.Throwables;
 import com.onlycoders.backendalugo.model.entity.email.RetornoAlugueisNotificacao;
 import com.onlycoders.backendalugo.model.entity.email.templatesEmails.TemplateEmails;
+import com.onlycoders.backendalugo.model.entity.pagamento.Data;
 import com.onlycoders.backendalugo.model.entity.pagamento.WebHookPagamento;
 import com.onlycoders.backendalugo.model.repository.AluguelRepository;
 import com.onlycoders.backendalugo.model.repository.LogRepository;
@@ -90,8 +91,15 @@ public class PagamentoController {
     @ApiOperation(value = "Recebe notificacao de pagamento do Mercado Pago")
     @PostMapping("/retorno-pagamento")
     @ResponseStatus(HttpStatus.OK)
-    public Boolean retornoPagamento(@RequestBody WebHookPagamento webHookPagamento) {
+    public Boolean retornoPagamento(@RequestBody WebHookPagamento webHookPagamento,
+                                    @RequestParam(value = "data.id",required = false) String DataId,
+                                    @RequestParam(value = "id",required = false) String id,
+                                    @RequestParam(value = "topic",required = false)String topic,
+                                    @RequestParam(value = "type",required = false)String type) {
         try {
+            if(!topic.isEmpty())
+                return true;
+
             String tipoRetorno = webHookPagamento.getType();
             System.out.println("tipo retorno: " + tipoRetorno);
             String idPagamento = webHookPagamento.getData().getId();
@@ -99,13 +107,13 @@ public class PagamentoController {
             final String uri = "https://api.mercadopago.com/v1/payments/"; //Exemplo
 
             RestTemplate restTemplate = new RestTemplate();
-            String response = restTemplate.getForObject(uri.concat(idPagamento), String.class);
+            String response = restTemplate.getForObject(uri.concat(DataId), String.class);
             System.out.println("response: " + response);
             JSONObject result = new JSONObject(response);
             System.out.println("result: " + result);
-            String status = result.getString("payment_status");
+            String status = result.getString("status");
             System.out.println("status: " + status);
-            String idAluguel = result.getJSONObject("id").getString("id"); //exemplo
+            String idAluguel = result.getString("external_reference"); //exemplo
             System.out.println(idAluguel);
             return aluguelRepository.salvaRetornoPagamento(idAluguel, idPagamento,tipoRetorno,status,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
         }
