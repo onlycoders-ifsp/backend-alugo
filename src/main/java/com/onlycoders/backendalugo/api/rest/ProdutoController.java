@@ -219,7 +219,7 @@ public class ProdutoController {
         try {
             Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
             return transformaRetornoProdutoToPage(
-                    repository.findProduto(id_usuario, "0", 1, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging);
+            repository.findProduto(id_usuario, "0", 1, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();

@@ -113,7 +113,6 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
                                     @Param("foto") byte[] foto,
                                     @Param("usuario") String usuario);
 
-
     @Transactional()
     @Query(value = "SELECT FN_GRVAVA_CHK_ENTREGA(:id_aluguel,:descricao,:usuario);",nativeQuery = true)
     Boolean gravaCheckListEntrega(@Param("id_aluguel") String id_aluguel,
@@ -143,14 +142,14 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "SELECT *FROM FN_RETORNA_CHK_ENTREGA(:id_aluguel,:usuario)" +
             "AS (ID_ALUGUEL TEXT, DESCRICAO TEXT," +
-            "FOTO_PRODUTO BYTEA, OK_LOCADOR BOOLEAN, MOTIVO_RECUSA TEXT);",nativeQuery = true)
+            "FOTO BYTEA, OK_LOCADOR BOOLEAN, MOTIVO_RECUSA TEXT);",nativeQuery = true)
     RetornaChecklist retornaCheckListEntrega(@Param("id_aluguel") String id_aluguel,
                                              @Param("usuario") String usuario);
 
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "SELECT *FROM FN_RETORNA_CHK_DEVOLUCAO(:id_aluguel,:usuario)" +
             "AS (ID_ALUGUEL TEXT, DESCRICAO TEXT," +
-            "FOTO_PRODUTO BYTEA, OK_LOCADOR BOOLEAN, MOTIVO_RECUSA TEXT);",nativeQuery = true)
+            "FOTO BYTEA, OK_LOCADOR BOOLEAN, MOTIVO_RECUSA TEXT);",nativeQuery = true)
     RetornaChecklist retornaCheckListDevolucao(@Param("id_aluguel") String id_aluguel,
                                                @Param("usuario") String usuario);
 

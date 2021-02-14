@@ -11,7 +11,7 @@ public interface RetornaChecklist {
     String getDescricao();
 
     @JsonAlias("foto")
-    String getFoto();
+    byte[] getFoto();
 
     @JsonAlias("ok_locador")
     String getOk_locador();
