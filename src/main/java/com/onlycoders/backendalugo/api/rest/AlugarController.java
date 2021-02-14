@@ -419,8 +419,8 @@ public class AlugarController {
     @ApiOperation(value = "Salva checklist devolucao")
     @PostMapping("/checklist/salva-devolucao")
     @ResponseStatus(HttpStatus.OK)
-    Boolean salvaChecklistDevolucao(@RequestParam(value = "foto",required = false) Part foto,@RequestParam(value = "id_aluguel") String id_aluguel,
-                                    @RequestParam(value = "descricao") String descricao){
+    Boolean salvaChecklistDevolucao(@RequestParam(required = false) Part foto,@RequestParam String id_aluguel,
+                                    @RequestParam String descricao){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             byte[] bytes;
