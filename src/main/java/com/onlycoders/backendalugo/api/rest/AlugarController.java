@@ -417,7 +417,7 @@ public class AlugarController {
     }
 
     @ApiOperation(value = "Salva checklist devolucao")
-    @PostMapping("/checklist/salva-devolucao")
+    @PutMapping("/checklist/salva-devolucao")
     @ResponseStatus(HttpStatus.OK)
     Boolean salvaChecklistDevolucao(@RequestParam Part foto,
                                     @RequestParam String id_aluguel,
