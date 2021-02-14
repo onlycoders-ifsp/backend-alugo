@@ -417,36 +417,26 @@ public class AlugarController {
     }
 
     @ApiOperation(value = "Salva checklist devolucao")
-    @PutMapping("/checklist/salva-devolucao")
+    @PostMapping("/checklist/salva-devolucao")
     @ResponseStatus(HttpStatus.OK)
-    Boolean salvaChecklistDevolucao(@RequestParam Part foto,
-                                    @RequestParam String id_aluguel,
-                                    @RequestParam String descricao) throws NotFoundException {
+    Boolean salvaChecklistDevolucao(@RequestBody Checklist checklist, @RequestParam(value = "foto",required = false) Part foto){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             byte[] bytes;
             Boolean ok;
-            InputStream is = foto.getInputStream();
-            bytes = new byte[(int) foto.getSize()];
-            IOUtils.readFully(is, bytes);
-            is.close();
-            ok = aluguelRepository.gravaCheckListDevolucaoFoto(id_aluguel, descricao, bytes, user);
-
-            /*
             if(foto != null) {
                 InputStream is = foto.getInputStream();
                 bytes = new byte[(int) foto.getSize()];
                 IOUtils.readFully(is, bytes);
                 is.close();
-                ok = aluguelRepository.gravaCheckListDevolucaoFoto(id_aluguel, descricao, bytes, user);
+                ok = aluguelRepository.gravaCheckListDevolucaoFoto(checklist.getId_aluguel(), checklist.getDescricao(), bytes, user);
             }
             else {
-                ok = aluguelRepository.gravaCheckListDevolucao(id_aluguel, descricao, user);
+                ok = aluguelRepository.gravaCheckListDevolucao(checklist.getId_aluguel(), checklist.getDescricao(), user);
             }
-            */
             if (ok){
-                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(id_aluguel,user);
-                aluguelRepository.alteraStatusAluguel(id_aluguel, 15, user);
+                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(checklist.getId_aluguel(),user);
+                aluguelRepository.alteraStatusAluguel(checklist.getId_aluguel(), 15, user);
                 String locadorMail = new TemplateEmails().notificaChkDevolucaoLocatario(dados.getLocatarioNome());
                 emailService.sendEmail(dados.getLocatarioEmail(),"Confirme o checklist",locadorMail);
                 return true;
