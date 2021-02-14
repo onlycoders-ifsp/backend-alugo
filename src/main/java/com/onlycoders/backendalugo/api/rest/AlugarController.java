@@ -379,7 +379,7 @@ public class AlugarController {
     }
 
     @ApiOperation(value = "Salva checklist entrega")
-    @PostMapping("/checklist/salva-entrega")
+    @GetMapping("/checklist/salva-entrega")
     @ResponseStatus(HttpStatus.OK)
     Boolean salvaChecklistEntrega(@RequestBody Checklist checklist, @RequestParam(value = "foto",required = false) Part foto){
         try{
@@ -387,6 +387,7 @@ public class AlugarController {
             byte[] bytes;
             Boolean ok;
             if(foto != null) {
+                System.out.println("Foto enviada");
                 InputStream is = foto.getInputStream();
                 bytes = new byte[(int) foto.getSize()];
                 IOUtils.readFully(is, bytes);
@@ -394,6 +395,7 @@ public class AlugarController {
                 ok = aluguelRepository.gravaCheckListEntregaFoto(checklist.getId_aluguel(), checklist.getDescricao(), user, bytes);
             }
             else{
+                System.out.println("foto nulo");
                 ok = aluguelRepository.gravaCheckListEntrega(checklist.getId_aluguel(), checklist.getDescricao(), user);
             }
             if (ok){
@@ -417,7 +419,7 @@ public class AlugarController {
     }
 
     @ApiOperation(value = "Salva checklist devolucao")
-    @PostMapping("/checklist/salva-devolucao")
+    @GetMapping("/checklist/salva-devolucao")
     @ResponseStatus(HttpStatus.OK)
     Boolean salvaChecklistDevolucao(@RequestBody Checklist checklist, @RequestParam(value = "foto",required = false) Part foto){
         try{
@@ -425,6 +427,7 @@ public class AlugarController {
             byte[] bytes;
             Boolean ok;
             if(foto != null) {
+                System.out.println("Foto enviado");
                 InputStream is = foto.getInputStream();
                 bytes = new byte[(int) foto.getSize()];
                 IOUtils.readFully(is, bytes);
@@ -432,6 +435,7 @@ public class AlugarController {
                 ok = aluguelRepository.gravaCheckListDevolucaoFoto(checklist.getId_aluguel(), checklist.getDescricao(), user, bytes);
             }
             else {
+                System.out.println("foto nulo");
                 ok = aluguelRepository.gravaCheckListDevolucao(checklist.getId_aluguel(), checklist.getDescricao(), user);
             }
             if (ok){
