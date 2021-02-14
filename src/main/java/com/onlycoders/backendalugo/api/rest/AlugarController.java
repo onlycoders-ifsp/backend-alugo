@@ -420,7 +420,7 @@ public class AlugarController {
     @PostMapping("/checklist/salva-devolucao")
     @ResponseStatus(HttpStatus.OK)
     Boolean salvaChecklistDevolucao(@RequestParam(required = false) Part foto,@RequestParam String id_aluguel,
-                                    @RequestParam String descricao){
+                                    @RequestParam String descricao) throws NotFoundException {
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             byte[] bytes;
