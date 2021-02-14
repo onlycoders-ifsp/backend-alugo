@@ -96,10 +96,10 @@ public class PagamentoController {
             System.out.println("tipo retorno: " + tipoRetorno);
             String idPagamento = webHookPagamento.getData().getId();
             System.out.println("tipo pagamento " + idPagamento);
-            final String uri = "http://localhost:8080/springrestexample/employees.xml"; //Exemplo
+            final String uri = "https://api.mercadopago.com/v1/payments/"; //Exemplo
 
             RestTemplate restTemplate = new RestTemplate();
-            String response = restTemplate.getForObject(uri, String.class);
+            String response = restTemplate.getForObject(uri.concat(idPagamento), String.class);
             System.out.println("response: " + response);
             JSONObject result = new JSONObject(response);
             System.out.println("result: " + result);
