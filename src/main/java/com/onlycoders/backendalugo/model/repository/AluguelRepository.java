@@ -190,16 +190,24 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
     List<RetornaAvaliacoes> retornaAvaliacaoLocador(@Param("id_usuario") String id_aluguel,
                                                       @Param("usuario") String usuario);
 
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Transactional()
     @Query(value = "SELECT FN_SALVA_URL_PAGAMENTO(:id_aluguel,:url_pagamento,:usuario);",nativeQuery = true)
     Boolean salvaUrlPagamento(@Param("id_aluguel") String id_aluguel,
                             @Param("url_pagamento") String url_pagamento,
                             @Param("usuario") String usuario);
 
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Transactional()
     @Query(value = "SELECT FN_CONFIRMA_ENCONTRO(:id_aluguel,:ok,:motivo,:usuario);",nativeQuery = true)
     Boolean confirmaEncontro(@Param("id_aluguel") String id_aluguel,
                               @Param("ok") Boolean ok,
                               @Param("motivo") String motivo,
                               @Param("usuario") String usuario);
+
+    @Transactional()
+    @Query(value = "SELECT FN_SALVA_RETORNO_PAGAMENTO(:id_aluguel,:id_pagamento,:tipo_retorno,:status,:usuario);",nativeQuery = true)
+    Boolean salvaRetornoPagamento(@Param("id_aluguel") String id_aluguel,
+                             @Param("id_pagamento") String id_pagamento,
+                             @Param("tipo_retorno") String tipo_retorno,
+                             @Param("status") String status,
+                             @Param("usuario") String usuario);
 }

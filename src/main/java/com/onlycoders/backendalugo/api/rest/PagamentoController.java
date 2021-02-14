@@ -3,6 +3,7 @@ package com.onlycoders.backendalugo.api.rest;
 import com.google.common.base.Throwables;
 import com.onlycoders.backendalugo.model.entity.email.RetornoAlugueisNotificacao;
 import com.onlycoders.backendalugo.model.entity.email.templatesEmails.TemplateEmails;
+import com.onlycoders.backendalugo.model.entity.pagamento.WebHookPagamento;
 import com.onlycoders.backendalugo.model.repository.AluguelRepository;
 import com.onlycoders.backendalugo.model.repository.LogRepository;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
@@ -10,12 +11,14 @@ import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import com.onlycoders.backendalugo.service.EmailService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
@@ -72,6 +75,39 @@ public class PagamentoController {
     public Boolean salvaUrl(@Param(value = "id_aluguel") String id_aluguel, @Param(value = "url_pagamento") String url_pagamento) {
         try {
             return aluguelRepository.salvaUrlPagamento(id_aluguel, url_pagamento,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
+    @ApiOperation(value = "Recebe notificacao de pagamento do Mercado Pago")
+    @PostMapping("/retorno-pagamento")
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean retornoPagamento(@RequestBody WebHookPagamento webHookPagamento) {
+        try {
+            String tipoRetorno = webHookPagamento.getType();
+            System.out.println("tipo retorno: " + tipoRetorno);
+            String idPagamento = webHookPagamento.getData().getId();
+            System.out.println("tipo pagamento " + idPagamento);
+            final String uri = "http://localhost:8080/springrestexample/employees.xml"; //Exemplo
+
+            RestTemplate restTemplate = new RestTemplate();
+            String response = restTemplate.getForObject(uri, String.class);
+            System.out.println("response: " + response);
+            JSONObject result = new JSONObject(response);
+            System.out.println("result: " + result);
+            String status = result.getString("payment_status");
+            System.out.println("status: " + status);
+            String idAluguel = result.getJSONObject("id").getString("id"); //exemplo
+            System.out.println(idAluguel);
+            return aluguelRepository.salvaRetornoPagamento(idAluguel, idPagamento,tipoRetorno,status,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
