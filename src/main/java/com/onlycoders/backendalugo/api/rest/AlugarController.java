@@ -391,7 +391,7 @@ public class AlugarController {
                 bytes = new byte[(int) foto.getSize()];
                 IOUtils.readFully(is, bytes);
                 is.close();
-                ok = aluguelRepository.gravaCheckListEntregaFoto(checklist.getId_aluguel(), checklist.getDescricao(), bytes, user);
+                ok = aluguelRepository.gravaCheckListEntregaFoto(checklist.getId_aluguel(), checklist.getDescricao(), user, bytes);
             }
             else{
                 ok = aluguelRepository.gravaCheckListEntrega(checklist.getId_aluguel(), checklist.getDescricao(), user);
@@ -429,7 +429,7 @@ public class AlugarController {
                 bytes = new byte[(int) foto.getSize()];
                 IOUtils.readFully(is, bytes);
                 is.close();
-                ok = aluguelRepository.gravaCheckListDevolucaoFoto(checklist.getId_aluguel(), checklist.getDescricao(), bytes, user);
+                ok = aluguelRepository.gravaCheckListDevolucaoFoto(checklist.getId_aluguel(), checklist.getDescricao(), user, bytes);
             }
             else {
                 ok = aluguelRepository.gravaCheckListDevolucao(checklist.getId_aluguel(), checklist.getDescricao(), user);
