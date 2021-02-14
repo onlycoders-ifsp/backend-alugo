@@ -419,7 +419,8 @@ public class AlugarController {
     @ApiOperation(value = "Salva checklist devolucao")
     @PostMapping("/checklist/salva-devolucao")
     @ResponseStatus(HttpStatus.OK)
-    Boolean salvaChecklistDevolucao(@RequestBody Checklist checklist, @RequestParam(value = "foto",required = false) Part foto){
+    Boolean salvaChecklistDevolucao(@RequestParam(value = "foto",required = false) Part foto,@RequestParam(value = "id_aluguel") String id_aluguel,
+                                    @RequestParam(value = "descricao") String descricao){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             byte[] bytes;
@@ -429,14 +430,14 @@ public class AlugarController {
                 bytes = new byte[(int) foto.getSize()];
                 IOUtils.readFully(is, bytes);
                 is.close();
-                ok = aluguelRepository.gravaCheckListDevolucaoFoto(checklist.getId_aluguel(), checklist.getDescricao(), bytes, user);
+                ok = aluguelRepository.gravaCheckListDevolucaoFoto(id_aluguel, descricao, bytes, user);
             }
             else {
-                ok = aluguelRepository.gravaCheckListDevolucao(checklist.getId_aluguel(), checklist.getDescricao(), user);
+                ok = aluguelRepository.gravaCheckListDevolucao(id_aluguel, descricao, user);
             }
             if (ok){
-                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(checklist.getId_aluguel(),user);
-                aluguelRepository.alteraStatusAluguel(checklist.getId_aluguel(), 15, user);
+                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(id_aluguel,user);
+                aluguelRepository.alteraStatusAluguel(id_aluguel, 15, user);
                 String locadorMail = new TemplateEmails().notificaChkDevolucaoLocatario(dados.getLocatarioNome());
                 emailService.sendEmail(dados.getLocatarioEmail(),"Confirme o checklist",locadorMail);
                 return true;
