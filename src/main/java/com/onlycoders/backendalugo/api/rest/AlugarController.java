@@ -321,18 +321,18 @@ public class AlugarController {
             }
 
             ok  = aluguelRepository.insereAluguelEncontro(aluguelEncontro.getId_aluguel(),
-                        aluguelEncontro.getCep_entrega(),
-                        aluguelEncontro.getLogradouro_entrega(),
-                        aluguelEncontro.getBairro_entrega(),
-                        aluguelEncontro.getDescricao_entrega(),
-                        aluguelEncontro.getData_entrega(),
-                        aluguelEncontro.getCep_devolucao(),
-                        aluguelEncontro.getLogradouro_devolucao(),
-                        aluguelEncontro.getBairro_devolucao(),
-                        aluguelEncontro.getDescricao_devolucao(),
-                        aluguelEncontro.getData_devolucao(),
-                        aluguelEncontro.isAceite_locador(),
-                        aluguelEncontro.getObservacao_recusa(),user);
+                    aluguelEncontro.getCep_entrega(),
+                    aluguelEncontro.getLogradouro_entrega(),
+                    aluguelEncontro.getBairro_entrega(),
+                    aluguelEncontro.getDescricao_entrega(),
+                    aluguelEncontro.getData_entrega(),
+                    aluguelEncontro.getCep_devolucao(),
+                    aluguelEncontro.getLogradouro_devolucao(),
+                    aluguelEncontro.getBairro_devolucao(),
+                    aluguelEncontro.getDescricao_devolucao(),
+                    aluguelEncontro.getData_devolucao(),
+                    aluguelEncontro.isAceite_locador(),
+                    aluguelEncontro.getObservacao_recusa(),user);
 
             if (ok){
                 RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(aluguelEncontro.getId_aluguel(),user);
@@ -379,26 +379,12 @@ public class AlugarController {
     }
 
     @ApiOperation(value = "Salva checklist entrega")
-    @GetMapping("/checklist/salva-entrega")
+    @PostMapping("/checklist/salva-entrega")
     @ResponseStatus(HttpStatus.OK)
-    Boolean salvaChecklistEntrega(@RequestBody Checklist checklist, @RequestParam(value = "foto",required = false) Part foto){
+    Boolean salvaChecklistEntrega(@RequestBody Checklist checklist){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
-            byte[] bytes;
-            Boolean ok;
-            if(foto != null) {
-                System.out.println("Foto enviada");
-                InputStream is = foto.getInputStream();
-                bytes = new byte[(int) foto.getSize()];
-                IOUtils.readFully(is, bytes);
-                is.close();
-                ok = aluguelRepository.gravaCheckListEntregaFoto(checklist.getId_aluguel(), checklist.getDescricao(), user, bytes);
-            }
-            else{
-                System.out.println("foto nulo");
-                ok = aluguelRepository.gravaCheckListEntrega(checklist.getId_aluguel(), checklist.getDescricao(), user);
-            }
-            if (ok){
+            if (aluguelRepository.gravaCheckListEntrega(checklist.getId_aluguel(), checklist.getDescricao(), user)){
                 RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(checklist.getId_aluguel(),user);
                 aluguelRepository.alteraStatusAluguel(checklist.getId_aluguel(), 14, user);
                 String locadorMail = new TemplateEmails().notificaChkEntregaLocatario(dados.getLocatarioNome());
@@ -418,31 +404,41 @@ public class AlugarController {
         }
     }
 
-    @ApiOperation(value = "Salva checklist devolucao")
-    @GetMapping("/checklist/salva-devolucao")
+    @ApiOperation(value = "Salva foto checklist entrega")
+    @PutMapping("/checklist/salva-foto-entrega")
     @ResponseStatus(HttpStatus.OK)
-    Boolean salvaChecklistDevolucao(@RequestBody Checklist checklist, @RequestParam(value = "foto",required = false) Part foto){
-        try{
+    Boolean salvaFotoChecklistEntrega(@RequestParam String id_aluguel, @RequestParam Part foto) {
+        try {
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             byte[] bytes;
-            Boolean ok;
-            if(foto != null) {
-                System.out.println("Foto enviado");
-                InputStream is = foto.getInputStream();
-                bytes = new byte[(int) foto.getSize()];
-                IOUtils.readFully(is, bytes);
-                is.close();
-                ok = aluguelRepository.gravaCheckListDevolucaoFoto(checklist.getId_aluguel(), checklist.getDescricao(), user, bytes);
-            }
-            else {
-                System.out.println("foto nulo");
-                ok = aluguelRepository.gravaCheckListDevolucao(checklist.getId_aluguel(), checklist.getDescricao(), user);
-            }
-            if (ok){
-                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(checklist.getId_aluguel(),user);
+            InputStream is = foto.getInputStream();
+            bytes = new byte[(int) foto.getSize()];
+            IOUtils.readFully(is, bytes);
+            is.close();
+            return aluguelRepository.gravaFotoCheckListEntrega(id_aluguel, bytes, user);
+        } catch (Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage() == null) ? "" : e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
+    @ApiOperation(value = "Salva checklist devolucao")
+    @PostMapping("/checklist/salva-devolucao")
+    @ResponseStatus(HttpStatus.OK)
+    Boolean salvaChecklistDevolucao(@RequestBody Checklist checklist) {
+
+        try{
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            if (aluguelRepository.gravaCheckListDevolucao(checklist.getId_aluguel(), checklist.getDescricao(), user)) {
+                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(checklist.getId_aluguel(), user);
                 aluguelRepository.alteraStatusAluguel(checklist.getId_aluguel(), 15, user);
                 String locadorMail = new TemplateEmails().notificaChkDevolucaoLocatario(dados.getLocatarioNome());
-                emailService.sendEmail(dados.getLocatarioEmail(),"Confirme o checklist",locadorMail);
+                emailService.sendEmail(dados.getLocatarioEmail(), "Confirme o checklist", locadorMail);
                 return true;
             }
             return false;
@@ -454,6 +450,29 @@ public class AlugarController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage()==null)?"":e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
+    @ApiOperation(value = "Salva foto checklist devolucao")
+    @PutMapping("/checklist/salva-foto-devolucao")
+    @ResponseStatus(HttpStatus.OK)
+    Boolean salvaFotoChecklistDevolucao(@RequestParam String id_aluguel, @RequestParam Part foto) {
+        try {
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            byte[] bytes;
+            InputStream is = foto.getInputStream();
+            bytes = new byte[(int) foto.getSize()];
+            IOUtils.readFully(is, bytes);
+            is.close();
+            return aluguelRepository.gravaFotoCheckListDevolucao(id_aluguel, bytes, user);
+        } catch (Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage() == null) ? "" : e.getMessage(), Throwables.getStackTraceAsString(e));
             return false;
         }
     }

@@ -102,30 +102,29 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
                                   @Param("id_usuario") String id_usuario);
 
     @Transactional()
-    @Query(value = "SELECT FN_GRVAVA_CHK_DEVOLUCAO(:id_aluguel,:descricao,:usuario, :foto);",nativeQuery = true)
-    Boolean gravaCheckListDevolucaoFoto(@Param("id_aluguel") String id_aluguel,
-                                     @Param("descricao") String descricao,
-                                     @Param("usuario") String usuario,
-                                     @Param("foto") byte[] foto);
-
-    @Transactional()
     @Query(value = "SELECT FN_GRVAVA_CHK_DEVOLUCAO(:id_aluguel,:descricao,:usuario);",nativeQuery = true)
     Boolean gravaCheckListDevolucao(@Param("id_aluguel") String id_aluguel,
                                     @Param("descricao") String descricao,
                                     @Param("usuario") String usuario);
 
     @Transactional()
-    @Query(value = "SELECT FN_GRVAVA_CHK_ENTREGA(:id_aluguel,:descricao,:usuario, :foto);",nativeQuery = true)
-    Boolean gravaCheckListEntregaFoto(@Param("id_aluguel") String id_aluguel,
-                                  @Param("descricao") String descricao,
-                                  @Param("usuario") String usuario,
-                                  @Param("foto") byte[] foto);
+    @Query(value = "SELECT FN_GRVAVA_FOTO_CHK_DEVOLUCAO(:id_aluguel,:foto,:usuario);",nativeQuery = true)
+    Boolean gravaFotoCheckListDevolucao(@Param("id_aluguel") String id_aluguel,
+                                    @Param("foto") byte[] foto,
+                                    @Param("usuario") String usuario);
+
 
     @Transactional()
     @Query(value = "SELECT FN_GRVAVA_CHK_ENTREGA(:id_aluguel,:descricao,:usuario);",nativeQuery = true)
     Boolean gravaCheckListEntrega(@Param("id_aluguel") String id_aluguel,
                                   @Param("descricao") String descricao,
                                   @Param("usuario") String usuario);
+
+    @Transactional()
+    @Query(value = "SELECT FN_GRVAVA_FOTO_CHK_ENTREGA(:id_aluguel,:foto,:usuario);",nativeQuery = true)
+    Boolean gravaFotoCheckListEntrega(@Param("id_aluguel") String id_aluguel,
+                                        @Param("foto") byte[] foto,
+                                        @Param("usuario") String usuario);
 
     @Transactional()
     @Query(value = "SELECT FN_APROVA_REPROVA_CHK_DEVOLUCAO(:id_aluguel,:ok,:motivoRecusa,:usuario);",nativeQuery = true)
