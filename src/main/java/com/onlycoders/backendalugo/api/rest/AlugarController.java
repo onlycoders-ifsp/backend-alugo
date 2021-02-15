@@ -735,6 +735,14 @@ public class AlugarController {
         }
         return login;
     }
+
+    @ApiOperation(value = "Envia notificacações manualmente")
+    @GetMapping("/notificacoes")
+    @ResponseStatus(HttpStatus.OK)
+    public void enviaNotificacaoAluguelManual() {
+        enviaNotificacaoAluguel();
+    }
+
     //1x cada 15 minutos
     @Scheduled(cron = "0 */15 * * * ?")
     public void enviaNotificacaoAluguel(){

@@ -181,7 +181,7 @@ public class TemplateEmails {
     }
 
     public String notificaLocatarioConfirmaLocal(String usuarioNome, String locadorNome, String nomeProduto, String periodo, String valor) throws IOException {
-        String mailBody = leTemplate("DonoSolicitacaoAluguel.html");
+        String mailBody = leTemplate("LocatarioLocalConfirmado.html");
         return mailBody.replace("[[usuarioNome]]", usuarioNome)
                 .replace("[[locadorNome]]",locadorNome)
                 .replace("[[nomeProduto]]", nomeProduto)
