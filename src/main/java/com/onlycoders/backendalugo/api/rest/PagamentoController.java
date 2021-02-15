@@ -47,7 +47,7 @@ public class PagamentoController {
 
     @Autowired
     private EmailService emailService;
-
+/*
     @ApiOperation(value = "Realiza a baixa do pagamento no sistema e envia os emails.")
     @GetMapping("/efetua")
     @ResponseStatus(HttpStatus.OK)
@@ -73,7 +73,7 @@ public class PagamentoController {
             return false;
         }
     }
-
+*/
     @ApiOperation(value = "Salva url para pagamento")
     @GetMapping("/url-pagamento")
     @ResponseStatus(HttpStatus.OK)
@@ -101,15 +101,14 @@ public class PagamentoController {
                                     @RequestParam(value = "topic",required = false,defaultValue = "")String topic,
                                     @RequestParam(value = "type",required = false)String type) {
         try {
+            String usuario = "Mercado Pago";
             if(!topic.isEmpty()){
                 System.out.println("Topic");
                 return true;
             }
-            System.out.println("payment");
             String tipoRetorno = webHookPagamento.getType();
             System.out.println("tipo retorno: " + tipoRetorno);
             String idPagamento = webHookPagamento.getData().getId();
-            System.out.println("id pagamento " + idPagamento);
             final String uri = "https://api.mercadopago.com/v1/payments/"; //Exemplo
 
             String accessToken= "TEST-3839591210769699-020717-920ee176862d215166e271d66e8432f7-132870722";
@@ -129,6 +128,13 @@ public class PagamentoController {
             JSONObject result = new JSONObject(response);
             String status = result.getString("status");
             String idAluguel = result.getString("external_reference"); //exemplo
+
+            aluguelRepository.alteraStatusAluguel(idAluguel, 11, usuario);
+            RetornoAlugueisNotificacao r = aluguelRepository.retornaDadosLocadorLocatario(idAluguel,usuario);
+            String locadorMail = new TemplateEmails().pagamentoAluguelDono(r.getLocadorNome(),r.getLocatarioNome(),r.getLocatarioCelular());
+            String locatarioMail = new TemplateEmails().pagamentoAluguelLocatario(r.getLocatarioNome(),r.getLocadorNome(),r.getLocadorCelular());
+            emailService.sendEmail(r.getLocadorEmail(),"Confirmação de pagamento", locadorMail);
+            emailService.sendEmail(r.getLocatarioEmail(),"Confirmação de pagamento", locatarioMail);
             return aluguelRepository.salvaRetornoPagamento(idAluguel, idPagamento,tipoRetorno,status,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
         }
         catch(Exception e) {
