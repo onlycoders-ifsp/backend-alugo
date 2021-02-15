@@ -127,13 +127,12 @@ public class PagamentoController {
             JSONObject result = new JSONObject(response);
             String status = result.getString("status");
             String idAluguel = result.getString("external_reference"); //exemplo
-
-            aluguelRepository.alteraStatusAluguel(idAluguel, 11, usuario);
             RetornoAlugueisNotificacao r = aluguelRepository.retornaDadosLocadorLocatario(idAluguel,usuario);
-            String locadorMail = new TemplateEmails().pagamentoAluguelDono(r.getLocadorNome(),r.getLocatarioNome(),r.getLocatarioCelular());
-            String locatarioMail = new TemplateEmails().pagamentoAluguelLocatario(r.getLocatarioNome(),r.getLocadorNome(),r.getLocadorCelular());
+            String locadorMail = new TemplateEmails().pagamentoAluguelDono(r.getLocadorNome(),r.getLocatarioNome(),r.getLocatarioEmail(),r.getLocatarioCelular());
+            String locatarioMail = new TemplateEmails().pagamentoAluguelLocatario(r.getLocatarioNome(),r.getLocadorNome(),r.getLocadorEmail(),r.getLocadorCelular());
             emailService.sendEmail(r.getLocadorEmail(),"Confirmação de pagamento", locadorMail);
             emailService.sendEmail(r.getLocatarioEmail(),"Confirmação de pagamento", locatarioMail);
+            aluguelRepository.alteraStatusAluguel(idAluguel, 11, usuario);
             return aluguelRepository.salvaRetornoPagamento(idAluguel, idPagamento,tipoRetorno,status,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
         }
         catch(Exception e) {
