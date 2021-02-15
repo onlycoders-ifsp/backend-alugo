@@ -107,7 +107,6 @@ public class PagamentoController {
                 return true;
             }
             String tipoRetorno = webHookPagamento.getType();
-            System.out.println("tipo retorno: " + tipoRetorno);
             String idPagamento = webHookPagamento.getData().getId();
             final String uri = "https://api.mercadopago.com/v1/payments/"; //Exemplo
 
