@@ -19,6 +19,7 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
                 .antMatchers("/produtos/**").not().hasAuthority("ROLE_ADMIN")
                 .antMatchers("/aluguel/avaliacao/retorna/**").permitAll()
                 .antMatchers("/aluguel/**").hasAuthority("ROLE_USER")
+                .antMatchers("/retorno-pagamento").permitAll()
                 .anyRequest().permitAll();
     }
 }

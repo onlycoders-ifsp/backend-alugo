@@ -82,7 +82,7 @@ public class TemplateEmails {
     }
 
     public String notificaAluguelLocatarioFim(String locatarioNome, String produtoNome, String locadorNome) throws IOException {
-        String mailBody = leTemplate("LocatarioLembreteDevolução.html");
+        String mailBody = leTemplate("LocatarioLembreteDevolucao.html");
         return mailBody.replace("[[usuarioNome]]", locatarioNome)
                 .replace("[[produtoNome]]", produtoNome)
                 .replace("[[locadorNome]]", locadorNome);

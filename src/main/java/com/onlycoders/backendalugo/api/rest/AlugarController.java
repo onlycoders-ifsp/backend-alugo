@@ -777,7 +777,7 @@ public class AlugarController {
             String className = this.getClass().getSimpleName();
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
-            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String endpoint = "";
             String user = "alugoMail";
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
         }
