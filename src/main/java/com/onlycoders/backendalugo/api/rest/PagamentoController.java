@@ -30,7 +30,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @Api(value = "Pagamento")
 @RequestMapping("/pagamento")
 @CrossOrigin(origins = "*")
-@Secured("ROLE_USER")
+//@Secured("ROLE_USER")
 public class PagamentoController {
 
     @Autowired
