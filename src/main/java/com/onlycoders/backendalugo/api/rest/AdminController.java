@@ -2,9 +2,8 @@ package com.onlycoders.backendalugo.api.rest;
 import com.google.common.base.Throwables;
 import com.onlycoders.backendalugo.model.entity.Meses;
 import com.onlycoders.backendalugo.model.entity.admin.LogErros;
-import com.onlycoders.backendalugo.model.entity.email.RetornoAlugueisNotificacao;
 import com.onlycoders.backendalugo.model.entity.email.RetornoUsuarioProdutoNoficacao;
-import com.onlycoders.backendalugo.model.entity.email.TemplateEmails;
+import com.onlycoders.backendalugo.model.entity.email.templatesEmails.TemplateEmails;
 import com.onlycoders.backendalugo.model.entity.logs.*;
 import com.onlycoders.backendalugo.model.entity.produto.templates.Categorias;
 import com.onlycoders.backendalugo.model.entity.produto.templates.DtAlugadas;
@@ -25,7 +24,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 

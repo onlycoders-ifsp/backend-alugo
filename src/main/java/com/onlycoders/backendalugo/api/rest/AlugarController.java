@@ -1,12 +1,11 @@
 package com.onlycoders.backendalugo.api.rest;
 
 import com.google.common.base.Throwables;
-import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguelUsuarioProduto;
+import com.onlycoders.backendalugo.model.entity.AluguelEncontro;
+import com.onlycoders.backendalugo.model.entity.aluguel.template.*;
 import com.onlycoders.backendalugo.model.entity.aluguel.Aluguel;
-import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguel;
-import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornaAluguelDetalhe;
 import com.onlycoders.backendalugo.model.entity.email.RetornoAlugueisNotificacao;
-import com.onlycoders.backendalugo.model.entity.email.TemplateEmails;
+import com.onlycoders.backendalugo.model.entity.email.templatesEmails.TemplateEmails;
 import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario;
 import com.onlycoders.backendalugo.model.repository.AluguelRepository;
@@ -17,8 +16,10 @@ import com.onlycoders.backendalugo.service.EmailService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import javassist.NotFoundException;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -27,9 +28,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import javax.servlet.http.Part;
+import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.*;
 
 @RestController
@@ -40,6 +44,7 @@ public class AlugarController {
 
     @Autowired
     UsuarioRepository usuarioRepository;
+
     @Autowired
     ProdutoRepository produtoRepository;
 
@@ -59,8 +64,9 @@ public class AlugarController {
     @ApiOperation(value = "Efetua aluguel do usuario logado. Param id_produto")
     @PostMapping("/aluguel-efetua")
     @ResponseStatus(HttpStatus.OK)
-    public Boolean EfetuaAluguel(@RequestBody Aluguel aluguel) throws ParseException {
+    public String EfetuaAluguel(@RequestBody Aluguel aluguel) throws ParseException {
         try {
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(new Date());
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
@@ -79,8 +85,17 @@ public class AlugarController {
             if (!valida.equals("0")) {
                 throw new NullPointerException(valida);
             } else {
-                return aluguelRepository.efetuaAluguel(getIdUsuario(), aluguel.getId_produto(),
+                String idAluguel = aluguelRepository.efetuaAluguel(getIdUsuario(), aluguel.getId_produto(),
                         aluguel.getData_inicio(), aluguel.getData_fim(), aluguel.getValor_aluguel(), SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
+                if(idAluguel.isEmpty())
+                    return null;
+                RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(idAluguel.replace("\"",""),user);
+                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(idAluguel.replace("\"",""),user);
+                String locadorMail = new TemplateEmails().notificaLocadorAluguel(dados.getLocadorNome(),dados.getLocatarioNome(),dados.getProdutoNome(),r.getPeriodo(),r.getValor());
+                String locatarioMail = new TemplateEmails().notificaLocatarioAluguel(dados.getLocatarioNome(),dados.getLocadorNome(),dados.getProdutoNome(),r.getPeriodo(),r.getValor());
+                emailService.sendEmail(dados.getLocadorEmail(),"Solicitação de aluguel",locadorMail);
+                emailService.sendEmail(dados.getLocatarioEmail(),"Solicitação de aluguel",locatarioMail);
+                return idAluguel;
             }
         }
         catch(Exception e) {
@@ -90,7 +105,7 @@ public class AlugarController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
-            return false;
+            return "";
         }
     }
 
@@ -241,6 +256,30 @@ public class AlugarController {
         }
     }
 
+    @ApiOperation(value = "Confirma aluguel(Dono)")
+    @GetMapping("/confirma-aluguel")
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean confirmaAluguel(@RequestParam("id_aluguel") String id_aluguel,@RequestParam("ok") Boolean ok) {
+        try {
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            aluguelRepository.alteraStatusAluguel(id_aluguel, (ok) ? 7 : 5, user);
+            RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(id_aluguel,user);
+            RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(id_aluguel,user);
+            String mailLocatario = new TemplateEmails().informaAceiteLocalLocador(dados.getLocatarioNome(),dados.getLocadorNome(),dados.getProdutoNome(),r.getPeriodo(),r.getValor());
+            emailService.sendEmail(dados.getLocatarioEmail(),"Confirmação do locador",mailLocatario);
+            return true;
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
     @ApiOperation(value = "Retorna detalhes do aluguel")
     @GetMapping("/detalhe")
     @ResponseStatus(HttpStatus.OK)
@@ -251,12 +290,6 @@ public class AlugarController {
                                                              @RequestParam(value = "order",required = false,defaultValue = "desc") String order) {
         try {
             List<RetornaAluguelDetalhe> detAlugeis = aluguelRepository.retornaAluguelDetalhe(id_produto, SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
-            //List<AluguelDetalhe> detalhe = new ArrayList<>();
-            //for(RetornaAluguelDetalhe r : detAlugeis){
-            //    detalhe.add(new AluguelDetalhe(r.getId_produto(),r.getNome_produto(),r.getId_locatario(),
-            //            r.getNome_locatario(),r.getCapa_foto(),r.getData_inicio(),r.getData_fim(),
-            //            r.getValor_aluguel(),r.getValor_ganho(),r.getData_devolucao()));
-            //}
             Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
             int start = (int) paging.getOffset();
             int end = (start + paging.getPageSize()) > detAlugeis.size() ? detAlugeis.size() : (start + paging.getPageSize());
@@ -271,6 +304,419 @@ public class AlugarController {
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return new PageImpl<>(new ArrayList<>(), PageRequest.of(1,1), 0);
+        }
+    }
+
+    @ApiOperation(value = "Salva dados de entrega e devolução do produto")
+    @PostMapping("/entrega-devolucao")
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean inserirAluguelEncontro(@RequestBody AluguelEncontro aluguelEncontro){
+        try {
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+
+            Boolean ok = aluguelRepository.alteraStatusAluguel(aluguelEncontro.getId_aluguel(), 9, user);
+
+            if (!ok){
+                System.out.println("deu ruim no status");
+            }
+
+            ok  = aluguelRepository.insereAluguelEncontro(aluguelEncontro.getId_aluguel(),
+                    aluguelEncontro.getCep_entrega(),
+                    aluguelEncontro.getLogradouro_entrega(),
+                    aluguelEncontro.getBairro_entrega(),
+                    aluguelEncontro.getDescricao_entrega(),
+                    aluguelEncontro.getData_entrega(),
+                    aluguelEncontro.getCep_devolucao(),
+                    aluguelEncontro.getLogradouro_devolucao(),
+                    aluguelEncontro.getBairro_devolucao(),
+                    aluguelEncontro.getDescricao_devolucao(),
+                    aluguelEncontro.getData_devolucao(),
+                    aluguelEncontro.isAceite_locador(),
+                    aluguelEncontro.getObservacao_recusa(),user);
+
+            if (ok){
+                RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(aluguelEncontro.getId_aluguel(),user);
+                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(aluguelEncontro.getId_aluguel(),user);
+                String locadorMail = new TemplateEmails().informaLocalLocatario(dados.getLocadorNome(),r.getLogradouro_entrega(),r.getBairro_entrega(),r.getCep_entrega(),
+                        r.getDescricao_entrega(),r.getData_entrega(),r.getLogradouro_devolucao(),r.getBairro_devolucao(),r.getCep_devolucao(),r.getDescricao_devolucao(),r.getData_devolucao(),
+                        dados.getLocatarioNome(),dados.getProdutoNome(), r.getPeriodo(),r.getValor());
+                emailService.sendEmail(dados.getLocadorEmail(),"Confirmação de encontro",locadorMail);
+                return true;
+            }
+            else
+                return false;
+        }
+
+        catch(Exception e) {
+            System.out.println("erro");
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage()==null)?"":e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
+    @ApiOperation(value = "Retorna checklist de devolucao")
+    @GetMapping("/checklist/retorna-devolucao")
+    @ResponseStatus(HttpStatus.OK)
+    RetornaChecklist retornaChecklistDevolucao(@Param("id_aluguel") String idAluguel){
+        try{
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            return aluguelRepository.retornaCheckListDevolucao(idAluguel,user);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
+    }
+
+    @ApiOperation(value = "Salva checklist entrega")
+    @PostMapping("/checklist/salva-entrega")
+    @ResponseStatus(HttpStatus.OK)
+    Boolean salvaChecklistEntrega(@RequestBody Checklist checklist){
+        try{
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            if (aluguelRepository.gravaCheckListEntrega(checklist.getId_aluguel(), checklist.getDescricao(), user)){
+                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(checklist.getId_aluguel(),user);
+                aluguelRepository.alteraStatusAluguel(checklist.getId_aluguel(), 14, user);
+                String locadorMail = new TemplateEmails().notificaChkEntregaLocatario(dados.getLocatarioNome());
+                emailService.sendEmail(dados.getLocatarioEmail(),"Confirme o checklist",locadorMail);
+                return true;
+            }
+            return false;
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
+    @ApiOperation(value = "Salva foto checklist entrega")
+    @PutMapping("/checklist/salva-foto-entrega")
+    @ResponseStatus(HttpStatus.OK)
+    Boolean salvaFotoChecklistEntrega(@RequestParam String id_aluguel, @RequestParam Part foto) {
+        try {
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            byte[] bytes;
+            InputStream is = foto.getInputStream();
+            bytes = new byte[(int) foto.getSize()];
+            IOUtils.readFully(is, bytes);
+            is.close();
+            return aluguelRepository.gravaFotoCheckListEntrega(id_aluguel, bytes, user);
+        } catch (Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage() == null) ? "" : e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
+    @ApiOperation(value = "Salva checklist devolucao")
+    @PostMapping("/checklist/salva-devolucao")
+    @ResponseStatus(HttpStatus.OK)
+    Boolean salvaChecklistDevolucao(@RequestBody Checklist checklist) {
+
+        try{
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            if (aluguelRepository.gravaCheckListDevolucao(checklist.getId_aluguel(), checklist.getDescricao(), user)) {
+                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(checklist.getId_aluguel(), user);
+                aluguelRepository.alteraStatusAluguel(checklist.getId_aluguel(), 15, user);
+                String locadorMail = new TemplateEmails().notificaChkDevolucaoLocatario(dados.getLocatarioNome());
+                emailService.sendEmail(dados.getLocatarioEmail(), "Confirme o checklist", locadorMail);
+                return true;
+            }
+            return false;
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage()==null)?"":e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
+    @ApiOperation(value = "Salva foto checklist devolucao")
+    @PutMapping("/checklist/salva-foto-devolucao")
+    @ResponseStatus(HttpStatus.OK)
+    Boolean salvaFotoChecklistDevolucao(@RequestParam String id_aluguel, @RequestParam Part foto) {
+        try {
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            byte[] bytes;
+            InputStream is = foto.getInputStream();
+            bytes = new byte[(int) foto.getSize()];
+            IOUtils.readFully(is, bytes);
+            is.close();
+            return aluguelRepository.gravaFotoCheckListDevolucao(id_aluguel, bytes, user);
+        } catch (Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage() == null) ? "" : e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
+    @ApiOperation(value = "retorna checklist de entrega")
+    @GetMapping("/checklist/retorna-entrega")
+    @ResponseStatus(HttpStatus.OK)
+    RetornaChecklist retornaChecklistEntrega(@Param("id_aluguel") String idAluguel){
+        try{
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            return aluguelRepository.retornaCheckListEntrega(idAluguel,user);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
+    }
+
+    @ApiOperation(value = "Aprova/Reprova checklist de entrega")
+    @GetMapping("/checklist/aceite-entrega")
+    @ResponseStatus(HttpStatus.OK)
+    Boolean aceiteChecklistEntrega(@Param(value = "id_aluguel") String id_aluguel,@Param(value = "ok") Boolean ok, @Param(value = "motivoRecusa") String motivoRecusa){
+        try{
+            Boolean okRetorno;
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            okRetorno = aluguelRepository.aprovaReprovaCheckListEntrega(id_aluguel,ok,motivoRecusa,user);
+            if (okRetorno){
+                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(id_aluguel,user);
+                String locadorMail = new TemplateEmails().notificaChkEntregaLocador(dados.getLocadorNome());
+                emailService.sendEmail(dados.getLocadorEmail(),"Checklist de entrega", locadorMail);
+                aluguelRepository.alteraStatusAluguel(id_aluguel, 2, user);
+                return true;
+            }
+            return false;
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
+    @ApiOperation(value = "Aprova/Reprova checklist de devolucao")
+    @GetMapping("/checklist/aceite-devolucao")
+    @ResponseStatus(HttpStatus.OK)
+    Boolean aceiteChecklistDevolucao(@Param(value = "id_aluguel") String id_aluguel,@Param(value = "ok") Boolean ok, @Param(value = "motivoRecusa") String motivoRecusa){
+        try{
+            Boolean okRetorno;
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            aluguelRepository.alteraStatusAluguel(id_aluguel, 3, user);
+            okRetorno = aluguelRepository.aprovaReprovaCheckListDevolucao(id_aluguel,ok,motivoRecusa,user);
+            if (okRetorno){
+                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(id_aluguel,user);
+                String locadorMail = new TemplateEmails().notificaChkDevolucaoLocador(dados.getLocadorNome());
+                String locadorMailAvaliacao = new TemplateEmails().notificaAvalicaoLocador(dados.getLocadorNome());
+                String locatarioMailAvaliacao = new TemplateEmails().notificaAvaliacaoLocatario(dados.getLocatarioNome());
+                emailService.sendEmail(dados.getLocadorEmail(),"Checklist de devolução", locadorMail);
+                emailService.sendEmail(dados.getLocatarioEmail(),"Avalie sua experiencia",locatarioMailAvaliacao);
+                emailService.sendEmail(dados.getLocadorEmail(),"Avalie sua experiencia",locadorMailAvaliacao);
+                aluguelRepository.alteraStatusAluguel(id_aluguel, 3, user);
+                return true;
+            }
+            return false;
+
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
+    @ApiOperation(value = "Retorna destalhes do encontro do aluguel")
+    @GetMapping("/encontro")
+    @ResponseStatus(HttpStatus.OK)
+    RetornaAluguelEncontro retornaAluguelEncontro(@RequestParam("id_aluguel") String idAluguel){
+        try{
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            return aluguelRepository.retornaAluguelEncontro(idAluguel,user);
+        }catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
+    }
+
+    @ApiOperation(value = "Confirma encontro do aluguel")
+    @GetMapping("/confirma-encontro")
+    @ResponseStatus(HttpStatus.OK)
+    Boolean confirmaAluguelEncontro(@RequestParam("id_aluguel") String id_aluguel, @RequestParam("ok") Boolean ok, @RequestParam(value = "motivo", required = false, defaultValue = "") String motivo){
+        try{
+            if(!ok){
+                if(motivo.isEmpty()) {
+                    throw new NotFoundException("13");
+                }
+            }
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            if(ok) {
+                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(id_aluguel,user);
+                RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(id_aluguel,user);
+                String locatarioMail = new TemplateEmails().notificaLocatarioConfirmaLocal(dados.getLocatarioNome(),dados.getLocadorNome(), dados.getProdutoNome(), r.getPeriodo(),r.getValor());
+                emailService.sendEmail(dados.getLocatarioEmail(),"Local de entrega",locatarioMail);
+                aluguelRepository.alteraStatusAluguel(id_aluguel, 1, user);
+            }
+            return aluguelRepository.confirmaEncontro(id_aluguel,ok,(ok) ? "" : motivo,user);
+        }catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
+    @ApiOperation(value = "Salva avaliação do produto")
+    @PostMapping("/avaliacao/grava/produto")
+    @ResponseStatus(HttpStatus.OK)
+    Boolean salvaAvaliacaoProduto(@RequestBody Avalicao avalicao){
+        try{
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            return aluguelRepository.salvaAvaliacao(avalicao.getId_aluguel(),avalicao.getComentario(),avalicao.getNota(),1,user);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
+    @ApiOperation(value = "Salva avaliação do locatário(Locador para locatario)")
+    @PostMapping("/avaliacao/grava/locatario")
+    @ResponseStatus(HttpStatus.OK)
+    Boolean salvaAvaliacaoLocatario(@RequestBody Avalicao avalicao){
+        try{
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            return aluguelRepository.salvaAvaliacao(avalicao.getId_aluguel(),avalicao.getComentario(),avalicao.getNota(),2,user);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
+    @ApiOperation(value = "Salva avaliação do locador(Locatario para locador)")
+    @PostMapping("/avaliacao/grava/locador")
+    @ResponseStatus(HttpStatus.OK)
+    Boolean salvaAvaliacaoLocador(@RequestBody Avalicao avalicao){
+        try{
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            return aluguelRepository.salvaAvaliacao(avalicao.getId_aluguel(),avalicao.getComentario(),avalicao.getNota(),3,user);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
+    @ApiOperation(value = "Retorna avaliacoes produto")
+    @GetMapping("/avaliacao/retorna/produto")
+    @ResponseStatus(HttpStatus.OK)
+    List<RetornaAvaliacoes> retornaAvaliacoesProduto(@RequestParam("id_produto") String id_produto){
+        try{
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            return aluguelRepository.retornaAvaliacaoProduto(id_produto,user);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
+    }
+
+    @ApiOperation(value = "Retorna avaliacoes locatario")
+    @GetMapping("/avaliacao/retorna/locatario")
+    @ResponseStatus(HttpStatus.OK)
+    List<RetornaAvaliacoes> retornaAvaliacoesLocatario(@RequestParam("id_usuario") String id_usuario){
+        try{
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            return aluguelRepository.retornaAvaliacaoLocatario(id_usuario,user);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
+    }
+
+    @ApiOperation(value = "Retorna avaliacoes locador")
+    @GetMapping("/avaliacao/retorna/locador")
+    @ResponseStatus(HttpStatus.OK)
+    List<RetornaAvaliacoes> retornaAvaliacoesLocador(@RequestParam("id_usuario") String id_usuario){
+        try{
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            return aluguelRepository.retornaAvaliacaoLocador(id_usuario,user);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
         }
     }
 
@@ -289,26 +735,43 @@ public class AlugarController {
         }
         return login;
     }
-
     //1x cada 15 minutos
     @Scheduled(cron = "0 */15 * * * ?")
     public void enviaNotificacaoAluguel(){
         try {
-            System.out.println(LocalTime.now() + " - Iniciando verificação de notificacao de alugueis");
+            System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Iniciando verificação de notificacao de alugueis para entrega do produto");
             String usuario = "alugoMail";
-            List<RetornoAlugueisNotificacao> alugueisNotificacao = aluguelRepository.retornaAlugueisNotificacao(usuario);
+            List<RetornoAlugueisNotificacao> alugueisNotificacao = aluguelRepository.retornaAlugueisNotificacaoInicio(usuario);
             System.out.println("Foram encontrados " + alugueisNotificacao.size() * 2 + " emails para enviar.");
             int cont = 0;
             for (RetornoAlugueisNotificacao ret : alugueisNotificacao) {
-                String bodyMailLocador = new TemplateEmails().notificaAluguelLocador(ret.getLocadorNome(), ret.getProdutoNome(), ret.getLocatarioNome());
-                String bodyMailLocatario = new TemplateEmails().notificaAluguelLocatario(ret.getLocatarioNome(), ret.getProdutoNome(), ret.getLocadorNome());
+                String bodyMailLocador = new TemplateEmails().notificaAluguelLocadorInicio(ret.getLocadorNome(), ret.getProdutoNome(), ret.getLocatarioNome());
+                String bodyMailLocatario = new TemplateEmails().notificaAluguelLocatarioInicio(ret.getLocatarioNome(), ret.getProdutoNome(), ret.getLocadorNome());
                 //System.out.println("Enviando email para locador " + ret.getLocadorEmail());
                 emailService.sendEmail(ret.getLocadorEmail(), "Notificação de aluguel", bodyMailLocador);
                 //System.out.println("Enviando email para locatario " + ret.getLocatarioEmail());
                 emailService.sendEmail(ret.getLocatarioEmail(), "Notificação de aluguel", bodyMailLocatario);
+                aluguelRepository.alteraStatusAluguel(ret.getIdAluguel(),12,usuario); //Aguardando entrega
                 cont++;
             }
-            System.out.println(LocalTime.now() + " - Foram enviados " + cont * 2 + " emails.");
+            System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Foram enviados " + cont * 2 + " emails para entrega de produto.");
+
+            System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Iniciando verificação de notificacao de alugueis para devolução do produto");
+
+            alugueisNotificacao = aluguelRepository.retornaAlugueisNotificacaoFim(usuario);
+            System.out.println("Foram encontrados " + alugueisNotificacao.size() * 2 + " emails para enviar.");
+            cont = 0;
+            for (RetornoAlugueisNotificacao ret : alugueisNotificacao) {
+                String bodyMailLocador = new TemplateEmails().notificaAluguelLocadorFim(ret.getLocadorNome(), ret.getProdutoNome(), ret.getLocatarioNome());
+                String bodyMailLocatario = new TemplateEmails().notificaAluguelLocatarioFim(ret.getLocatarioNome(), ret.getProdutoNome(), ret.getLocadorNome());
+                //System.out.println("Enviando email para locador " + ret.getLocadorEmail());
+                emailService.sendEmail(ret.getLocadorEmail(), "Notificação de aluguel", bodyMailLocador);
+                //System.out.println("Enviando email para locatario " + ret.getLocatarioEmail());
+                emailService.sendEmail(ret.getLocatarioEmail(), "Notificação de aluguel", bodyMailLocatario);
+                aluguelRepository.alteraStatusAluguel(ret.getIdAluguel(),10,usuario); //Aguardando devolução
+                cont++;
+            }
+            System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Foram enviados " + cont * 2 + " emails para devolução de produto.");
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();

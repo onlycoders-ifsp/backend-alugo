@@ -1,6 +1,6 @@
 package com.onlycoders.backendalugo.api.rest;
 import com.google.common.base.Throwables;
-import com.onlycoders.backendalugo.model.entity.email.TemplateEmails;
+import com.onlycoders.backendalugo.model.entity.email.templatesEmails.TemplateEmails;
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
 import com.onlycoders.backendalugo.model.entity.produto.templates.*;
 import com.onlycoders.backendalugo.model.repository.LogRepository;
@@ -20,7 +20,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
 import javax.servlet.http.Part;
 import java.io.IOException;
 import java.io.InputStream;
@@ -119,6 +118,7 @@ public class ProdutoController {
                     @RequestParam(value = "order",required = false,defaultValue = "desc") String order,
                     @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
         try{
+            //System.out.println(ServletUriComponentsBuilder..build().getHost());
             Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
             //System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().build().getPath());
             Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(
@@ -166,7 +166,7 @@ public class ProdutoController {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
-            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage()==null)?"":e.getMessage(), Throwables.getStackTraceAsString(e));
             return new ProdutoAluguel();
         }
         //throw new NotFoundException("Produto não localizado");
@@ -219,7 +219,7 @@ public class ProdutoController {
         try {
             Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
             return transformaRetornoProdutoToPage(
-                    repository.findProduto(id_usuario, "0", 1, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging);
+            repository.findProduto(id_usuario, "0", 1, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -240,14 +240,16 @@ public class ProdutoController {
             String[] usuario = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|");
             Pageable paging = PageRequest.of(0, 1);
             String categoria = trasnformaCategoriasToString(produto.getCategorias());
-            List<RetornaProduto> r =  repository.createProduto(getIdUsuario(false),
+            String idProduto =  repository.createProduto(getIdUsuario(false),
                     produto.getNome(), produto.getDescricao_curta(), produto.getDescricao(),
                     produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
                     produto.getData_compra(), categoria, usuario[0]);
-            ProdutoAluguel p = transformaRetornoProdutoToPage(r, paging).getContent().get(0);
-            String mailBody = new TemplateEmails().cadastroProduto(usuario[0],p.getNome());
+            List<RetornaProduto> ret = repository.findProduto("0", idProduto, 7, 0,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
+            ProdutoAluguel r = transformaRetornoProdutoToPage(ret,paging).getContent().get(0);
+            //ProdutoAluguel p = transformaRetornoProdutoToPage(r, paging).getContent().get(0);
+            String mailBody = new TemplateEmails().cadastroProduto(usuario[0],r.getNome());
             emailService.sendEmail(usuario[1],"Cadastro de produto", mailBody);
-            return p;
+            return r;
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -256,7 +258,7 @@ public class ProdutoController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String[] user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|");
             logRepository.gravaLogBackend(className, methodName, endpoint, user[0], e.getMessage(), Throwables.getStackTraceAsString(e));
-            return new ProdutoAluguel();
+            return null;
         }
     }
 
@@ -265,15 +267,13 @@ public class ProdutoController {
     @ResponseStatus(HttpStatus.OK)
     public Boolean atualizaCadastrafoto(@RequestParam Part capa_foto,
                                         @RequestParam String id_produto) throws NotFoundException {
-        Optional<String> usuario = Optional.ofNullable(Optional
-                .of(getIdUsuario(false))
-                .orElseThrow(() -> new NotFoundException("Usuario não logado")));
+        String usuario = getIdUsuario(false);
         try{
             InputStream is = capa_foto.getInputStream();
             byte[] bytes = new byte[(int) capa_foto.getSize()];
             IOUtils.readFully(is,bytes);
             is.close();
-            return repository.uploadFoto(usuario.get(), id_produto, bytes,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
+            return repository.uploadFoto(usuario, id_produto, bytes,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
 
         } catch(IOException e) {
             String className = this.getClass().getSimpleName();

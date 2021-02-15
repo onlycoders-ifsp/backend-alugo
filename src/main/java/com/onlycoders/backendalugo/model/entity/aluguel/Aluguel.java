@@ -17,6 +17,15 @@ public class Aluguel {
     private String data_inicio;
     private String data_fim;
     private Double valor_aluguel;
+    private String url_pagamento;
+
+    public String getUrl_pagamento() {
+        return url_pagamento;
+    }
+
+    public void setUrl_pagamento(String url_pagamento) {
+        this.url_pagamento = url_pagamento;
+    }
 
     public String getId_produto() {
         return id_produto;

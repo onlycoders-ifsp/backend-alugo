@@ -51,4 +51,13 @@ public interface RetornaUsuario{
 
     @JsonGetter("capa_foto")
     byte[] getCapa_foto();
+
+    @JsonAlias("locatario_avaliacao")
+    public Double getLocatario_avaliacao();
+
+    @JsonAlias("locador_avaliacao")
+    public Double getLocador_avaliacao();
+
+    @JsonAlias("produto_avaliacao")
+    public Double getProduto_avaliacao();
 }
