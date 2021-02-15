@@ -739,8 +739,57 @@ public class AlugarController {
     @ApiOperation(value = "Envia notificacações manualmente")
     @GetMapping("/notificacoes")
     @ResponseStatus(HttpStatus.OK)
-    public void enviaNotificacaoAluguelManual() {
-        enviaNotificacaoAluguel();
+    public String enviaNotificacaoAluguelManual() {
+        try {
+            System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Iniciando verificação de notificacao de alugueis para entrega do produto");
+            String usuario = "alugoMail";
+            List<RetornoAlugueisNotificacao> alugueisNotificacao = aluguelRepository.retornaAlugueisNotificacaoInicio(2,usuario);
+            String log = "Foram encontrados " + alugueisNotificacao.size() * 2 + " emails para enviar.<br>";
+            System.out.println("Foram encontrados " + alugueisNotificacao.size() * 2 + " emails para enviar.");
+            int cont = 0;
+            for (RetornoAlugueisNotificacao ret : alugueisNotificacao) {
+                RetornaAluguelEncontro encontro =  aluguelRepository.retornaAluguelEncontro(ret.getIdAluguel(),usuario);
+                String bodyMailLocador = new TemplateEmails().notificaAluguelLocadorInicio(ret.getLocadorNome(), encontro.getLogradouro_entrega(),encontro.getBairro_entrega(),encontro.getCep_entrega(),encontro.getDescricao_entrega(), encontro.getData_entrega());
+                String bodyMailLocatario = new TemplateEmails().notificaAluguelLocatarioInicio(ret.getLocatarioNome(), encontro.getLogradouro_entrega(),encontro.getBairro_entrega(),encontro.getCep_entrega(),encontro.getDescricao_entrega(), encontro.getData_entrega());
+                //System.out.println("Enviando email para locador " + ret.getLocadorEmail());
+                emailService.sendEmail(ret.getLocadorEmail(), "Notificação de aluguel", bodyMailLocador);
+                //System.out.println("Enviando email para locatario " + ret.getLocatarioEmail());
+                emailService.sendEmail(ret.getLocatarioEmail(), "Notificação de aluguel", bodyMailLocatario);
+                aluguelRepository.alteraStatusAluguel(ret.getIdAluguel(),12,usuario); //Aguardando entrega
+                cont++;
+            }
+            System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Foram enviados " + cont * 2 + " emails para entrega de produto.");
+            log = log.concat(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Foram enviados " + cont * 2 + " emails para entrega de produto.<br><br>");
+            System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Iniciando verificação de notificacao de alugueis para devolução do produto");
+
+            alugueisNotificacao = aluguelRepository.retornaAlugueisNotificacaoFim(2,usuario);
+            System.out.println("Foram encontrados " + alugueisNotificacao.size() * 2 + " emails para enviar.");
+            log = log.concat("Foram encontrados " + alugueisNotificacao.size() * 2 + " emails para enviar.<br>");
+            cont = 0;
+            for (RetornoAlugueisNotificacao ret : alugueisNotificacao) {
+                RetornaAluguelEncontro encontro =  aluguelRepository.retornaAluguelEncontro(ret.getIdAluguel(),usuario);
+                String bodyMailLocador = new TemplateEmails().notificaAluguelLocadorFim(ret.getLocadorNome(), encontro.getLogradouro_devolucao(),encontro.getBairro_devolucao(),encontro.getCep_devolucao(),encontro.getDescricao_devolucao(), encontro.getData_devolucao());
+                String bodyMailLocatario = new TemplateEmails().notificaAluguelLocatarioFim(ret.getLocatarioNome(), encontro.getLogradouro_devolucao(),encontro.getBairro_devolucao(),encontro.getCep_devolucao(),encontro.getDescricao_devolucao(), encontro.getData_devolucao());
+                //System.out.println("Enviando email para locador " + ret.getLocadorEmail());
+                emailService.sendEmail(ret.getLocadorEmail(), "Notificação de aluguel", bodyMailLocador);
+                //System.out.println("Enviando email para locatario " + ret.getLocatarioEmail());
+                emailService.sendEmail(ret.getLocatarioEmail(), "Notificação de aluguel", bodyMailLocatario);
+                aluguelRepository.alteraStatusAluguel(ret.getIdAluguel(),10,usuario); //Aguardando devolução
+                cont++;
+            }
+            System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Foram enviados " + cont * 2 + " emails para devolução de produto.");
+            log = log.concat(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Foram enviados " + cont * 2 + " emails para devolução de produto.<br>");
+            return log;
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = "";
+            String user = "alugoMail";
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return "Erro ao enviar notificações";
+        }
     }
 
     //1x cada 15 minutos
@@ -749,7 +798,7 @@ public class AlugarController {
         try {
             System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Iniciando verificação de notificacao de alugueis para entrega do produto");
             String usuario = "alugoMail";
-            List<RetornoAlugueisNotificacao> alugueisNotificacao = aluguelRepository.retornaAlugueisNotificacaoInicio(usuario);
+            List<RetornoAlugueisNotificacao> alugueisNotificacao = aluguelRepository.retornaAlugueisNotificacaoInicio(1,usuario);
             System.out.println("Foram encontrados " + alugueisNotificacao.size() * 2 + " emails para enviar.");
             int cont = 0;
             for (RetornoAlugueisNotificacao ret : alugueisNotificacao) {
@@ -767,7 +816,7 @@ public class AlugarController {
 
             System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Iniciando verificação de notificacao de alugueis para devolução do produto");
 
-            alugueisNotificacao = aluguelRepository.retornaAlugueisNotificacaoFim(usuario);
+            alugueisNotificacao = aluguelRepository.retornaAlugueisNotificacaoFim(1,usuario);
             System.out.println("Foram encontrados " + alugueisNotificacao.size() * 2 + " emails para enviar.");
             cont = 0;
             for (RetornoAlugueisNotificacao ret : alugueisNotificacao) {
