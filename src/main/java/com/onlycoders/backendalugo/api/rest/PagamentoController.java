@@ -14,7 +14,11 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.data.repository.query.Param;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -94,7 +98,7 @@ public class PagamentoController {
     public Boolean retornoPagamento(@RequestBody WebHookPagamento webHookPagamento,
                                     @RequestParam(value = "data.id",required = false) String DataId,
                                     @RequestParam(value = "id",required = false) String id,
-                                    @RequestParam(value = "topic",required = false)String topic,
+                                    @RequestParam(value = "topic",required = false,defaultValue = "")String topic,
                                     @RequestParam(value = "type",required = false)String type) {
         try {
             if(!topic.isEmpty()){
@@ -105,18 +109,26 @@ public class PagamentoController {
             String tipoRetorno = webHookPagamento.getType();
             System.out.println("tipo retorno: " + tipoRetorno);
             String idPagamento = webHookPagamento.getData().getId();
-            System.out.println("tipo pagamento " + idPagamento);
+            System.out.println("id pagamento " + idPagamento);
             final String uri = "https://api.mercadopago.com/v1/payments/"; //Exemplo
 
-            RestTemplate restTemplate = new RestTemplate();
-            String response = restTemplate.getForObject(uri.concat(DataId), String.class);
-            System.out.println("response: " + response);
+            String accessToken= "TEST-3839591210769699-020717-920ee176862d215166e271d66e8432f7-132870722";
+            RestTemplate restTemplate = new RestTemplateBuilder(rt-> rt.getInterceptors().add((request, body, execution) -> {
+                request.getHeaders().add("Authorization", "Bearer "+accessToken);
+                return execution.execute(request, body);
+            })).build();
+
+            //HttpHeaders headers = new HttpHeaders();
+            //headers.add("Authorization","bearer TEST-3839591210769699-020717-920ee176862d215166e271d66e8432f7-132870722");
+            //headers.set("Authorization","bearer TEST-3839591210769699-020717-920ee176862d215166e271d66e8432f7-132870722");
+            //HttpEntity<String> entity = new HttpEntity<String>("Authorization", headers);
+            //RestTemplate restTemplate = new RestTemplate();
+            String response = restTemplate.getForObject(uri.concat(idPagamento), String.class);
+            //HttpEntity<String> response = restTemplate.exchange(uri.concat(idPagamento), HttpMethod.GET, entity, String.class);
+
             JSONObject result = new JSONObject(response);
-            System.out.println("result: " + result);
             String status = result.getString("status");
-            System.out.println("status: " + status);
             String idAluguel = result.getString("external_reference"); //exemplo
-            System.out.println(idAluguel);
             return aluguelRepository.salvaRetornoPagamento(idAluguel, idPagamento,tipoRetorno,status,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
         }
         catch(Exception e) {
@@ -125,7 +137,7 @@ public class PagamentoController {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
-            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage()==null) ? "" : e.getMessage(), Throwables.getStackTraceAsString(e));
             return false;
         }
     }
