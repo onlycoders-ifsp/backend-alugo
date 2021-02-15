@@ -95,7 +95,7 @@ public class PagamentoController {
     @ApiOperation(value = "Recebe notificacao de pagamento do Mercado Pago")
     @PostMapping("/retorno-pagamento")
     @ResponseStatus(HttpStatus.OK)
-    public Boolean retornoPagamento(@RequestBody WebHookPagamento webHookPagamento,
+    public Boolean retornoPagamento(@RequestBody(required = false) WebHookPagamento webHookPagamento,
                                     @RequestParam(value = "data.id",required = false) String DataId,
                                     @RequestParam(value = "id",required = false) String id,
                                     @RequestParam(value = "topic",required = false,defaultValue = "")String topic,
