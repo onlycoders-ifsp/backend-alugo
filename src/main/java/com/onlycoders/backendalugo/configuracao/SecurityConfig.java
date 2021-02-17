@@ -16,6 +16,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.Duration;
+
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true,securedEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
@@ -41,8 +43,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .csrf().disable()
             .cors()
             .and()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-
+            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and()
+            .headers()
+                .cacheControl().disable()
+                .contentTypeOptions().disable()
+                .httpStrictTransportSecurity().includeSubDomains(true).maxAgeInSeconds(Duration.ofDays(365).toHours()/60)
+                .and()
+                .frameOptions().sameOrigin()
+                .xssProtection().disable();
     }
 
     @Bean

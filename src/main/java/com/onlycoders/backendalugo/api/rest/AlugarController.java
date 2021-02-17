@@ -85,6 +85,9 @@ public class AlugarController {
             if (!valida.equals("0")) {
                 throw new NullPointerException(valida);
             } else {
+                if(!valida.equals("0")){
+                    return null;
+                }
                 String idAluguel = aluguelRepository.efetuaAluguel(getIdUsuario(), aluguel.getId_produto(),
                         aluguel.getData_inicio(), aluguel.getData_fim(), aluguel.getValor_aluguel(), SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
                 if(idAluguel.isEmpty())
