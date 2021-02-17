@@ -48,7 +48,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .headers()
                 .cacheControl().disable()
                 .contentTypeOptions().disable()
-                .httpStrictTransportSecurity().includeSubDomains(true).maxAgeInSeconds(Duration.ofDays(365).toHours()/60)
+                .httpStrictTransportSecurity().includeSubDomains(true).maxAgeInSeconds(Duration.ofDays(365).toMinutes()/60)
                 .and()
                 .frameOptions().sameOrigin()
                 .xssProtection().disable();
