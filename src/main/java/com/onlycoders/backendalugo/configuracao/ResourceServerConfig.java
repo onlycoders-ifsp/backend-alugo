@@ -24,6 +24,10 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
                 .antMatchers("/aluguel/notificacoes").permitAll()
                 .antMatchers("/aluguel/**").hasAuthority("ROLE_USER")
                 .antMatchers("/pagamento/retorno-pagamento").permitAll()
+                .antMatchers("/swagger-resources/**",
+                        "/swagger-ui.html",
+                        "/v2/api-docs",
+                        "/webjars/**").permitAll()
                 .anyRequest().permitAll()
         .and()
                 .headers()
