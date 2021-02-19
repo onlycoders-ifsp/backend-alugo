@@ -11,13 +11,13 @@ import javax.persistence.OneToOne;
 public class WebHookPagamento {
 
     @Id
-    Integer id;
+    String id;
 
     String action;
 
     String api_version;
 
-    Integer application_id;
+    String application_id;
 
     String date_created;
 
@@ -25,18 +25,16 @@ public class WebHookPagamento {
 
     String type;
 
-    Integer user_id;
-
-    Integer version;
+    String user_id;
 
     @OneToOne
     com.onlycoders.backendalugo.model.entity.pagamento.Data data;
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -56,11 +54,11 @@ public class WebHookPagamento {
         this.api_version = api_version;
     }
 
-    public Integer getApplication_id() {
+    public String getApplication_id() {
         return application_id;
     }
 
-    public void setApplication_id(Integer application_id) {
+    public void setApplication_id(String application_id) {
         this.application_id = application_id;
     }
 
@@ -88,20 +86,12 @@ public class WebHookPagamento {
         this.type = type;
     }
 
-    public Integer getUser_id() {
+    public String getUser_id() {
         return user_id;
     }
 
-    public void setUser_id(Integer user_id) {
+    public void setUser_id(String user_id) {
         this.user_id = user_id;
-    }
-
-    public Integer getVersion() {
-        return version;
-    }
-
-    public void setVersion(Integer version) {
-        this.version = version;
     }
 
     public com.onlycoders.backendalugo.model.entity.pagamento.Data getData() {

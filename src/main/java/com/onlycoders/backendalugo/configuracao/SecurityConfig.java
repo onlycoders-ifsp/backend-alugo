@@ -15,6 +15,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+
+import java.time.Duration;
 
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true,securedEnabled = true)
@@ -41,8 +44,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .csrf().disable()
             .cors()
             .and()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-
+            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and()
+            .headers()
+                .cacheControl()
+                .and()
+                .contentTypeOptions()
+                .and()
+                .httpStrictTransportSecurity().includeSubDomains(true).maxAgeInSeconds(Duration.ofDays(365).toMinutes()*60)
+                .and()
+                .frameOptions().sameOrigin()
+                .xssProtection()
+                .and()
+                .referrerPolicy(ReferrerPolicyHeaderWriter.ReferrerPolicy.SAME_ORIGIN)
+            .and().contentSecurityPolicy("script-src 'self' https://api.mercadopago.com https://viacep.com.br");
     }
 
     @Bean

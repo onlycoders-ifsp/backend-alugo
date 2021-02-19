@@ -55,18 +55,18 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
                                                       @Param("user") String user);
 
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
-    @Query(value = "SELECT *FROM FN_RETORNA_ALUGUEIS_NOTIFICACAO_INICIO(:usuario)" +
+    @Query(value = "SELECT *FROM FN_RETORNA_ALUGUEIS_NOTIFICACAO_INICIO(:op,:usuario)" +
             "AS (IDALUGUEL TEXT,PRODUTONOME TEXT, LOCADORNOME TEXT," +
             "LOCADOREMAIL TEXT,LOCADORCELULAR TEXT, LOCATARIONOME TEXT," +
             "LOCATARIOEMAIL TEXT,LOCATARIOCELULAR TEXT);",nativeQuery = true)
-    List<RetornoAlugueisNotificacao> retornaAlugueisNotificacaoInicio(@Param("usuario") String usuario);
+    List<RetornoAlugueisNotificacao> retornaAlugueisNotificacaoInicio(@Param("op") Integer op,@Param("usuario") String usuario);
 
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
-    @Query(value = "SELECT *FROM FN_RETORNA_ALUGUEIS_NOTIFICACAO_FIM(:usuario)" +
+    @Query(value = "SELECT *FROM FN_RETORNA_ALUGUEIS_NOTIFICACAO_FIM(:op,:usuario)" +
             "AS (IDALUGUEL TEXT,PRODUTONOME TEXT, LOCADORNOME TEXT," +
             "LOCADOREMAIL TEXT,LOCADORCELULAR TEXT, LOCATARIONOME TEXT," +
             "LOCATARIOEMAIL TEXT,LOCATARIOCELULAR TEXT);",nativeQuery = true)
-    List<RetornoAlugueisNotificacao> retornaAlugueisNotificacaoFim(@Param("usuario") String usuario);
+    List<RetornoAlugueisNotificacao> retornaAlugueisNotificacaoFim(@Param("op") Integer op,@Param("usuario") String usuario);
 
     @Transactional()
     @Query(value = "SELECT FN_STATUS_ALUGUEL(:id_aluguel,:status,:usuario);",nativeQuery = true)
