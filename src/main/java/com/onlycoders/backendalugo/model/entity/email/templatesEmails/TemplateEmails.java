@@ -148,15 +148,6 @@ public class TemplateEmails {
                 .replace("[[valorAluguel]]",valor);
     }
 
-    public String notificaLocatarioAluguelLocal(String usuarioNome, String locadorNome, String nomeProduto, String periodo, String valor) throws IOException {
-        String mailBody = leTemplate("LocatarioPreenchaLocal.html");
-        return mailBody.replace("[[usuarioNome]]", usuarioNome)
-                .replace("[[locadorNome]]",locadorNome)
-                .replace("[[nomeProduto]]", nomeProduto)
-                .replace("[[periodo]]",periodo)
-                .replace("[[valorAluguel]]",valor);
-    }
-
     public String confirmaCadastro(String usuarioNome, String urlCadastro) throws IOException {
         String mailBody = leTemplate("UsuarioCadastro.html");
         return mailBody.replace("[[usuarioNome]]", usuarioNome)
@@ -200,6 +191,42 @@ public class TemplateEmails {
     public String notificaAvaliacaoLocatario(String locatarioNome) throws IOException {
         String mailBody = leTemplate("LocatarioAvaliacoes.html");
         return mailBody.replace("[[usuarioNome]]", locatarioNome);
+    }
+
+    public String locatarioAluguelRecusado(String locatarioNome, String produtoNome, String motivoRecusa) throws IOException {
+        String mailBody = leTemplate("LocatarioAluguelRecusado.html");
+        return mailBody.replace("[[usuaioNome]]",locatarioNome)
+                .replace("[[nomeProduto]]",produtoNome)
+                .replace("[[motivoRecusa]]",motivoRecusa);
+    }
+
+    public String DonoRecusaChecklistEntrega(String locadorNome, String produtoNome, String motivoRecusa) throws IOException {
+        String mailBody = leTemplate("DonoChecklistInicialRecusado.html");
+        return mailBody.replace("[[usuarioNome]]",locadorNome)
+                .replace("[[nomeProduto]]",produtoNome)
+                .replace("[[motivoRecusa]]",motivoRecusa);
+    }
+
+    public String DonoRecusaChcklistDevolucao(String locadorNome, String produtoNome, String motivoRecusa) throws IOException {
+        String mailBody = leTemplate("DonoChecklistFinalRecusado.html");
+        return mailBody.replace("[[usuarioNome]]",locadorNome)
+                .replace("[[nomeProduto]]",produtoNome)
+                .replace("[[motivoRecusa]]",motivoRecusa);
+    }
+
+    public String locatarioLocalRecusado(String usuarioNome, String locadorNome, String nomeProduto, String periodo, String valor, String motivo) throws IOException {
+        String mailBody = leTemplate("LocatarioLocalRecusado.html");
+        return mailBody.replace("[[usuarioNome]]", usuarioNome)
+                .replace("[[locadorNome]]",locadorNome)
+                .replace("[[nomeProduto]]", nomeProduto)
+                .replace("[[periodo]]",periodo)
+                .replace("[[valorAluguel]]",valor)
+                .replace("[[motivo]]",motivo);
+    }
+
+    public String locatarioPagamentoRecusado(String usuarioNome) throws IOException {
+        String mailBody = leTemplate("LocatarioRecusaPagamento.html");
+        return mailBody.replace("[[usuarioNome]]", usuarioNome);
     }
 
     String leTemplate(String arquivo) throws IOException {

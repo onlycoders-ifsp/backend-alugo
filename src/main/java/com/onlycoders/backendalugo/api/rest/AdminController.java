@@ -1,6 +1,6 @@
 package com.onlycoders.backendalugo.api.rest;
 import com.google.common.base.Throwables;
-import com.onlycoders.backendalugo.model.entity.Meses;
+import com.onlycoders.backendalugo.model.entity.aluguel.template.Meses;
 import com.onlycoders.backendalugo.model.entity.admin.LogErros;
 import com.onlycoders.backendalugo.model.entity.email.RetornoUsuarioProdutoNoficacao;
 import com.onlycoders.backendalugo.model.entity.email.templatesEmails.TemplateEmails;

@@ -3,7 +3,6 @@ package com.onlycoders.backendalugo.api.rest;
 import com.google.common.base.Throwables;
 import com.onlycoders.backendalugo.model.entity.email.RetornoAlugueisNotificacao;
 import com.onlycoders.backendalugo.model.entity.email.templatesEmails.TemplateEmails;
-import com.onlycoders.backendalugo.model.entity.pagamento.Data;
 import com.onlycoders.backendalugo.model.entity.pagamento.WebHookPagamento;
 import com.onlycoders.backendalugo.model.repository.AluguelRepository;
 import com.onlycoders.backendalugo.model.repository.LogRepository;
@@ -16,15 +15,12 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.data.repository.query.Param;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import com.onlycoders.backendalugo.model.entity.aluguel.StatusInterfaceEnum.StatusAluguel;
 
 @RestController
 @Api(value = "Pagamento")
@@ -112,7 +108,7 @@ public class PagamentoController {
 
             String accessToken= "TEST-3839591210769699-020717-920ee176862d215166e271d66e8432f7-132870722";
             RestTemplate restTemplate = new RestTemplateBuilder(rt-> rt.getInterceptors().add((request, body, execution) -> {
-                request.getHeaders().add("Authorization", "Bearer "+accessToken);
+                request.getHeaders().add("Authorization", "Bearer " + accessToken);
                 return execution.execute(request, body);
             })).build();
 
@@ -128,12 +124,19 @@ public class PagamentoController {
             String status = result.getString("status");
             String idAluguel = result.getString("external_reference"); //exemplo
             RetornoAlugueisNotificacao r = aluguelRepository.retornaDadosLocadorLocatario(idAluguel,usuario);
-            String locadorMail = new TemplateEmails().pagamentoAluguelDono(r.getLocadorNome(),r.getLocatarioNome(),r.getLocatarioEmail(),r.getLocatarioCelular());
-            String locatarioMail = new TemplateEmails().pagamentoAluguelLocatario(r.getLocatarioNome(),r.getLocadorNome(),r.getLocadorEmail(),r.getLocadorCelular());
-            emailService.sendEmail(r.getLocadorEmail(),"Confirmação de pagamento", locadorMail);
-            emailService.sendEmail(r.getLocatarioEmail(),"Confirmação de pagamento", locatarioMail);
-            aluguelRepository.alteraStatusAluguel(idAluguel, 11, usuario);
-            return aluguelRepository.salvaRetornoPagamento(idAluguel, idPagamento,tipoRetorno,status,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
+            if(!status.equals("approved")){
+                String locatarioMail = new TemplateEmails().locatarioPagamentoRecusado(r.getLocatarioNome());
+                emailService.sendEmail(r.getLocatarioEmail(),"Confirmação de pagamento", locatarioMail);
+                return true;
+            }
+            else {
+                String locadorMail = new TemplateEmails().pagamentoAluguelDono(r.getLocadorNome(), r.getLocatarioNome(), r.getLocatarioEmail(), r.getLocatarioCelular());
+                String locatarioMail = new TemplateEmails().pagamentoAluguelLocatario(r.getLocatarioNome(), r.getLocadorNome(), r.getLocadorEmail(), r.getLocadorCelular());
+                emailService.sendEmail(r.getLocadorEmail(), "Confirmação de pagamento", locadorMail);
+                emailService.sendEmail(r.getLocatarioEmail(), "Confirmação de pagamento", locatarioMail);
+                aluguelRepository.alteraStatusAluguel(idAluguel, StatusAluguel.PAGAMENTO_CONFIRMADO.getCod_status(), usuario);
+                return aluguelRepository.salvaRetornoPagamento(idAluguel, idPagamento, tipoRetorno, status, SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
+            }
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();

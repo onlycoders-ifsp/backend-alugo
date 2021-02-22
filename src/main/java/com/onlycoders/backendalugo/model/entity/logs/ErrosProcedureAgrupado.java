@@ -1,6 +1,6 @@
 package com.onlycoders.backendalugo.model.entity.logs;
 
-import com.onlycoders.backendalugo.model.entity.Meses;
+import com.onlycoders.backendalugo.model.entity.aluguel.template.Meses;
 
 import java.util.List;
 
