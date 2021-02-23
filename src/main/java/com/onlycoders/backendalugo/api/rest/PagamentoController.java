@@ -16,6 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -149,4 +152,40 @@ public class PagamentoController {
         }
     }
 
+
+    @Secured("ROLE_USER")
+    @ApiOperation(value = "Efetua saque do saldo do locador")
+    @PostMapping("/saque-locador")
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean efetuaSaqueLocador(){
+        try{
+            String usaurio = getIdUsuario();
+            return aluguelRepository.efetuaSaque(usaurio,usaurio);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage()==null) ? "" : e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
+    public String getIdUsuario(){
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String login;
+
+        if(!auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken){
+            throw new NullPointerException("Usuario não logado");
+        }
+
+        login = usuarioRepository.retornaIdUsuario(auth.getName().split("\\|")[0]);
+        if (login.isEmpty() || login == null) {
+            throw new NullPointerException("Usuario não encontrado");
+        }
+        return login;
+    }
 }

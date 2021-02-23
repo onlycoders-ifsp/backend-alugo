@@ -817,6 +817,34 @@ public class AlugarController {
         }
     }
 
+    @ApiOperation(value = "Retorna extrato de locador")
+    @GetMapping("/extrato-locador")
+    @ResponseStatus(HttpStatus.OK)
+    public Page<ExtratoLocadorDetalhe> retornaExtratoLocador(@RequestParam(value = "page",required = false,defaultValue = "0") int page,
+                                         @RequestParam(value = "size",required = false,defaultValue = "10") int size,
+                                         @RequestParam(value = "sort",required = false,defaultValue = "valor_ganho") String sortBy,
+                                         @RequestParam(value = "order",required = false,defaultValue = "desc") String order){
+        try{
+            String usuario = getIdUsuario();
+            List<ExtratoLocadorDetalhe> detalhe = aluguelRepository.retornaExtratoLocador(usuario,usuario);
+            //Double saldo = aluguelRepository.retornaExtratoLocadorSaldo(usuario,usuario);
+            //ExtratoLocador extratoLocador = new ExtratoLocador(saldo,detalhe);
+            Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
+            int start = (int) paging.getOffset();
+            int end = (start + paging.getPageSize()) > detalhe.size() ? detalhe.size() : (start + paging.getPageSize());
+            return new PageImpl<>(detalhe.subList(start, end), paging, detalhe.size());//listPa;
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = "";
+            String user = getIdUsuario();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
+    }
+
     //1x cada 15 minutos
     @Scheduled(cron = "0 */15 * * * ?")
     public void enviaNotificacaoAluguel(){

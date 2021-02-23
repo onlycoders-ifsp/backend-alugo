@@ -27,7 +27,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
     "            DATANASCIMENTO TEXT, CEP TEXT, ENDERECO TEXT, " +
     "            COMPLEMENTO TEXT, BAIRRO TEXT, NUMERO TEXT, ATIVO BOOLEAN, CAPA_FOTO BYTEA," +
     "            LOCATARIO_AVALIACAO DECIMAL(2,1), LOCADOR_AVALIACAO DECIMAL(2,1)," +
-    "            PRODUTO_AVALIACAO DECIMAL(2,1));",
+    "            PRODUTO_AVALIACAO DECIMAL(2,1), SALDO_LOCADOR Decimal(18,2));",
     //@Query(value = "Select u.*From Usuarios u",
     nativeQuery = true)
     List<RetornaUsuario> findUsuario(@Param("id") String id);
@@ -73,9 +73,11 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
     @Transactional()
     @Query(value = "SELECT *FROM FN_ATUALIZA_USUARIO(:id,:nome,:email,:login,:cpf," +
             " :celular,:nascimento,:cep,:endereco,:complemento,:bairro,:numero) " +
-            " AS T(IDUSUARIO TEXT, NOME TEXT, EMAIL TEXT, LOGIN TEXT, CPF TEXT, " +
-            " CELULAR TEXT,DATANASCIMENTO TEXT, CEP TEXT, ENDERECO TEXT, " +
-            " COMPLEMENTO TEXT, BAIRRO TEXT, NUMERO TEXT, ATIVO BOOLEAN, CAPA_FOTO BYTEA);",nativeQuery = true)
+            " AS T(IDUSUARIO TEXT, NOME TEXT, EMAIL TEXT, LOGIN TEXT, CPF TEXT, CELULAR TEXT," +
+            "      DATANASCIMENTO TEXT, CEP TEXT, ENDERECO TEXT," +
+            "      COMPLEMENTO TEXT, BAIRRO TEXT, NUMERO TEXT, ATIVO BOOLEAN, CAPA_FOTO BYTEA," +
+            "      LOCATARIO_AVALIACAO DECIMAL(2,1), LOCADOR_AVALIACAO DECIMAL(2,1)," +
+            "      PRODUTO_AVALIACAO DECIMAL(2,1), SALDO_LOCADOR Decimal(18,2));",nativeQuery = true)
     List <RetornaUsuario>  updateUserById(@Param("id") String id,
                            @Param("nome") String nome,
                            @Param("email") String email,
@@ -128,5 +130,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
     Boolean ativaUsuario(@Param("key") String key,
                          @Param("usuario") String usuario);
 
+    @Transactional()
+    @Query(value = "SELECT FN_RETORNA_RESUMO_SALDO_LOCADOR(:id_usuario,:usuario);",nativeQuery = true)
+    Double retornaExtratoLocadorSaldo(@Param("id_usuario") String id_usuario,
+                                      @Param("usuario") String usuario);
 
 }
