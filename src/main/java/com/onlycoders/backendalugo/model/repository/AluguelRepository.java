@@ -216,13 +216,29 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
                                   @Param("usuario") String usuario);
 
     @Transactional()
-    @Query(value = "SELECT FN_EFETUA_SAQUE_LOCADOR(:id_usuario,:usuario);",nativeQuery = true)
+    @Query(value = "SELECT FN_EFETUA_SAQUE_LOCADOR(:id_usuario,:valor, :id_saque);",nativeQuery = true)
     Boolean efetuaSaque(@Param("id_usuario") String id_usuario,
-                        @Param("usuario") String usuario);
+                        @Param("valor") Double valor,
+                        @Param("id_saque") String id_pagamento_saque);
 
     @Transactional()
     @Query(value = "SELECT ID_ALUGUEL, ID_PAGAMENTO_MP, VALOR, RETENCAO, STATUS " +
             "FROM FN_VERIFICAALUGUEIESTORNO(:usuario) " +
             "AS (ID INT, ID_ALUGUEL TEXT, ID_PAGAMENTO_MP TEXT, VALOR DECIMAL(18,2), RETENCAO DECIMAL(3,2), STATUS INT);",nativeQuery = true)
     List<RetornoAlugueisEstorno> retornaPagameentosEstorno(@Param("usuario") String usuario);
+
+    @Transactional()
+        @Query(value = "SELECT * " +
+            "FROM FN_SAQUE_LOCADOR(:id_usuario) " +
+            "AS (ID_USUARIO TEXT, VALOR DECIMAL (18,2), ID_PRODUTO TEXT, NOME_PRODUTO TEXT, " +
+            "DESCRICAO_CURTA TEXT, ID_PAGAMENTO TEXT, ID_SAQUE TEXT);",nativeQuery = true)
+    List<RetornoSaqueLocador> retornaAlugueisSaque(@Param("id_usuario") String id_usuario);
+
+    @Transactional()
+    @Query(value = "SELECT FN_SALVA_RETORNO_PAGAMENTO_LOCADOR(:id_saque,:id_pagamento,:tipo_retorno,:status,:usuario);",nativeQuery = true)
+    Boolean salvaRetornoPagamentoLocador(@Param("id_saque") String id_saque,
+                                  @Param("id_pagamento") String id_pagamento,
+                                  @Param("tipo_retorno") String tipo_retorno,
+                                  @Param("status") String status,
+                                  @Param("usuario") String usuario);
 }

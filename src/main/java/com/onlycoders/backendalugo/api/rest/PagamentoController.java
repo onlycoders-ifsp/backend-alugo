@@ -3,6 +3,11 @@ package com.onlycoders.backendalugo.api.rest;
 import com.google.common.base.Throwables;
 import com.mercadopago.MercadoPago;
 import com.mercadopago.resources.Payment;
+import com.mercadopago.resources.datastructures.customer.card.PaymentMethod;
+import com.mercadopago.resources.datastructures.payment.AdditionalInfo;
+import com.mercadopago.resources.datastructures.payment.Item;
+import com.mercadopago.resources.datastructures.payment.Payer;
+import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornoSaqueLocador;
 import com.onlycoders.backendalugo.model.entity.email.RetornoAlugueisNotificacao;
 import com.onlycoders.backendalugo.model.entity.email.templatesEmails.TemplateEmails;
 import com.onlycoders.backendalugo.model.entity.pagamento.WebHookPagamento;
@@ -13,6 +18,7 @@ import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import com.onlycoders.backendalugo.service.EmailService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import javassist.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.repository.query.Param;
@@ -24,6 +30,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.onlycoders.backendalugo.model.entity.aluguel.StatusInterfaceEnum.StatusAluguel;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @Api(value = "Pagamento")
@@ -49,6 +60,9 @@ public class PagamentoController {
 
     @Value("${mercado.pago.access.token}")
     String accessToken;// = "TEST-3839591210769699-020717-920ee176862d215166e271d66e8432f7-132870722";
+
+    @Value("${backend.url}")
+    String backendUrl;
 
     /*
     @ApiOperation(value = "Realiza a baixa do pagamento no sistema e envia os emails.")
@@ -139,7 +153,7 @@ public class PagamentoController {
 
             String idAluguel = pagamento.getExternalReference();
             String locatarioMail;
-            System.out.println(status);
+
             RetornoAlugueisNotificacao r = aluguelRepository.retornaDadosLocadorLocatario(idAluguel,usuario);
             switch (status){
                 case "approved":
@@ -190,11 +204,21 @@ public class PagamentoController {
                 System.out.println("Topic");
                 return true;
             }
+            MercadoPago.SDK.setAccessToken(accessToken);
 
             String tipoRetorno = webHookPagamento.getType();
             String idPagamento = webHookPagamento.getData().getId();
             Payment pagamento = Payment.findById(idPagamento);
-            return true;
+            String saque = pagamento.getExternalReference();
+            String status = pagamento.getStatus().toString();
+            String statusDetail = pagamento.getStatusDetail();
+
+            System.out.println(saque);
+
+            if (statusDetail.contains("refunded"))
+                status = "refunded";
+
+            return aluguelRepository.salvaRetornoPagamentoLocador(saque,idPagamento,tipoRetorno,status, usuario);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -214,8 +238,40 @@ public class PagamentoController {
     @ResponseStatus(HttpStatus.OK)
     public Boolean efetuaSaqueLocador(){
         try{
-            String usaurio = getIdUsuario();
-            return aluguelRepository.efetuaSaque(usaurio,usaurio);
+            String idLocador = getIdUsuario();
+            Optional<List<RetornoSaqueLocador>> produtos = Optional.ofNullable(aluguelRepository.retornaAlugueisSaque(idLocador));
+            if(!produtos.isPresent()){
+                throw new NotFoundException("14");
+            }
+            String id_saque = produtos.get().get(0).getId_saque();
+            float valotTotal = 0.00f;
+            ArrayList<Item> listaProdutos = new ArrayList<>();
+            MercadoPago.SDK.setAccessToken(accessToken);
+
+            Payer pagador = new Payer()
+                    .setEmail("the.dilanlima@gmail.com")
+                    .setFirstName("aluGo")
+                    .setType(Payer.type.registered);
+            Payment pagamento = new Payment()
+                    .setPayer(pagador)
+                    .setExternalReference(id_saque)
+                    .setPaymentMethodId("account_money")
+                    .setNotificationUrl(backendUrl.concat("/retorno-pagamento-locador"));
+
+            for (RetornoSaqueLocador p : produtos.get()){
+                Item produto = new Item()
+                        .setId(p.getId_produto())
+                        .setTitle(p.getNome_produto())
+                        .setUnitPrice((float)(double) p.getValor_debito())
+                        .setDescription(p.getDescricao_curta())
+                        .setQuantity(1);
+                listaProdutos.add(produto);
+                valotTotal += (float)(double) p.getValor_debito();
+            }
+            pagamento.setAdditionalInfo(new AdditionalInfo().setItems(listaProdutos));
+            pagamento.setTransactionAmount(valotTotal);
+            System.out.println(pagamento.save().getId());
+            return aluguelRepository.efetuaSaque(idLocador,((double) valotTotal),id_saque);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
