@@ -110,6 +110,8 @@ public class PagamentoController {
                 return true;
             }
 
+            MercadoPago.SDK.setAccessToken(accessToken);
+
             String tipoRetorno = webHookPagamento.getType();
             String idPagamento = webHookPagamento.getData().getId();
             Payment pagamento = Payment.findById(idPagamento);
