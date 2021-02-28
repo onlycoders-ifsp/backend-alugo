@@ -46,6 +46,8 @@ public class AlugarController {
     @Autowired
     UsuarioRepository usuarioRepository;
 
+    @Autowired PagamentoController pagamentoController;
+
     @Autowired
     ProdutoRepository produtoRepository;
 
@@ -810,7 +812,7 @@ public class AlugarController {
             String className = this.getClass().getSimpleName();
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
-            String endpoint = "";
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = "alugoMail";
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return "Erro ao enviar notificações";
@@ -838,7 +840,7 @@ public class AlugarController {
             String className = this.getClass().getSimpleName();
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
-            String endpoint = "";
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = getIdUsuario();
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return null;
@@ -846,7 +848,7 @@ public class AlugarController {
     }
 
     //1x cada 15 minutos
-    @Scheduled(cron = "0 */15 * * * ?")
+    @Scheduled(cron = "0 */05 * * * ?")
     public void enviaNotificacaoAluguel(){
         try {
             System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Iniciando verificação de notificacao de alugueis para entrega do produto");
@@ -893,5 +895,58 @@ public class AlugarController {
             String user = "alugoMail";
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
         }
+    }
+
+    @Scheduled(cron = "0 */05 * * * ?")
+    public void efetuaEstornoAluguel(){
+        try{
+            System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Iniciando verificação de alugueis para estornar");
+            List<RetornoAlugueisEstorno> l = aluguelRepository.retornaPagameentosEstorno("");
+            System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Encontrados " + l.size() + " alugueis para estornar");
+            String locatarioMail = "";
+            String locadorMail = "";
+            for(RetornoAlugueisEstorno ret : l){
+                if(pagamentoController.estornoPagmenento(ret.getId_pagamento_mp(),ret.getValor(),ret.getRetencao())){
+                    RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(ret.getId_aluguel(),"");
+                    RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(ret.getId_aluguel(),"");
+                    switch (ret.getStatus()){
+                        case 11:
+                            locadorMail = new TemplateEmails().donoEstornoNaoInseridoLocal(dados.getLocadorNome(),dados.getLocatarioNome(), dados.getProdutoNome(),r.getPeriodo(),r.getValor());
+                            locatarioMail = new TemplateEmails().locatarioEstornoNaoInseridoLocal(dados.getLocatarioNome(),dados.getLocadorNome(), dados.getProdutoNome(),r.getPeriodo(),r.getValor());
+                            aluguelRepository.alteraStatusAluguel(ret.getId_aluguel(),StatusAluguel.CANCELAMENTO_AUTOMATICO_LOCATARIO_NAO_PREENCHEU_AS_INFORMACOES_DE_ENCONTRO_DENTRO_DO_PRAZO.getCod_status(),"");
+                            break;
+
+                        case 9:
+                            locadorMail = new TemplateEmails().donoEstornoNaoConfirmadoLocal(dados.getLocadorNome(),dados.getLocatarioNome(), dados.getProdutoNome(),r.getPeriodo(),r.getValor());
+                            locatarioMail = new TemplateEmails().locatarioEstornoNaoConfirmadoLocal(dados.getLocatarioNome(),dados.getLocadorNome(), dados.getProdutoNome(),r.getPeriodo(),r.getValor());
+                            aluguelRepository.alteraStatusAluguel(ret.getId_aluguel(),StatusAluguel.CANCELAMENTO_AUTOMATICO_DONO_NAO_CONFIRMOU_O_ENCONTRO_DENTRO_DO_PRAZO.getCod_status(), "");
+                            break;
+
+                        case 12:
+                            //TODO
+                            break;
+
+                        default:
+                            break;
+                    }
+                    emailService.sendEmail(dados.getLocatarioEmail(),"Cancelamento de aluguel", locatarioMail);
+                    emailService.sendEmail(dados.getLocadorEmail(),"Cancelamento de aluguel", locadorMail);
+                    //String locatarioMail = new TemplateEmails().locatario
+
+                }
+                else
+                    System.out.println("erro ao estornar pagamento");
+            }
+            System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Foram enviados " + l.size() * 2 + " emails");
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = "";
+            //String user = getIdUsuario();
+            logRepository.gravaLogBackend(className, methodName, endpoint, "", e.getMessage(), Throwables.getStackTraceAsString(e));
+        }
+
     }
 }

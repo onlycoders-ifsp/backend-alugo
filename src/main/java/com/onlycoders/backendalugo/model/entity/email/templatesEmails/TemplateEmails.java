@@ -229,6 +229,42 @@ public class TemplateEmails {
         return mailBody.replace("[[usuarioNome]]", usuarioNome);
     }
 
+    public String locatarioEstornoNaoInseridoLocal(String usuarioNome, String locadorNome, String nomeProduto, String periodo, String valor) throws IOException {
+        String mailBody = leTemplate("LocatarioEstornoNaoInseridoEncontro.html");
+        return mailBody.replace("[[usuarioNome]]", usuarioNome)
+                .replace("[[locadorNome]]",locadorNome)
+                .replace("[[nomeProduto]]", nomeProduto)
+                .replace("[[periodo]]",periodo)
+                .replace("[[valorAluguel]]",valor);
+    }
+
+    public String locatarioEstornoNaoConfirmadoLocal(String usuarioNome, String locadorNome, String nomeProduto, String periodo, String valor) throws IOException {
+        String mailBody = leTemplate("LocatarioEstornoNaoConfirmadoEncontro.html");
+        return mailBody.replace("[[usuarioNome]]", usuarioNome)
+                .replace("[[locadorNome]]",locadorNome)
+                .replace("[[nomeProduto]]", nomeProduto)
+                .replace("[[periodo]]",periodo)
+                .replace("[[valorAluguel]]",valor);
+    }
+
+    public String donoEstornoNaoInseridoLocal(String usuarioNome, String locatarioNome, String nomeProduto, String periodo, String valor) throws IOException {
+        String mailBody = leTemplate("DonoEstornoNaoInseridoEncontro.html");
+        return mailBody.replace("[[usuarioNome]]", usuarioNome)
+                .replace("[[locatarioNome]]", locatarioNome)
+                .replace("[[nomeProduto]]", nomeProduto)
+                .replace("[[periodo]]",periodo)
+                .replace("[[valorAluguel]]",valor);
+    }
+
+    public String donoEstornoNaoConfirmadoLocal(String usuarioNome, String locatarioNome, String nomeProduto, String periodo, String valor) throws IOException {
+        String mailBody = leTemplate("DonoEstornoNaoConfirmadoEncontro.html");
+        return mailBody.replace("[[usuarioNome]]", usuarioNome)
+                .replace("[[locatarioNome]]", locatarioNome)
+                .replace("[[nomeProduto]]", nomeProduto)
+                .replace("[[periodo]]",periodo)
+                .replace("[[valorAluguel]]",valor);
+    }
+
     String leTemplate(String arquivo) throws IOException {
         //String path = Paths.get(arquivo).toUri().toString().replace("file:///","").replace(arquivo,"");
         StringBuilder contentBuilder = new StringBuilder();

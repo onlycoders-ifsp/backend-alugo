@@ -34,6 +34,8 @@ import java.util.Optional;
 @Secured("ROLE_ADMIN")
 public class AdminController {
 
+    @Autowired PagamentoController pagamentoController;
+
     @Autowired
     private AdminRepository adminRepository;
 
@@ -317,6 +319,11 @@ public class AdminController {
         }
 
     }
+
+    //@ApiOperation(value = "Acata problema e efetua devolução de acordo com a gravidade", response = ErrosProcedureAgrupado.class)
+    //@GetMapping("/estorno-aluguel")
+    //@ResponseStatus(HttpStatus.OK)
+
     public Page <ProdutoAluguel> transformaRetornoProdutoToPage(List<RetornaProduto> ret, Pageable page){
         List<ProdutoAluguel> listPa = new ArrayList<>();
         String[] dtAluguel;
