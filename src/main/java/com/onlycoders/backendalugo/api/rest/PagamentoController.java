@@ -1,9 +1,9 @@
 package com.onlycoders.backendalugo.api.rest;
 
 import com.google.common.base.Throwables;
+import com.google.gson.Gson;
 import com.mercadopago.MercadoPago;
 import com.mercadopago.resources.Payment;
-import com.mercadopago.resources.datastructures.customer.card.PaymentMethod;
 import com.mercadopago.resources.datastructures.payment.AdditionalInfo;
 import com.mercadopago.resources.datastructures.payment.Item;
 import com.mercadopago.resources.datastructures.payment.Payer;
@@ -34,7 +34,6 @@ import com.onlycoders.backendalugo.model.entity.aluguel.StatusInterfaceEnum.Stat
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @RestController
 @Api(value = "Pagamento")
@@ -234,7 +233,7 @@ public class PagamentoController {
 
     @Secured("ROLE_USER")
     @ApiOperation(value = "Efetua saque do saldo do locador")
-    @PostMapping("/saque-locador")
+    @GetMapping("/saque-locador")
     @ResponseStatus(HttpStatus.OK)
     public Boolean efetuaSaqueLocador(){
         try{
@@ -243,34 +242,48 @@ public class PagamentoController {
             if(!produtos.isPresent()){
                 throw new NotFoundException("14");
             }
+
             String id_saque = produtos.get().get(0).getId_saque();
             float valotTotal = 0.00f;
             ArrayList<Item> listaProdutos = new ArrayList<>();
-            MercadoPago.SDK.setAccessToken(accessToken);
+            /*MercadoPago.SDK.setAccessToken(accessToken);
 
-            Payer pagador = new Payer()
-                    .setEmail("the.dilanlima@gmail.com")
-                    .setFirstName("aluGo")
-                    .setType(Payer.type.registered);
+            Gson json = new Gson();
+
+            Payer pagador = new Payer().setEmail("fabiriciots99@gmail.com");
+                    //.setType(Payer.type.registered);
             Payment pagamento = new Payment()
                     .setPayer(pagador)
                     .setExternalReference(id_saque)
                     .setPaymentMethodId("account_money")
-                    .setNotificationUrl(backendUrl.concat("/retorno-pagamento-locador"));
-
-            for (RetornoSaqueLocador p : produtos.get()){
+                    .setNotificationUrl(backendUrl.concat("/retorno-pagamento-locador"))
+                    .setCapture(true)
+                    .setBinaryMode(false)
+                    .setStatementDescriptor("Saque aluGo");
+            */
+            for (RetornoSaqueLocador p : produtos.get()){/*
                 Item produto = new Item()
                         .setId(p.getId_produto())
                         .setTitle(p.getNome_produto())
-                        .setUnitPrice((float)(double) p.getValor_debito())
+                        .setUnitPrice((float)(double) p.getValor())
                         .setDescription(p.getDescricao_curta())
                         .setQuantity(1);
-                listaProdutos.add(produto);
-                valotTotal += (float)(double) p.getValor_debito();
-            }
+                listaProdutos.add(produto);*/
+                valotTotal += (float)(double) p.getValor();
+            }/*
             pagamento.setAdditionalInfo(new AdditionalInfo().setItems(listaProdutos));
             pagamento.setTransactionAmount(valotTotal);
-            System.out.println(pagamento.save().getId());
+            System.out.println(pagamento.getExternalReference());
+            System.out.println(pagamento.getStatus());
+            System.out.println(pagamento.getStatusDetail());
+            System.out.println(pagamento.getId());
+            //System.out.println(pagamento.getExternalReference());
+            Payment retornoMp = pagamento.save();
+            System.out.println(retornoMp.getExternalReference());
+            System.out.println(retornoMp.getStatus());
+            System.out.println(retornoMp.getStatusDetail());
+            System.out.println(retornoMp.getId());
+            */
             return aluguelRepository.efetuaSaque(idLocador,((double) valotTotal),id_saque);
         }
         catch(Exception e) {
@@ -280,7 +293,7 @@ public class PagamentoController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage()==null) ? "" : e.getMessage(), Throwables.getStackTraceAsString(e));
-            return false;
+            return null;
         }
     }
 
@@ -291,14 +304,12 @@ public class PagamentoController {
         try {
             MercadoPago.SDK.setAccessToken(accessToken);
             Payment pagamento = Payment.findById(id_pagamento);
-            System.out.println(pagamento.getExternalReference());
             if(retencao == 1.00){
                 pagamento.refund();
             }
             else {
                 pagamento.refund((float) valor);
             }
-            System.out.println(pagamento.getStatus().toString()); //refunded;
             return true;
         }
         catch(Exception e) {

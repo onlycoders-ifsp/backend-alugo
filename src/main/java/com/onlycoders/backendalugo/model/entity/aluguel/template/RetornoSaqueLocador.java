@@ -7,8 +7,8 @@ public interface RetornoSaqueLocador {
     @JsonAlias("id_usuario")
     String getId_usuario();
 
-    @JsonAlias("valor_debito")
-    Double getValor_debito();
+    @JsonAlias("valor")
+    Double getValor();
 
     @JsonAlias("id_produto")
     String getId_produto();
