@@ -41,12 +41,18 @@ public interface RetornaProduto {
     @JsonGetter("media_avaliacao")
     Double getMedia_avaliacao();
 
-//    @JsonGetter("capa_foto")
-//    String getCapa_foto();
+    @JsonGetter("dt_aluguel")
+    String getDt_Aluguel();
+
+    @JsonGetter("categorias")
+    String getCategorias();
 
     @JsonGetter("capa_foto")
     byte[] getCapa_foto();
 
     @JsonGetter("ativo")
     Boolean getAtivo();
+
+    @JsonGetter("publicado")
+    Boolean getPublicado();
 }

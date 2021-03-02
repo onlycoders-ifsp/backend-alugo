@@ -1,0 +1,13 @@
+{
+  "properties": [
+    {
+      "name": "mercado.pago.access.token",
+      "type": "java.lang.String",
+      "description": "Description for mercadoPagoAccessToken."
+    },
+    {
+      "name": "backend.url",
+      "type": "java.lang.String",
+      "description": "Description for backend.url."
+    }
+  ] }

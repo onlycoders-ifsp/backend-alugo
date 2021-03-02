@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import com.onlycoders.backendalugo.model.entity.produto.templates.Categorias;
 import com.onlycoders.backendalugo.model.entity.produto.templates.Fotos;
 import lombok.Data;
 import lombok.Getter;
@@ -21,17 +22,16 @@ import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotNull;
 import java.sql.Array;
 import java.util.ArrayList;
+import java.util.List;
 
-@Data
-@Entity
 @Getter
 @Setter
 @NoArgsConstructor
-
+@Data
+@Entity
 public class Produto {
 
-    @JsonIgnore
-    @JsonAlias({"id_usuario"})
+    @JsonAlias("id_usuario")
     private String id_usuario;
 
     @Id
@@ -78,12 +78,12 @@ public class Produto {
     @JsonAlias({"capa_foto"})
     private String capa_foto;
 
-  //  @JsonAlias("fotos")
-/*  @Lob
-    private Byte[] fotos;
-*/
+    @ManyToMany
+    @JsonAlias("categorias")
+    private List<Categorias> categorias;
+
     @JsonAlias({"ativo"})
-    private Boolean ativo = true;
+    private Boolean ativo;
 
     public String getId_usuario() {
         return id_usuario;
@@ -195,5 +195,13 @@ public class Produto {
 
     public void setAtivo(Boolean ativo) {
         this.ativo = ativo;
+    }
+
+    public List<Categorias> getCategorias() {
+        return categorias;
+    }
+
+    public void setCategorias(List<Categorias> categorias) {
+        this.categorias = categorias;
     }
 }
