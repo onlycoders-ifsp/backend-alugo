@@ -1,7 +1,7 @@
 package com.onlycoders.backendalugo.api.rest;
 
 import com.google.common.base.Throwables;
-import com.onlycoders.backendalugo.model.entity.AluguelEncontro;
+import com.onlycoders.backendalugo.model.entity.aluguel.template.AluguelEncontro;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.*;
 import com.onlycoders.backendalugo.model.entity.aluguel.Aluguel;
 import com.onlycoders.backendalugo.model.entity.email.RetornoAlugueisNotificacao;
@@ -13,6 +13,7 @@ import com.onlycoders.backendalugo.model.repository.LogRepository;
 import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import com.onlycoders.backendalugo.service.EmailService;
+import com.onlycoders.backendalugo.model.entity.aluguel.StatusInterfaceEnum.StatusAluguel;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import javassist.NotFoundException;
@@ -44,6 +45,8 @@ public class AlugarController {
 
     @Autowired
     UsuarioRepository usuarioRepository;
+
+    @Autowired PagamentoController pagamentoController;
 
     @Autowired
     ProdutoRepository produtoRepository;
@@ -83,23 +86,19 @@ public class AlugarController {
             String valida = aluguelRepository.validaALuguel(getIdUsuario(), aluguel.getId_produto(), aluguel.getData_inicio(), aluguel.getData_fim(), SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
 
             if (!valida.equals("0")) {
-                throw new NullPointerException(valida);
-            } else {
-                if(!valida.equals("0")){
-                    return null;
-                }
-                String idAluguel = aluguelRepository.efetuaAluguel(getIdUsuario(), aluguel.getId_produto(),
-                        aluguel.getData_inicio(), aluguel.getData_fim(), aluguel.getValor_aluguel(), SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
-                if(idAluguel.isEmpty())
-                    return null;
-                RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(idAluguel.replace("\"",""),user);
-                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(idAluguel.replace("\"",""),user);
-                String locadorMail = new TemplateEmails().notificaLocadorAluguel(dados.getLocadorNome(),dados.getLocatarioNome(),dados.getProdutoNome(),r.getPeriodo(),r.getValor());
-                String locatarioMail = new TemplateEmails().notificaLocatarioAluguel(dados.getLocatarioNome(),dados.getLocadorNome(),dados.getProdutoNome(),r.getPeriodo(),r.getValor());
-                emailService.sendEmail(dados.getLocadorEmail(),"Solicitação de aluguel",locadorMail);
-                emailService.sendEmail(dados.getLocatarioEmail(),"Solicitação de aluguel",locatarioMail);
-                return idAluguel;
+                return valida;
             }
+            String idAluguel = aluguelRepository.efetuaAluguel(getIdUsuario(), aluguel.getId_produto(),
+                    aluguel.getData_inicio(), aluguel.getData_fim(), aluguel.getValor_aluguel(), SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
+            if(idAluguel.isEmpty())
+                return null;
+            RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(idAluguel.replace("\"",""),user);
+            RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(idAluguel.replace("\"",""),user);
+            String locadorMail = new TemplateEmails().notificaLocadorAluguel(dados.getLocadorNome(),dados.getLocatarioNome(),dados.getProdutoNome(),r.getPeriodo(),r.getValor());
+            String locatarioMail = new TemplateEmails().notificaLocatarioAluguel(dados.getLocatarioNome(),dados.getLocadorNome(),dados.getProdutoNome(),r.getPeriodo(),r.getValor());
+            emailService.sendEmail(dados.getLocadorEmail(),"Solicitação de aluguel",locadorMail);
+            emailService.sendEmail(dados.getLocatarioEmail(),"Solicitação de aluguel",locatarioMail);
+            return idAluguel;
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -108,7 +107,7 @@ public class AlugarController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
-            return "";
+            return null;
         }
     }
 
@@ -262,15 +261,24 @@ public class AlugarController {
     @ApiOperation(value = "Confirma aluguel(Dono)")
     @GetMapping("/confirma-aluguel")
     @ResponseStatus(HttpStatus.OK)
-    public Boolean confirmaAluguel(@RequestParam("id_aluguel") String id_aluguel,@RequestParam("ok") Boolean ok) {
+    public Boolean confirmaAluguel(@RequestParam("id_aluguel") String id_aluguel,@RequestParam("ok") Boolean ok,@RequestParam(value = "motivoRecusa",required = false,defaultValue = "")String motivoRecusa) {
         try {
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
-            aluguelRepository.alteraStatusAluguel(id_aluguel, (ok) ? 7 : 5, user);
-            RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(id_aluguel,user);
-            RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(id_aluguel,user);
-            String mailLocatario = new TemplateEmails().informaAceiteLocalLocador(dados.getLocatarioNome(),dados.getLocadorNome(),dados.getProdutoNome(),r.getPeriodo(),r.getValor());
-            emailService.sendEmail(dados.getLocatarioEmail(),"Confirmação do locador",mailLocatario);
-            return true;
+            if (!ok){
+                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(id_aluguel,user);
+                String mailLocatario = new TemplateEmails().locatarioAluguelRecusado(dados.getLocatarioNome(), dados.getProdutoNome(), motivoRecusa);
+                emailService.sendEmail(dados.getLocatarioEmail(),"Confirmação de aluguel", mailLocatario);
+                aluguelRepository.alteraStatusAluguel(id_aluguel, StatusAluguel.CANCELADO_PELO_LOCADOR.getCod_status(), user);
+                return false;
+            }
+            else {
+                RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(id_aluguel, user);
+                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(id_aluguel, user);
+                String mailLocatario = new TemplateEmails().informaAceiteLocalLocador(dados.getLocatarioNome(), dados.getLocadorNome(), dados.getProdutoNome(), r.getPeriodo(), r.getValor());
+                emailService.sendEmail(dados.getLocatarioEmail(), "Confirmação de aluguel", mailLocatario);
+                aluguelRepository.alteraStatusAluguel(id_aluguel, StatusAluguel.AGUARDANDO_PAGAMENTO.getCod_status(), user);
+                return true;
+            }
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -317,7 +325,7 @@ public class AlugarController {
         try {
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
 
-            Boolean ok = aluguelRepository.alteraStatusAluguel(aluguelEncontro.getId_aluguel(), 9, user);
+            Boolean ok = aluguelRepository.alteraStatusAluguel(aluguelEncontro.getId_aluguel(), StatusAluguel.AGUARDANDO_ACEITE_DO_DONO.getCod_status(), user);
 
             if (!ok){
                 System.out.println("deu ruim no status");
@@ -389,7 +397,7 @@ public class AlugarController {
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             if (aluguelRepository.gravaCheckListEntrega(checklist.getId_aluguel(), checklist.getDescricao(), user)){
                 RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(checklist.getId_aluguel(),user);
-                aluguelRepository.alteraStatusAluguel(checklist.getId_aluguel(), 14, user);
+                aluguelRepository.alteraStatusAluguel(checklist.getId_aluguel(), StatusAluguel.AGUARDANDO_OK_DO_LOCATARIO_CHECLILIST_ENTREGA.getCod_status(), user);
                 String locadorMail = new TemplateEmails().notificaChkEntregaLocatario(dados.getLocatarioNome());
                 emailService.sendEmail(dados.getLocatarioEmail(),"Confirme o checklist de entrega",locadorMail);
                 return true;
@@ -439,7 +447,7 @@ public class AlugarController {
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             if (aluguelRepository.gravaCheckListDevolucao(checklist.getId_aluguel(), checklist.getDescricao(), user)) {
                 RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(checklist.getId_aluguel(), user);
-                aluguelRepository.alteraStatusAluguel(checklist.getId_aluguel(), 15, user);
+                aluguelRepository.alteraStatusAluguel(checklist.getId_aluguel(), StatusAluguel.AGUARDANDO_OK_LOCATARIO_CHECKLIST_DEVOLUCAO.getCod_status(), user);
                 String locadorMail = new TemplateEmails().notificaChkDevolucaoLocatario(dados.getLocatarioNome());
                 emailService.sendEmail(dados.getLocatarioEmail(), "Confirme o checklist de devolução", locadorMail);
                 return true;
@@ -504,17 +512,24 @@ public class AlugarController {
     @ResponseStatus(HttpStatus.OK)
     Boolean aceiteChecklistEntrega(@Param(value = "id_aluguel") String id_aluguel,@Param(value = "ok") Boolean ok, @Param(value = "motivoRecusa") String motivoRecusa){
         try{
-            Boolean okRetorno;
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
-            okRetorno = aluguelRepository.aprovaReprovaCheckListEntrega(id_aluguel,ok,motivoRecusa,user);
-            if (okRetorno){
+            if(aluguelRepository.aprovaReprovaCheckListEntrega(id_aluguel,ok,motivoRecusa,user)){
                 RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(id_aluguel,user);
-                String locadorMail = new TemplateEmails().notificaChkEntregaLocador(dados.getLocadorNome());
-                emailService.sendEmail(dados.getLocadorEmail(),"Confirmação de checklist de entrega", locadorMail);
-                aluguelRepository.alteraStatusAluguel(id_aluguel, 2, user);
+                String locadorMail;
+                if(!ok){
+                    locadorMail = new TemplateEmails().DonoRecusaChecklistEntrega(dados.getLocadorNome(), dados.getProdutoNome(), motivoRecusa);
+                    emailService.sendEmail(dados.getLocadorEmail(),"Confirmação de checklist de entrega", locadorMail);
+                    aluguelRepository.alteraStatusAluguel(id_aluguel, StatusAluguel.AGUARDANDO_ENTREGA_DO_PRODUTO.getCod_status(), user);
+                }
+                else{
+                    locadorMail = new TemplateEmails().notificaChkEntregaLocador(dados.getLocadorNome());
+                    emailService.sendEmail(dados.getLocadorEmail(),"Confirmação de checklist de entrega", locadorMail);
+                    aluguelRepository.alteraStatusAluguel(id_aluguel, StatusAluguel.EM_ANDAMENTO.getCod_status(), user);
+                }
                 return true;
             }
-            return false;
+            else
+                return false;
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -532,23 +547,26 @@ public class AlugarController {
     @ResponseStatus(HttpStatus.OK)
     Boolean aceiteChecklistDevolucao(@Param(value = "id_aluguel") String id_aluguel,@Param(value = "ok") Boolean ok, @Param(value = "motivoRecusa") String motivoRecusa){
         try{
-            Boolean okRetorno;
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
-            aluguelRepository.alteraStatusAluguel(id_aluguel, 3, user);
-            okRetorno = aluguelRepository.aprovaReprovaCheckListDevolucao(id_aluguel,ok,motivoRecusa,user);
-            if (okRetorno){
-                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(id_aluguel,user);
-                String locadorMail = new TemplateEmails().notificaChkDevolucaoLocador(dados.getLocadorNome());
-                String locadorMailAvaliacao = new TemplateEmails().notificaAvalicaoLocador(dados.getLocadorNome());
-                String locatarioMailAvaliacao = new TemplateEmails().notificaAvaliacaoLocatario(dados.getLocatarioNome());
-                emailService.sendEmail(dados.getLocadorEmail(),"Confirmação de checklist de devolução", locadorMail);
-                emailService.sendEmail(dados.getLocatarioEmail(),"Avalie sua experiencia",locatarioMailAvaliacao);
-                emailService.sendEmail(dados.getLocadorEmail(),"Avalie sua experiencia",locadorMailAvaliacao);
-                aluguelRepository.alteraStatusAluguel(id_aluguel, 3, user);
+            if (aluguelRepository.aprovaReprovaCheckListDevolucao(id_aluguel, ok, motivoRecusa, user)) {
+                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(id_aluguel, user);
+                if(!ok){
+                    String locadorMail = new TemplateEmails().DonoRecusaChcklistDevolucao(dados.getLocadorNome(), dados.getProdutoNome(), motivoRecusa);
+                    emailService.sendEmail(dados.getLocadorEmail(), "Confirmação de checklist de devolução", locadorMail);
+                    aluguelRepository.alteraStatusAluguel(id_aluguel, StatusAluguel.AGUARDANDO_DEVOLUCAO_DO_PRODUTO.getCod_status(), user);
+                } else{
+                    String locadorMail = new TemplateEmails().notificaChkDevolucaoLocador(dados.getLocadorNome());
+                    String locadorMailAvaliacao = new TemplateEmails().notificaAvalicaoLocador(dados.getLocadorNome());
+                    String locatarioMailAvaliacao = new TemplateEmails().notificaAvaliacaoLocatario(dados.getLocatarioNome());
+                    emailService.sendEmail(dados.getLocadorEmail(), "Confirmação de checklist de devolução", locadorMail);
+                    emailService.sendEmail(dados.getLocatarioEmail(), "Avalie sua experiencia", locatarioMailAvaliacao);
+                    emailService.sendEmail(dados.getLocadorEmail(), "Avalie sua experiencia", locadorMailAvaliacao);
+                    aluguelRepository.alteraStatusAluguel(id_aluguel, StatusAluguel.FINALIZADO_SEM_OCORRRENCIA.getCod_status(), user);
+                }
                 return true;
             }
-            return false;
-
+            else
+                return false;
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -584,20 +602,26 @@ public class AlugarController {
     @ResponseStatus(HttpStatus.OK)
     Boolean confirmaAluguelEncontro(@RequestParam("id_aluguel") String id_aluguel, @RequestParam("ok") Boolean ok, @RequestParam(value = "motivo", required = false, defaultValue = "") String motivo){
         try{
-            if(!ok){
-                if(motivo.isEmpty()) {
-                    throw new NotFoundException("13");
-                }
-            }
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
-            if(ok) {
-                RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(id_aluguel,user);
-                RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(id_aluguel,user);
-                String locatarioMail = new TemplateEmails().notificaLocatarioConfirmaLocal(dados.getLocatarioNome(),dados.getLocadorNome(), dados.getProdutoNome(), r.getPeriodo(),r.getValor());
-                emailService.sendEmail(dados.getLocatarioEmail(),"Local de entrega",locatarioMail);
-                aluguelRepository.alteraStatusAluguel(id_aluguel, 1, user);
+            RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(id_aluguel,user);
+            RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(id_aluguel, user);
+            if(aluguelRepository.confirmaEncontro(id_aluguel,ok,(ok) ? "" : motivo,user)) {
+                if (!ok) {
+                    if (motivo.isEmpty()) {
+                        throw new NotFoundException("13");
+                    }
+                    String locatarioMail = new TemplateEmails().locatarioLocalRecusado(dados.getLocatarioNome(), dados.getLocadorNome(), dados.getProdutoNome(), r.getPeriodo(), r.getValor(),motivo);
+                    emailService.sendEmail(dados.getLocatarioEmail(), "Local de entrega", locatarioMail);
+                    aluguelRepository.alteraStatusAluguel(id_aluguel, StatusAluguel.PAGAMENTO_CONFIRMADO.getCod_status(), user);
+                } else {
+                    String locatarioMail = new TemplateEmails().notificaLocatarioConfirmaLocal(dados.getLocatarioNome(), dados.getLocadorNome(), dados.getProdutoNome(), r.getPeriodo(), r.getValor());
+                    emailService.sendEmail(dados.getLocatarioEmail(), "Local de entrega", locatarioMail);
+                    aluguelRepository.alteraStatusAluguel(id_aluguel, StatusAluguel.AGENDADO.getCod_status(), user);
+                }
+                return true;
             }
-            return aluguelRepository.confirmaEncontro(id_aluguel,ok,(ok) ? "" : motivo,user);
+            else
+                return false;
         }catch(Exception e) {
             String className = this.getClass().getSimpleName();
             String methodName = new Object() {
@@ -758,7 +782,7 @@ public class AlugarController {
                 emailService.sendEmail(ret.getLocadorEmail(), "Notificação de aluguel", bodyMailLocador);
                 //System.out.println("Enviando email para locatario " + ret.getLocatarioEmail());
                 emailService.sendEmail(ret.getLocatarioEmail(), "Notificação de aluguel", bodyMailLocatario);
-                aluguelRepository.alteraStatusAluguel(ret.getIdAluguel(),12,usuario); //Aguardando entrega
+                aluguelRepository.alteraStatusAluguel(ret.getIdAluguel(),StatusAluguel.AGUARDANDO_ENTREGA_DO_PRODUTO.getCod_status(), usuario); //Aguardando entrega
                 cont++;
             }
             System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Foram enviados " + cont * 2 + " emails para entrega de produto.");
@@ -777,7 +801,7 @@ public class AlugarController {
                 emailService.sendEmail(ret.getLocadorEmail(), "Notificação de aluguel", bodyMailLocador);
                 //System.out.println("Enviando email para locatario " + ret.getLocatarioEmail());
                 emailService.sendEmail(ret.getLocatarioEmail(), "Notificação de aluguel", bodyMailLocatario);
-                aluguelRepository.alteraStatusAluguel(ret.getIdAluguel(),10,usuario); //Aguardando devolução
+                aluguelRepository.alteraStatusAluguel(ret.getIdAluguel(),StatusAluguel.AGUARDANDO_DEVOLUCAO_DO_PRODUTO.getCod_status(), usuario); //Aguardando devolução
                 cont++;
             }
             System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Foram enviados " + cont * 2 + " emails para devolução de produto.");
@@ -788,15 +812,43 @@ public class AlugarController {
             String className = this.getClass().getSimpleName();
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
-            String endpoint = "";
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = "alugoMail";
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return "Erro ao enviar notificações";
         }
     }
 
+    @ApiOperation(value = "Retorna extrato de locador")
+    @GetMapping("/extrato-locador")
+    @ResponseStatus(HttpStatus.OK)
+    public Page<ExtratoLocadorDetalhe> retornaExtratoLocador(@RequestParam(value = "page",required = false,defaultValue = "0") int page,
+                                         @RequestParam(value = "size",required = false,defaultValue = "10") int size,
+                                         @RequestParam(value = "sort",required = false,defaultValue = "valor_ganho") String sortBy,
+                                         @RequestParam(value = "order",required = false,defaultValue = "desc") String order){
+        try{
+            String usuario = getIdUsuario();
+            List<ExtratoLocadorDetalhe> detalhe = aluguelRepository.retornaExtratoLocador(usuario,usuario);
+            //Double saldo = aluguelRepository.retornaExtratoLocadorSaldo(usuario,usuario);
+            //ExtratoLocador extratoLocador = new ExtratoLocador(saldo,detalhe);
+            Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
+            int start = (int) paging.getOffset();
+            int end = (start + paging.getPageSize()) > detalhe.size() ? detalhe.size() : (start + paging.getPageSize());
+            return new PageImpl<>(detalhe.subList(start, end), paging, detalhe.size());//listPa;
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = getIdUsuario();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
+    }
+
     //1x cada 15 minutos
-    @Scheduled(cron = "0 */15 * * * ?")
+    @Scheduled(cron = "0 */05 * * * ?")
     public void enviaNotificacaoAluguel(){
         try {
             System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Iniciando verificação de notificacao de alugueis para entrega do produto");
@@ -812,7 +864,7 @@ public class AlugarController {
                 emailService.sendEmail(ret.getLocadorEmail(), "Notificação de aluguel", bodyMailLocador);
                 //System.out.println("Enviando email para locatario " + ret.getLocatarioEmail());
                 emailService.sendEmail(ret.getLocatarioEmail(), "Notificação de aluguel", bodyMailLocatario);
-                aluguelRepository.alteraStatusAluguel(ret.getIdAluguel(),12,usuario); //Aguardando entrega
+                aluguelRepository.alteraStatusAluguel(ret.getIdAluguel(),StatusAluguel.AGUARDANDO_ENTREGA_DO_PRODUTO.getCod_status(), usuario); //Aguardando entrega
                 cont++;
             }
             System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Foram enviados " + cont * 2 + " emails para entrega de produto.");
@@ -830,7 +882,7 @@ public class AlugarController {
                 emailService.sendEmail(ret.getLocadorEmail(), "Notificação de aluguel", bodyMailLocador);
                 //System.out.println("Enviando email para locatario " + ret.getLocatarioEmail());
                 emailService.sendEmail(ret.getLocatarioEmail(), "Notificação de aluguel", bodyMailLocatario);
-                aluguelRepository.alteraStatusAluguel(ret.getIdAluguel(),10,usuario); //Aguardando devolução
+                aluguelRepository.alteraStatusAluguel(ret.getIdAluguel(),StatusAluguel.AGUARDANDO_DEVOLUCAO_DO_PRODUTO.getCod_status(), usuario); //Aguardando devolução
                 cont++;
             }
             System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Foram enviados " + cont * 2 + " emails para devolução de produto.");
@@ -843,5 +895,58 @@ public class AlugarController {
             String user = "alugoMail";
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
         }
+    }
+
+    @Scheduled(cron = "0 */05 * * * ?")
+    public void efetuaEstornoAluguel(){
+        try{
+            System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Iniciando verificação de alugueis para estornar");
+            List<RetornoAlugueisEstorno> l = aluguelRepository.retornaPagameentosEstorno("");
+            System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Encontrados " + l.size() + " alugueis para estornar");
+            String locatarioMail = "";
+            String locadorMail = "";
+            for(RetornoAlugueisEstorno ret : l){
+                if(pagamentoController.estornoPagmenento(ret.getId_pagamento_mp(),ret.getValor(),ret.getRetencao())){
+                    RetornoAlugueisNotificacao dados = aluguelRepository.retornaDadosLocadorLocatario(ret.getId_aluguel(),"");
+                    RetornaAluguelEncontro r = aluguelRepository.retornaAluguelEncontro(ret.getId_aluguel(),"");
+                    switch (ret.getStatus()){
+                        case 11:
+                            locadorMail = new TemplateEmails().donoEstornoNaoInseridoLocal(dados.getLocadorNome(),dados.getLocatarioNome(), dados.getProdutoNome(),r.getPeriodo(),r.getValor());
+                            locatarioMail = new TemplateEmails().locatarioEstornoNaoInseridoLocal(dados.getLocatarioNome(),dados.getLocadorNome(), dados.getProdutoNome(),r.getPeriodo(),r.getValor());
+                            aluguelRepository.alteraStatusAluguel(ret.getId_aluguel(),StatusAluguel.CANCELAMENTO_AUTOMATICO_LOCATARIO_NAO_PREENCHEU_AS_INFORMACOES_DE_ENCONTRO_DENTRO_DO_PRAZO.getCod_status(),"");
+                            break;
+
+                        case 9:
+                            locadorMail = new TemplateEmails().donoEstornoNaoConfirmadoLocal(dados.getLocadorNome(),dados.getLocatarioNome(), dados.getProdutoNome(),r.getPeriodo(),r.getValor());
+                            locatarioMail = new TemplateEmails().locatarioEstornoNaoConfirmadoLocal(dados.getLocatarioNome(),dados.getLocadorNome(), dados.getProdutoNome(),r.getPeriodo(),r.getValor());
+                            aluguelRepository.alteraStatusAluguel(ret.getId_aluguel(),StatusAluguel.CANCELAMENTO_AUTOMATICO_DONO_NAO_CONFIRMOU_O_ENCONTRO_DENTRO_DO_PRAZO.getCod_status(), "");
+                            break;
+
+                        case 12:
+                            //TODO
+                            break;
+
+                        default:
+                            break;
+                    }
+                    emailService.sendEmail(dados.getLocatarioEmail(),"Cancelamento de aluguel", locatarioMail);
+                    emailService.sendEmail(dados.getLocadorEmail(),"Cancelamento de aluguel", locadorMail);
+                    //String locatarioMail = new TemplateEmails().locatario
+
+                }
+                else
+                    System.out.println("erro ao estornar pagamento");
+            }
+            System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Foram enviados " + l.size() * 2 + " emails");
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = "";
+            //String user = getIdUsuario();
+            logRepository.gravaLogBackend(className, methodName, endpoint, "", e.getMessage(), Throwables.getStackTraceAsString(e));
+        }
+
     }
 }

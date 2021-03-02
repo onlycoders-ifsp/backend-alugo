@@ -1,4 +1,4 @@
-package com.onlycoders.backendalugo.model.entity;
+package com.onlycoders.backendalugo.model.entity.aluguel.template;
 
 public class Meses {
 

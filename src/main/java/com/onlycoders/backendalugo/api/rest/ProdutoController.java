@@ -118,11 +118,13 @@ public class ProdutoController {
                     @RequestParam(value = "order",required = false,defaultValue = "desc") String order,
                     @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
         try{
-            //System.out.println(ServletUriComponentsBuilder..build().getHost());
+            //System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().build().toUri().toString().replace("/lista-usuario","/retorno-pagamento"));
+
             Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
             //System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().build().getPath());
             Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(
                     transformaRetornoProdutoToPage(repository.findProduto("0", "0", 4, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging));
+
         /*if (!produtos.get().isEmpty()) {
             return new ResponseEntity<>(produtos.get(), HttpStatus.OK);
         }*/

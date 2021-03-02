@@ -1,6 +1,6 @@
 package com.onlycoders.backendalugo.api.rest;
 import com.google.common.base.Throwables;
-import com.onlycoders.backendalugo.model.entity.Meses;
+import com.onlycoders.backendalugo.model.entity.aluguel.template.Meses;
 import com.onlycoders.backendalugo.model.entity.admin.LogErros;
 import com.onlycoders.backendalugo.model.entity.email.RetornoUsuarioProdutoNoficacao;
 import com.onlycoders.backendalugo.model.entity.email.templatesEmails.TemplateEmails;
@@ -33,6 +33,8 @@ import java.util.Optional;
 @CrossOrigin(origins = "*")
 @Secured("ROLE_ADMIN")
 public class AdminController {
+
+    @Autowired PagamentoController pagamentoController;
 
     @Autowired
     private AdminRepository adminRepository;
@@ -317,6 +319,11 @@ public class AdminController {
         }
 
     }
+
+    //@ApiOperation(value = "Acata problema e efetua devolução de acordo com a gravidade", response = ErrosProcedureAgrupado.class)
+    //@GetMapping("/estorno-aluguel")
+    //@ResponseStatus(HttpStatus.OK)
+
     public Page <ProdutoAluguel> transformaRetornoProdutoToPage(List<RetornaProduto> ret, Pageable page){
         List<ProdutoAluguel> listPa = new ArrayList<>();
         String[] dtAluguel;

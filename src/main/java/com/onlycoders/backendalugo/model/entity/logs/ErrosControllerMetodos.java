@@ -2,7 +2,7 @@ package com.onlycoders.backendalugo.model.entity.logs;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.onlycoders.backendalugo.model.entity.Meses;
+import com.onlycoders.backendalugo.model.entity.aluguel.template.Meses;
 import java.util.List;
 
 public class ErrosControllerMetodos {
