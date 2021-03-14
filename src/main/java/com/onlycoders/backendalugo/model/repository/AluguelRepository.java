@@ -184,7 +184,7 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
                                   @Param("usuario") String usuario);
 
     @Query(value = "SELECT *FROM FN_RETORNA_SALDO_LOCADOR(:id_usuario,:usuario)" +
-            "AS (ID_PAGAMENTO TEXT, VALOR DECIMAL (18,2),DESCRICAO TEXT, ID_ALUGUEL TEXT, DATA_INCLUSAO TEXT);",nativeQuery = true)
+            "AS (ID_PAGAMENTO TEXT, VALOR DECIMAL (18,2),DESCRICAO TEXT, SACADO BOOLEAN,ID_ALUGUEL TEXT, DATA_INCLUSAO TEXT);",nativeQuery = true)
     List<ExtratoLocadorDetalhe> retornaExtratoLocador(@Param("id_usuario") String id_usuario,
                                                       @Param("usuario") String usuario);
 

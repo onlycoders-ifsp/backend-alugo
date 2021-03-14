@@ -13,6 +13,9 @@ public interface ExtratoLocadorDetalhe {
     @JsonAlias("descricao")
     String getDescricao();
 
+    @JsonAlias("sacado")
+    Boolean getSacado();
+
     @JsonAlias("id_aluguel")
     String getId_aluguel();
 
