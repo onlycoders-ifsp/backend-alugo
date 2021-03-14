@@ -860,6 +860,26 @@ public class AlugarController {
         }
     }
 
+    @ApiOperation(value = "Retorna resumo extrato")
+    @GetMapping("/resumo-extrato")
+    @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public RetornoResumoExtrato retornoResumoExtrato(){
+        try{
+            String usuario = usuarioController.getIdUsuario();
+            return aluguelRepository.retornaResumoExtrato(usuario);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = usuarioController.getIdUsuario();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
+    }
+
     //TODO
     void salvaExtensaoAluguel(){
 

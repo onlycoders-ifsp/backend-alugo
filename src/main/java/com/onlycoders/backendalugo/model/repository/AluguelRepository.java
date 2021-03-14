@@ -212,4 +212,13 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
                                          @Param("tipo_retorno") String tipo_retorno,
                                          @Param("status") String status,
                                          @Param("usuario") String usuario);
+
+    @Query(value = "select " +
+            "cast(sum(case sacado when true then valor else 0 end)as decimal(18,2)) Valor_Sacado, " +
+            "cast(sum(case sacado when false then valor else 0 end)as decimal(18,2)) Valor_A_Receber, " +
+            "cast(sum(valor)as decimal(18,2)) Total " +
+            "from saldo_locador " +
+            "where id_locador = uuid(:id_usuario) " +
+            "group by id_locador;",nativeQuery = true)
+    RetornoResumoExtrato retornaResumoExtrato(@Param("id_usuario")String id_usuario);
 }
