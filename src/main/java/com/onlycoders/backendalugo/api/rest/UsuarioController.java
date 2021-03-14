@@ -17,7 +17,6 @@ import com.onlycoders.backendalugo.service.EmailService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import javassist.NotFoundException;
-import lombok.RequiredArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,7 +26,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
 import javax.servlet.http.Part;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,29 +34,26 @@ import java.util.UUID;
 @RestController
 @Api(value = "Usuarios")
 @RequestMapping("/usuarios")
-@RequiredArgsConstructor
 @CrossOrigin("*")
 public class UsuarioController {
 
-    private UsuarioRepository repository;
+    private final UsuarioRepository usuarioRepository;
+    private final LogRepository logRepository;
+    private final EmailService emailService;
 
     @Autowired
-    public UsuarioController(UsuarioRepository repository) {
-        this.repository = repository;
+    public UsuarioController(UsuarioRepository usuarioRepository, LogRepository logRepository, EmailService emailService) {
+        this.usuarioRepository = usuarioRepository;
+        this.logRepository = logRepository;
+        this.emailService = emailService;
     }
-
-    @Autowired
-    private LogRepository logRepository;
-
-    @Autowired
-    private EmailService emailService;
 
     @ApiOperation(value = "Retorna dados do usuario logado", response = RetornaUsuario.class)
     @GetMapping("/usuario-logado")
     @ResponseStatus(HttpStatus.OK)
     public RetornaUsuario retornaUsuarioLogado() {
         try {
-            return repository.findUsuario(getIdUsuario()).get(0);
+            return usuarioRepository.findUsuario(getIdUsuario()).get(0);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -69,7 +64,7 @@ public class UsuarioController {
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return null;
         }
-        //return GeraLista(repository.findUsuario(id_usuario));
+        //return GeraLista(usuarioRepository.findUsuario(id_usuario));
     }
 
     @ApiOperation(value = "Retorna dados de um único usuario pelo id ou login", response = RetornaUsuario.class)
@@ -77,7 +72,7 @@ public class UsuarioController {
     @ResponseStatus(HttpStatus.OK)
     public RetornaUsuario retornaUsuario(@RequestParam String id_usuario) {
 
-        return repository.findUsuario(id_usuario).get(0);
+        return usuarioRepository.findUsuario(id_usuario).get(0);
     }
 
  /*
@@ -91,9 +86,9 @@ public class UsuarioController {
                                                              required = false,
                                                              defaultValue = "10") int size) {
         Pageable paging = PageRequest.of(page, size);
-        List<RetornaUsuario> listUsers = repository.findUsuario("0");
+        List<RetornaUsuario> listUsers = usuarioRepository.findUsuario("0");
         return new PageImpl<>(listUsers,paging,listUsers.size());
-        //return GeraLista(repository.findUsuario(id_usuario));
+        //return GeraLista(usuarioRepository.findUsuario(id_usuario));
     }
 
   */
@@ -104,7 +99,7 @@ public class UsuarioController {
     public Boolean verificaCodigo(@RequestParam("code") String code){
         String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
         try {
-            Boolean ativo = repository.ativaUsuario(code, user);
+            Boolean ativo = usuarioRepository.ativaUsuario(code, user);
             System.out.println(ativo);
             return ativo;
         }catch(Exception e) {
@@ -127,7 +122,7 @@ public class UsuarioController {
             String site = url;
             String verificationCode = UUID.randomUUID().toString();
             site += "/valida-cadastro?key=" + verificationCode;
-            if(repository
+            if(usuarioRepository
                     .createUsuarioMin(usuario.getNome(), usuario.getEmail().toLowerCase(), usuario.getLogin(),
                             usuario.getSenha(), usuario.getCpf(), usuario.getCelular(), verificationCode)){
                 String mailBody = new TemplateEmails().confirmaCadastro(usuario.getNome(),site);
@@ -144,21 +139,21 @@ public class UsuarioController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
-            return null;
+            return false;
         }
     }
 
     @ApiOperation(value = "Atualiza/Cadastra foto de usuario")
     @PutMapping("/upload-foto")
     @ResponseStatus(HttpStatus.CREATED)
-    public Boolean atualizaFoto(@RequestParam Part capa_foto) throws NotFoundException {
+    public Boolean atualizaFoto(@RequestParam Part capa_foto){
         String usuario = getIdUsuario();
         try{
             InputStream is = capa_foto.getInputStream();
             byte[] bytes = new byte[(int) capa_foto.getSize()];
             IOUtils.readFully(is,bytes);
             is.close();
-            return repository.uploadFoto(usuario, bytes);
+            return usuarioRepository.uploadFoto(usuario, bytes);
 
         } catch(IOException e) {
             String className = this.getClass().getSimpleName();
@@ -174,10 +169,10 @@ public class UsuarioController {
     @ApiOperation(value = "Muda senha do usuario logado")
     @PutMapping("/altera-senha")
     @ResponseStatus(HttpStatus.OK)
-    public Boolean alteraSenha(@RequestBody AlteraSenha senha) throws NotFoundException {
+    public Boolean alteraSenha(@RequestBody AlteraSenha senha){
         try {
-            if (new BCryptPasswordEncoder().matches(senha.getSenha_antiga(), repository.retornaSenha(getIdUsuario())))
-                return repository.alteraSenha(getIdUsuario(), senha.getSenha_nova());
+            if (new BCryptPasswordEncoder().matches(senha.getSenha_antiga(), usuarioRepository.retornaSenha(getIdUsuario())))
+                return usuarioRepository.alteraSenha(getIdUsuario(), senha.getSenha_nova());
             else
                 throw new NotFoundException("Senha incorreta");
         }
@@ -198,7 +193,7 @@ public class UsuarioController {
     public RetornaUsuario alteraUsuario(@RequestBody RequestUsuario usuario) {
         //validaCampos(usuario.getLogin(),usuario.getCpf(),usuario.getEmail(),usuario.getCelular(),usuario.getNome(),true);
         try {
-            return repository.updateUserById(getIdUsuario(), usuario.getNome(), usuario.getEmail().toLowerCase(),
+            return usuarioRepository.updateUserById(getIdUsuario(), usuario.getNome(), usuario.getEmail().toLowerCase(),
                     usuario.getLogin(), usuario.getCpf(), usuario.getCelular(), usuario.getData_nascimento(),
                     usuario.getCep(), usuario.getLogradouro(), usuario.getComplemento(), usuario.getBairro(),
                     usuario.getNumero()).get(0);
@@ -219,7 +214,7 @@ public class UsuarioController {
     @ResponseStatus(HttpStatus.OK)
     public Boolean verificaEmail(@RequestParam String email){
         try {
-            return repository.validaDado(email, 2);
+            return usuarioRepository.validaDado(email, 2);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -237,7 +232,7 @@ public class UsuarioController {
     @ResponseStatus(HttpStatus.OK)
     public Boolean verificaCpf(@RequestParam String cpf){
         try {
-            return repository.validaDado(cpf, 1);
+            return usuarioRepository.validaDado(cpf, 1);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -255,7 +250,7 @@ public class UsuarioController {
     @ResponseStatus(HttpStatus.OK)
     public Boolean verificaUserName(@RequestParam String user){
         try {
-            return repository.validaDado(user, 3);
+            return usuarioRepository.validaDado(user, 3);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -273,7 +268,7 @@ public class UsuarioController {
     @ResponseStatus(HttpStatus.OK)
     public Boolean verificaEmailUpdate(@RequestParam String email){
         try {
-            return repository.validaDadouUpdate(email, getIdUsuario(), 2);
+            return usuarioRepository.validaDadouUpdate(email, getIdUsuario(), 2);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -291,7 +286,7 @@ public class UsuarioController {
     @ResponseStatus(HttpStatus.OK)
     public Boolean verificaCpfUpdate(@RequestParam String cpf){
         try {
-            return repository.validaDadouUpdate(cpf, getIdUsuario(), 1);
+            return usuarioRepository.validaDadouUpdate(cpf, getIdUsuario(), 1);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -309,7 +304,7 @@ public class UsuarioController {
     @ResponseStatus(HttpStatus.OK)
     public Boolean verificaUserNameUpdate(@RequestParam String user){
         try {
-            return repository.validaDadouUpdate(user, getIdUsuario(), 3);
+            return usuarioRepository.validaDadouUpdate(user, getIdUsuario(), 3);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -336,35 +331,35 @@ public class UsuarioController {
             }
 
             else if(isUpdate){
-                if(repository.validaDadouUpdate(login,getIdUsuario(),3)){
+                if(usuarioRepository.validaDadouUpdate(login,getIdUsuario(),3)){
                     throw new NullPointerException("Login já existe");
                 }
-                else if(repository.validaDadouUpdate(cpf, getIdUsuario(),1)){
+                else if(usuarioRepository.validaDadouUpdate(cpf, getIdUsuario(),1)){
                     throw new NullPointerException("CPF já existe");
                 }
-                else if(repository.validaDadouUpdate(email,getIdUsuario(),2)){
+                else if(usuarioRepository.validaDadouUpdate(email,getIdUsuario(),2)){
                     throw new NullPointerException("Email já existe");
                 }
             }
             else {
 
-                if (repository.validaDado(login, 3)) {
+                if (usuarioRepository.validaDado(login, 3)) {
                     throw new NullPointerException("Login já existe");
                 }
 
                 if (cpf.isEmpty() || cpf == null) {
                     throw new NullPointerException("CPF inválido");
-                } else if (repository.validaDado(cpf, 1)) {
+                } else if (usuarioRepository.validaDado(cpf, 1)) {
                     throw new NullPointerException("CPF já existe");
                 }
 
                 if (email.isEmpty() || email == null || !email.contains("@")) {
                     throw new NullPointerException("Email inválido");
-                } else if (repository.validaDado(email, 2)) {
+                } else if (usuarioRepository.validaDado(email, 2)) {
                     throw new NullPointerException("Email já existe");
                 }
             }
-            //  return valida = repository.validaCampos(login, cpf, email);
+            //  return valida = usuarioRepository.validaCampos(login, cpf, email);
         }
     */
     public String getIdUsuario(){
@@ -376,8 +371,8 @@ public class UsuarioController {
             throw new NullPointerException("Usuario não logado");
         }
 
-        login = repository.retornaIdUsuario(auth.getName().split("\\|")[0]);
-        if (login.isEmpty() || login == null) {
+        login = usuarioRepository.retornaIdUsuario(auth.getName().split("\\|")[0]);
+        if (login.isEmpty()) {
             throw new NullPointerException("Usuario não encontrado");
         }
         return login;

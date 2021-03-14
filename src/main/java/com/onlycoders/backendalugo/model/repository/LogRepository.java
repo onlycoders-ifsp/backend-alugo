@@ -9,7 +9,7 @@ public interface LogRepository extends JpaRepository<LogErros,Integer> {
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     @Query(value = "select FN_REPORT_ERRO_BACKEND(:controller, :metodo, :endpoint,:usuario, :message, :stack_trace);",nativeQuery = true)
-    Boolean gravaLogBackend(@Param("controller") String controller,
+    void gravaLogBackend(@Param("controller") String controller,
                          @Param("metodo") String metodo,
                          @Param("endpoint") String endpoint,
                          @Param("usuario") String usuario,

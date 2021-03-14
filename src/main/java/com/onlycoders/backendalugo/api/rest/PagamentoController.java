@@ -1,19 +1,14 @@
 package com.onlycoders.backendalugo.api.rest;
 
 import com.google.common.base.Throwables;
-import com.google.gson.Gson;
 import com.mercadopago.MercadoPago;
 import com.mercadopago.resources.Payment;
-import com.mercadopago.resources.datastructures.payment.AdditionalInfo;
-import com.mercadopago.resources.datastructures.payment.Item;
-import com.mercadopago.resources.datastructures.payment.Payer;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornoSaqueLocador;
 import com.onlycoders.backendalugo.model.entity.email.RetornoAlugueisNotificacao;
 import com.onlycoders.backendalugo.model.entity.email.templatesEmails.TemplateEmails;
 import com.onlycoders.backendalugo.model.entity.pagamento.WebHookPagamento;
 import com.onlycoders.backendalugo.model.repository.AluguelRepository;
 import com.onlycoders.backendalugo.model.repository.LogRepository;
-import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
 import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import com.onlycoders.backendalugo.service.EmailService;
 import io.swagger.annotations.Api;
@@ -30,8 +25,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.onlycoders.backendalugo.model.entity.aluguel.StatusInterfaceEnum.StatusAluguel;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,26 +35,24 @@ import java.util.Optional;
 //@Secured("ROLE_USER")
 public class PagamentoController {
 
-    @Autowired
-    UsuarioRepository usuarioRepository;
-
-    @Autowired
-    ProdutoRepository produtoRepository;
-
-    @Autowired
-    AluguelRepository aluguelRepository;
-
-    @Autowired
-    private LogRepository logRepository;
-
-    @Autowired
-    private EmailService emailService;
+    private final UsuarioRepository usuarioRepository;
+    private final AluguelRepository aluguelRepository;
+    private final LogRepository logRepository;
+    private final EmailService emailService;
 
     @Value("${mercado.pago.access.token}")
     String accessToken;// = "TEST-3839591210769699-020717-920ee176862d215166e271d66e8432f7-132870722";
 
     @Value("${backend.url}")
     String backendUrl;
+
+    @Autowired
+    public PagamentoController(UsuarioRepository usuarioRepository, AluguelRepository aluguelRepository, LogRepository logRepository, EmailService emailService) {
+        this.usuarioRepository = usuarioRepository;
+        this.aluguelRepository = aluguelRepository;
+        this.logRepository = logRepository;
+        this.emailService = emailService;
+    }
 
     /*
     @ApiOperation(value = "Realiza a baixa do pagamento no sistema e envia os emails.")
@@ -245,8 +236,8 @@ public class PagamentoController {
 
             String id_saque = produtos.get().get(0).getId_saque();
             float valotTotal = 0.00f;
-            ArrayList<Item> listaProdutos = new ArrayList<>();
-            /*MercadoPago.SDK.setAccessToken(accessToken);
+            /*ArrayList<Item> listaProdutos = new ArrayList<>();
+            MercadoPago.SDK.setAccessToken(accessToken);
 
             Gson json = new Gson();
 
@@ -293,7 +284,7 @@ public class PagamentoController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage()==null) ? "" : e.getMessage(), Throwables.getStackTraceAsString(e));
-            return null;
+            return false;
         }
     }
 
@@ -333,7 +324,7 @@ public class PagamentoController {
         }
 
         login = usuarioRepository.retornaIdUsuario(auth.getName().split("\\|")[0]);
-        if (login.isEmpty() || login == null) {
+        if (login.isEmpty()) {
             throw new NullPointerException("Usuario não encontrado");
         }
         return login;

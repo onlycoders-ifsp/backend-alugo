@@ -24,14 +24,13 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.servlet.http.Part;
 import java.io.InputStream;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -43,31 +42,30 @@ import java.util.*;
 @CrossOrigin(origins = "*")
 public class AlugarController {
 
-    @Autowired
-    UsuarioRepository usuarioRepository;
-
-    @Autowired PagamentoController pagamentoController;
-
-    @Autowired
-    ProdutoRepository produtoRepository;
-
-    @Autowired
-    AluguelRepository aluguelRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final PagamentoController pagamentoController;
+    private final ProdutoRepository produtoRepository;
+    private final AluguelRepository aluguelRepository;
+    private final LogRepository logRepository;
+    private final EmailService emailService;
+    private final UsuarioController usuarioController;
 
     @Autowired
-    private LogRepository logRepository;
-
-    @Autowired
-    private EmailService emailService;
-
-    public AlugarController(AluguelRepository aluguelRepository) {
+    public AlugarController(UsuarioRepository usuarioRepository, PagamentoController pagamentoController, ProdutoRepository produtoRepository, AluguelRepository aluguelRepository, LogRepository logRepository, EmailService emailService, UsuarioController usuarioController) {
+        this.usuarioRepository = usuarioRepository;
+        this.pagamentoController = pagamentoController;
+        this.produtoRepository = produtoRepository;
         this.aluguelRepository = aluguelRepository;
+        this.logRepository = logRepository;
+        this.emailService = emailService;
+        this.usuarioController = usuarioController;
     }
 
     @ApiOperation(value = "Efetua aluguel do usuario logado. Param id_produto")
     @PostMapping("/aluguel-efetua")
     @ResponseStatus(HttpStatus.OK)
-    public String EfetuaAluguel(@RequestBody Aluguel aluguel) throws ParseException {
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public String EfetuaAluguel(@RequestBody Aluguel aluguel){
         try {
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             Calendar calendar = Calendar.getInstance();
@@ -83,12 +81,12 @@ public class AlugarController {
                 throw new NullPointerException("11");
             }
 
-            String valida = aluguelRepository.validaALuguel(getIdUsuario(), aluguel.getId_produto(), aluguel.getData_inicio(), aluguel.getData_fim(), SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
+            String valida = aluguelRepository.validaALuguel(usuarioController.getIdUsuario(), aluguel.getId_produto(), aluguel.getData_inicio(), aluguel.getData_fim(), SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
 
             if (!valida.equals("0")) {
                 return valida;
             }
-            String idAluguel = aluguelRepository.efetuaAluguel(getIdUsuario(), aluguel.getId_produto(),
+            String idAluguel = aluguelRepository.efetuaAluguel(usuarioController.getIdUsuario(), aluguel.getId_produto(),
                     aluguel.getData_inicio(), aluguel.getData_fim(), aluguel.getValor_aluguel(), SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
             if(idAluguel.isEmpty())
                 return null;
@@ -114,26 +112,29 @@ public class AlugarController {
     @ApiOperation(value = "Retorna todos alugueis do usuario logado como locador")
     @GetMapping("/locador")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public ResponseEntity<?>// Page<RetornaAluguelUsuarioProduto>
     retornaAluguelLocadorLogado(@RequestParam(value = "page",
-            required = false,
-            defaultValue = "0") int page,
+                                              required = false,
+                                              defaultValue = "0") int page,
                                 @RequestParam(value = "size",
-                                        required = false,
-                                        defaultValue = "10") int size,
-                                @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
+                                              required = false,
+                                              defaultValue = "10") int size,
+                                @RequestParam(value = "categoria",
+                                              required = false,
+                                              defaultValue = "0") int categoria){
         try {
             Pageable paging = PageRequest.of(page, size);
 
-            String id_locador = getIdUsuario();
+            String id_locador = usuarioController.getIdUsuario();
             String id_locatario;
             String id_produto;
 
-            List<RetornaAluguelUsuarioProduto> alugueis = new ArrayList<RetornaAluguelUsuarioProduto>();
+            List<RetornaAluguelUsuarioProduto> alugueis = new ArrayList<>();
 
             Optional<List<RetornaAluguel>> aluguelEfeutuado = Optional.ofNullable(aluguelRepository
                     .retornaAluguel(id_locador, "0", "0", "0", 2, SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]));
-            if (!aluguelEfeutuado.get().isEmpty()) {
+            if (aluguelEfeutuado.isPresent() && !aluguelEfeutuado.get().isEmpty()) {
                 for (RetornaAluguel a : aluguelEfeutuado.get()) {
                     RetornaAluguelUsuarioProduto aluguel = new RetornaAluguelUsuarioProduto();
 
@@ -151,7 +152,7 @@ public class AlugarController {
                     alugueis.add(aluguel);
                 }
                 int start = (int) paging.getOffset();
-                int end = (start + paging.getPageSize()) > alugueis.size() ? alugueis.size() : (start + paging.getPageSize());
+                int end = Math.min((start + paging.getPageSize()), alugueis.size());
                 return new ResponseEntity<>(new PageImpl<>(alugueis.subList(start, end), paging, alugueis.size()), HttpStatus.OK);
             }else
                 return new ResponseEntity<>(new PageImpl<>(new ArrayList<>(), PageRequest.of(1,1), 0), HttpStatus.OK);
@@ -171,26 +172,29 @@ public class AlugarController {
     @ApiOperation(value = "Retorna todos alugueis do usuario logado como locatario")
     @GetMapping("/locatario")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public ResponseEntity<?>//Page<RetornaAluguelUsuarioProduto>
     retornaAluguelLocatarioLogado(@RequestParam(value = "page",
-            required = false,
-            defaultValue = "0") int page,
+                                                required = false,
+                                                defaultValue = "0") int page,
                                   @RequestParam(value = "size",
-                                          required = false,
-                                          defaultValue = "10") int size,
-                                  @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
+                                                required = false,
+                                                defaultValue = "10") int size,
+                                  @RequestParam(value = "categoria",
+                                                required = false,
+                                                defaultValue = "0") int categoria){
 
         try {
             Pageable paging = PageRequest.of(page, size);
-            String id_locatario = getIdUsuario();
+            String id_locatario = usuarioController.getIdUsuario();
             String id_produto;
             String id_locador;
 
-            List<RetornaAluguelUsuarioProduto> alugueis = new ArrayList<RetornaAluguelUsuarioProduto>();
+            List<RetornaAluguelUsuarioProduto> alugueis = new ArrayList<>();
 
             Optional<List<RetornaAluguel>> aluguelEfeutuado = Optional.ofNullable(aluguelRepository
                     .retornaAluguel("0", id_locatario, "0", "0", 3, SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]));
-            if (!aluguelEfeutuado.get().isEmpty()) {
+            if (aluguelEfeutuado.isPresent() && !aluguelEfeutuado.get().isEmpty()) {
                 for (RetornaAluguel a : aluguelEfeutuado.get()) {
                     RetornaAluguelUsuarioProduto aluguel = new RetornaAluguelUsuarioProduto();
                     id_locador = a.getId_locador();
@@ -205,7 +209,7 @@ public class AlugarController {
                     alugueis.add(aluguel);
                 }
                 int start = (int) paging.getOffset();
-                int end = (start + paging.getPageSize()) > alugueis.size() ? alugueis.size() : (start + paging.getPageSize());
+                int end = Math.min((start + paging.getPageSize()), alugueis.size());
                 return new ResponseEntity<>(new PageImpl<>(alugueis.subList(start, end), paging, alugueis.size()), HttpStatus.OK);
             }else
                 return new ResponseEntity<>(new PageImpl<>(new ArrayList<>(), PageRequest.of(1,1), 0), HttpStatus.OK);
@@ -225,6 +229,7 @@ public class AlugarController {
     @ApiOperation(value = "Retorna unico aluguel pelo id_aluguel")
     @GetMapping("/aluguel")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public RetornaAluguel retornaAluguelAluguel(@RequestParam("id_aluguel") String id_aluguel) {
         try {
             return aluguelRepository.retornaAluguel("0", "0", id_aluguel, "0", 1, SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]).get(0);
@@ -243,6 +248,7 @@ public class AlugarController {
     @ApiOperation(value = "Retorna alugueis do produto")
     @GetMapping("/produto")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public List<RetornaAluguel> retornaAluguelProduto(@RequestParam("id_produto") String id_produto) {
         try {
             return aluguelRepository.retornaAluguel("0", "0", "0", id_produto, 4, SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
@@ -261,6 +267,7 @@ public class AlugarController {
     @ApiOperation(value = "Confirma aluguel(Dono)")
     @GetMapping("/confirma-aluguel")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean confirmaAluguel(@RequestParam("id_aluguel") String id_aluguel,@RequestParam("ok") Boolean ok,@RequestParam(value = "motivoRecusa",required = false,defaultValue = "")String motivoRecusa) {
         try {
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
@@ -294,6 +301,7 @@ public class AlugarController {
     @ApiOperation(value = "Retorna detalhes do aluguel")
     @GetMapping("/detalhe")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Page<RetornaAluguelDetalhe> retornaAluguelProduto(@RequestParam("id_produto") String id_produto,
                                                              @RequestParam(value = "page",required = false,defaultValue = "0") int page,
                                                              @RequestParam(value = "size",required = false,defaultValue = "10") int size,
@@ -303,7 +311,7 @@ public class AlugarController {
             List<RetornaAluguelDetalhe> detAlugeis = aluguelRepository.retornaAluguelDetalhe(id_produto, SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
             Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
             int start = (int) paging.getOffset();
-            int end = (start + paging.getPageSize()) > detAlugeis.size() ? detAlugeis.size() : (start + paging.getPageSize());
+            int end = Math.min((start + paging.getPageSize()), detAlugeis.size());
             return new PageImpl<>(detAlugeis.subList(start, end), paging, detAlugeis.size());//listPa;
             //return detAlugeis;
         }
@@ -321,6 +329,7 @@ public class AlugarController {
     @ApiOperation(value = "Salva dados de entrega e devolução do produto")
     @PostMapping("/entrega-devolucao")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean inserirAluguelEncontro(@RequestBody AluguelEncontro aluguelEncontro){
         try {
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
@@ -373,6 +382,7 @@ public class AlugarController {
     @ApiOperation(value = "Retorna checklist de devolucao")
     @GetMapping("/checklist/retorna-devolucao")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     RetornaChecklist retornaChecklistDevolucao(@Param("id_aluguel") String idAluguel){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
@@ -392,6 +402,7 @@ public class AlugarController {
     @ApiOperation(value = "Salva checklist entrega")
     @PostMapping("/checklist/salva-entrega")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     Boolean salvaChecklistEntrega(@RequestBody Checklist checklist){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
@@ -418,6 +429,7 @@ public class AlugarController {
     @ApiOperation(value = "Salva foto checklist entrega")
     @PutMapping("/checklist/salva-foto-entrega")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     Boolean salvaFotoChecklistEntrega(@RequestParam String id_aluguel, @RequestParam Part foto) {
         try {
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
@@ -441,6 +453,7 @@ public class AlugarController {
     @ApiOperation(value = "Salva checklist devolucao")
     @PostMapping("/checklist/salva-devolucao")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     Boolean salvaChecklistDevolucao(@RequestBody Checklist checklist) {
 
         try{
@@ -468,6 +481,7 @@ public class AlugarController {
     @ApiOperation(value = "Salva foto checklist devolucao")
     @PutMapping("/checklist/salva-foto-devolucao")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     Boolean salvaFotoChecklistDevolucao(@RequestParam String id_aluguel, @RequestParam Part foto) {
         try {
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
@@ -491,6 +505,7 @@ public class AlugarController {
     @ApiOperation(value = "retorna checklist de entrega")
     @GetMapping("/checklist/retorna-entrega")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     RetornaChecklist retornaChecklistEntrega(@Param("id_aluguel") String idAluguel){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
@@ -510,6 +525,7 @@ public class AlugarController {
     @ApiOperation(value = "Aprova/Reprova checklist de entrega")
     @GetMapping("/checklist/aceite-entrega")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     Boolean aceiteChecklistEntrega(@Param(value = "id_aluguel") String id_aluguel,@Param(value = "ok") Boolean ok, @Param(value = "motivoRecusa") String motivoRecusa){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
@@ -545,6 +561,7 @@ public class AlugarController {
     @ApiOperation(value = "Aprova/Reprova checklist de devolucao")
     @GetMapping("/checklist/aceite-devolucao")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     Boolean aceiteChecklistDevolucao(@Param(value = "id_aluguel") String id_aluguel,@Param(value = "ok") Boolean ok, @Param(value = "motivoRecusa") String motivoRecusa){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
@@ -582,6 +599,7 @@ public class AlugarController {
     @ApiOperation(value = "Retorna destalhes do encontro do aluguel")
     @GetMapping("/encontro")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     RetornaAluguelEncontro retornaAluguelEncontro(@RequestParam("id_aluguel") String idAluguel){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
@@ -600,6 +618,7 @@ public class AlugarController {
     @ApiOperation(value = "Confirma encontro do aluguel")
     @GetMapping("/confirma-encontro")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     Boolean confirmaAluguelEncontro(@RequestParam("id_aluguel") String id_aluguel, @RequestParam("ok") Boolean ok, @RequestParam(value = "motivo", required = false, defaultValue = "") String motivo){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
@@ -636,6 +655,7 @@ public class AlugarController {
     @ApiOperation(value = "Salva avaliação do produto")
     @PostMapping("/avaliacao/grava/produto")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     Boolean salvaAvaliacaoProduto(@RequestBody Avalicao avalicao){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
@@ -655,6 +675,7 @@ public class AlugarController {
     @ApiOperation(value = "Salva avaliação do locatário(Locador para locatario)")
     @PostMapping("/avaliacao/grava/locatario")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     Boolean salvaAvaliacaoLocatario(@RequestBody Avalicao avalicao){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
@@ -674,6 +695,7 @@ public class AlugarController {
     @ApiOperation(value = "Salva avaliação do locador(Locatario para locador)")
     @PostMapping("/avaliacao/grava/locador")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     Boolean salvaAvaliacaoLocador(@RequestBody Avalicao avalicao){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
@@ -693,6 +715,7 @@ public class AlugarController {
     @ApiOperation(value = "Retorna avaliacoes produto")
     @GetMapping("/avaliacao/retorna/produto")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     List<RetornaAvaliacoes> retornaAvaliacoesProduto(@RequestParam("id_produto") String id_produto){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
@@ -712,6 +735,7 @@ public class AlugarController {
     @ApiOperation(value = "Retorna avaliacoes locatario")
     @GetMapping("/avaliacao/retorna/locatario")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     List<RetornaAvaliacoes> retornaAvaliacoesLocatario(@RequestParam("id_usuario") String id_usuario){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
@@ -731,6 +755,7 @@ public class AlugarController {
     @ApiOperation(value = "Retorna avaliacoes locador")
     @GetMapping("/avaliacao/retorna/locador")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     List<RetornaAvaliacoes> retornaAvaliacoesLocador(@RequestParam("id_usuario") String id_usuario){
         try{
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
@@ -747,25 +772,10 @@ public class AlugarController {
         }
     }
 
-    public String getIdUsuario(){
-
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String login;
-
-        if(!auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken){
-            throw new NullPointerException("Usuario não logado");
-        }
-
-        login = usuarioRepository.retornaIdUsuario(auth.getName().split("\\|")[0]);
-        if (login.isEmpty() || login == null) {
-            throw new NullPointerException("Usuario não encontrado");
-        }
-        return login;
-    }
-
     @ApiOperation(value = "Envia notificacações manualmente")
     @GetMapping("/notificacoes")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     public String enviaNotificacaoAluguelManual() {
         try {
             System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Iniciando verificação de notificacao de alugueis para entrega do produto");
@@ -822,18 +832,19 @@ public class AlugarController {
     @ApiOperation(value = "Retorna extrato de locador")
     @GetMapping("/extrato-locador")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Page<ExtratoLocadorDetalhe> retornaExtratoLocador(@RequestParam(value = "page",required = false,defaultValue = "0") int page,
-                                         @RequestParam(value = "size",required = false,defaultValue = "10") int size,
-                                         @RequestParam(value = "sort",required = false,defaultValue = "valor_ganho") String sortBy,
-                                         @RequestParam(value = "order",required = false,defaultValue = "desc") String order){
+                                                             @RequestParam(value = "size",required = false,defaultValue = "10") int size,
+                                                             @RequestParam(value = "sort",required = false,defaultValue = "valor_ganho") String sortBy,
+                                                             @RequestParam(value = "order",required = false,defaultValue = "desc") String order){
         try{
-            String usuario = getIdUsuario();
+            String usuario = usuarioController.getIdUsuario();
             List<ExtratoLocadorDetalhe> detalhe = aluguelRepository.retornaExtratoLocador(usuario,usuario);
             //Double saldo = aluguelRepository.retornaExtratoLocadorSaldo(usuario,usuario);
             //ExtratoLocador extratoLocador = new ExtratoLocador(saldo,detalhe);
             Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
             int start = (int) paging.getOffset();
-            int end = (start + paging.getPageSize()) > detalhe.size() ? detalhe.size() : (start + paging.getPageSize());
+            int end = Math.min((start + paging.getPageSize()), detalhe.size());
             return new PageImpl<>(detalhe.subList(start, end), paging, detalhe.size());//listPa;
         }
         catch(Exception e) {
@@ -841,20 +852,21 @@ public class AlugarController {
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = getIdUsuario();
+            String user = usuarioController.getIdUsuario();
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return null;
         }
     }
 
-    //1x cada 15 minutos
+    //1x cada 5 minutos
     @Scheduled(cron = "0 */05 * * * ?")
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     public void enviaNotificacaoAluguel(){
         try {
             System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Iniciando verificação de notificacao de alugueis para entrega do produto");
             String usuario = "alugoMail";
             List<RetornoAlugueisNotificacao> alugueisNotificacao = aluguelRepository.retornaAlugueisNotificacaoInicio(1,usuario);
-            System.out.println("Foram encontrados " + alugueisNotificacao.size() * 2 + " emails para enviar.");
+            System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Foram encontrados " + alugueisNotificacao.size() * 2 + " emails para enviar.");
             int cont = 0;
             for (RetornoAlugueisNotificacao ret : alugueisNotificacao) {
                 RetornaAluguelEncontro encontro =  aluguelRepository.retornaAluguelEncontro(ret.getIdAluguel(),usuario);
@@ -872,7 +884,7 @@ public class AlugarController {
             System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Iniciando verificação de notificacao de alugueis para devolução do produto");
 
             alugueisNotificacao = aluguelRepository.retornaAlugueisNotificacaoFim(1,usuario);
-            System.out.println("Foram encontrados " + alugueisNotificacao.size() * 2 + " emails para enviar.");
+            System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + "Foram encontrados " + alugueisNotificacao.size() * 2 + " emails para enviar.");
             cont = 0;
             for (RetornoAlugueisNotificacao ret : alugueisNotificacao) {
                 RetornaAluguelEncontro encontro =  aluguelRepository.retornaAluguelEncontro(ret.getIdAluguel(),usuario);
@@ -898,6 +910,7 @@ public class AlugarController {
     }
 
     @Scheduled(cron = "0 */05 * * * ?")
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     public void efetuaEstornoAluguel(){
         try{
             System.out.println(LocalTime.now(ZoneId.of("America/Sao_Paulo")) + " - Iniciando verificação de alugueis para estornar");
@@ -944,7 +957,7 @@ public class AlugarController {
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = "";
-            //String user = getIdUsuario();
+            //String user = usuarioController.getIdUsuario();
             logRepository.gravaLogBackend(className, methodName, endpoint, "", e.getMessage(), Throwables.getStackTraceAsString(e));
         }
 

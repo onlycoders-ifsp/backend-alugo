@@ -23,14 +23,14 @@ public class UsuarioControllerTest {
     private UsuarioController controllerUsuario;
 
     @Test
-    public void retornaUsuariosTest() throws NotFoundException {
+    public void retornaUsuariosTest(){
         RetornaUsuario usuarios = controllerUsuario.retornaUsuario("0");
 
         assertTrue(!usuarios.getEmail().isEmpty());
     }
 
     @Test
-    public void retornaUsuarioTest() throws NotFoundException {
+    public void retornaUsuarioTest(){
         RetornaUsuario usuarios = controllerUsuario.retornaUsuario("0");
 
         RetornaUsuario usuario = controllerUsuario.retornaUsuario(usuarios.getIdUsuario());

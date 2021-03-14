@@ -17,5 +17,5 @@ public interface RetornaChecklist {
     String getOk_locador();
 
     @JsonAlias("motivo_recusa")
-    String getMotivo_Recusa();
+    String getMotivo_recusa();
 }
