@@ -214,8 +214,8 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
                                          @Param("usuario") String usuario);
 
     @Query(value = "select " +
-            "cast(sum(case sacado when true then valor else 0 end)as decimal(18,2)) Valor_Sacado, " +
-            "cast(sum(case sacado when false then valor else 0 end)as decimal(18,2)) Valor_A_Receber, " +
+            "cast(sum(case when (sacado or sacado is null) then valor else 0 end) as decimal(18,2)) Valor_Sacado, " +
+            "cast(sum(case sacado when false then valor else 0 end) as decimal(18,2)) Valor_A_Receber, " +
             "cast(sum(valor)as decimal(18,2)) Total " +
             "from saldo_locador " +
             "where id_locador = uuid(:id_usuario) " +
