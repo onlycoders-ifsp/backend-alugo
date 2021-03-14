@@ -24,6 +24,8 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.servlet.http.Part;
@@ -51,6 +53,7 @@ public class UsuarioController {
     @ApiOperation(value = "Retorna dados do usuario logado", response = RetornaUsuario.class)
     @GetMapping("/usuario-logado")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public RetornaUsuario retornaUsuarioLogado() {
         try {
             return usuarioRepository.findUsuario(getIdUsuario()).get(0);
@@ -70,6 +73,7 @@ public class UsuarioController {
     @ApiOperation(value = "Retorna dados de um único usuario pelo id ou login", response = RetornaUsuario.class)
     @GetMapping("/usuario")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public RetornaUsuario retornaUsuario(@RequestParam String id_usuario) {
 
         return usuarioRepository.findUsuario(id_usuario).get(0);
@@ -96,6 +100,7 @@ public class UsuarioController {
     @ApiOperation(value = "Verifica código de ativação")
     @GetMapping("/verficacao-email")
     @ResponseStatus(HttpStatus.CREATED)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean verificaCodigo(@RequestParam("code") String code){
         String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
         try {
@@ -115,6 +120,7 @@ public class UsuarioController {
     @ApiOperation(value = "Cadastro de usuário", response = RetornaUsuario.class)
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean salvar(@RequestBody Usuario usuario,@RequestParam("url")String url){
         //validaCampos(usuario.getLogin(), usuario.getCpf(), usuario.getEmail(),
         //        usuario.getCelular(), usuario.getNome(), false);
@@ -146,6 +152,7 @@ public class UsuarioController {
     @ApiOperation(value = "Atualiza/Cadastra foto de usuario")
     @PutMapping("/upload-foto")
     @ResponseStatus(HttpStatus.CREATED)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean atualizaFoto(@RequestParam Part capa_foto){
         String usuario = getIdUsuario();
         try{
@@ -169,6 +176,7 @@ public class UsuarioController {
     @ApiOperation(value = "Muda senha do usuario logado")
     @PutMapping("/altera-senha")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean alteraSenha(@RequestBody AlteraSenha senha){
         try {
             if (new BCryptPasswordEncoder().matches(senha.getSenha_antiga(), usuarioRepository.retornaSenha(getIdUsuario())))
@@ -190,6 +198,7 @@ public class UsuarioController {
     @ApiOperation(value = "Alterar dados cadastrais do usuario logado", response = RetornaUsuario.class)
     @PutMapping("altera-dados")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public RetornaUsuario alteraUsuario(@RequestBody RequestUsuario usuario) {
         //validaCampos(usuario.getLogin(),usuario.getCpf(),usuario.getEmail(),usuario.getCelular(),usuario.getNome(),true);
         try {
@@ -212,6 +221,7 @@ public class UsuarioController {
     @ApiOperation(value = "Retorna se existe o email informado", response = RetornaUsuario.class)
     @GetMapping("/verifica/email")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean verificaEmail(@RequestParam String email){
         try {
             return usuarioRepository.validaDado(email, 2);
@@ -230,6 +240,7 @@ public class UsuarioController {
     @ApiOperation(value = "Retorna se existe o CPF informado", response = RetornaUsuario.class)
     @GetMapping("/verifica/cpf")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean verificaCpf(@RequestParam String cpf){
         try {
             return usuarioRepository.validaDado(cpf, 1);
@@ -248,6 +259,7 @@ public class UsuarioController {
     @ApiOperation(value = "Retorna se existe o nome de usuario informado", response = RetornaUsuario.class)
     @GetMapping("/verifica/username")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean verificaUserName(@RequestParam String user){
         try {
             return usuarioRepository.validaDado(user, 3);
@@ -266,6 +278,7 @@ public class UsuarioController {
     @ApiOperation(value = "Retorna se existe o email informado do usuario logado", response = RetornaUsuario.class)
     @GetMapping("/verifica/email-update")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean verificaEmailUpdate(@RequestParam String email){
         try {
             return usuarioRepository.validaDadouUpdate(email, getIdUsuario(), 2);
@@ -284,6 +297,7 @@ public class UsuarioController {
     @ApiOperation(value = "Retorna se existe o CPF informado do usuario logado", response = RetornaUsuario.class)
     @GetMapping("/verifica/cpf-update")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean verificaCpfUpdate(@RequestParam String cpf){
         try {
             return usuarioRepository.validaDadouUpdate(cpf, getIdUsuario(), 1);
@@ -302,6 +316,7 @@ public class UsuarioController {
     @ApiOperation(value = "Retorna se existe o nome de usuario informado do usuario logado", response = RetornaUsuario.class)
     @GetMapping("/verifica/username-update")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean verificaUserNameUpdate(@RequestParam String user){
         try {
             return usuarioRepository.validaDadouUpdate(user, getIdUsuario(), 3);
@@ -362,6 +377,7 @@ public class UsuarioController {
             //  return valida = usuarioRepository.validaCampos(login, cpf, email);
         }
     */
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public String getIdUsuario(){
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -376,5 +392,18 @@ public class UsuarioController {
             throw new NullPointerException("Usuario não encontrado");
         }
         return login;
+    }
+
+    //TODO
+    void salvaChatUsuario(){
+
+    }
+    //TODO
+    void retornaChatUsuario(){
+
+    }
+    //TODO
+    void esquecerSenha(){
+
     }
 }

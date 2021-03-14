@@ -13,7 +13,6 @@ import java.util.List;
 
 public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
     @Query(value = "SELECT *FROM FN_RETORNA_PRODUTO(:id_usuario, :id_produto,:op, :categoria,:user)" +
             "as (ID_USUARIO TEXT, ID_PRODUTO TEXT, NOME TEXT, DESCRICAO_CURTA TEXT, " +
             "  DESCRICAO TEXT, VALOR_BASE_DIARIA DECIMAL(16,2), VALOR_BASE_MENSAL DECIMAL(16,2)," +
@@ -27,7 +26,6 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
                                      @Param("categoria") int categoria,
                                      @Param("user") String user);
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
     @Query(value = "SELECT FN_CADASTRAR_PRODUTO(:id,:nome,:descricao_curta," +
             ":descricao,:categorias,:valor_base_diaria, :valor_base_mensal,:valor_produto,:data_compra,:user);",nativeQuery = true)
     String createProduto(@Param("id") String id,
@@ -42,7 +40,6 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
                          @Param("user") String user);
     //@Param("fotos") String fotos );
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
     @Query(value = "SELECT FN_ATUALIZA_PRODUTO(:id,:nome,:descricaoCurta,:descricao," +
             ":categorias,:diaria,:mensal,:valorProduto,:dataCompra, :ativo,:user);",
             nativeQuery = true)
@@ -59,16 +56,13 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
                           @Param("user") String user);
     //@Param("fotos") String fotos );
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
     @Query(value = "SELECT FN_ATIVA_INATIVA_PRODUTO(:id,:user);",nativeQuery = true)
     Boolean ativaInativaProduto(@Param("id") String id,
                                 @Param("user") String user);
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
     @Query(value = "SELECT FN_FOTO_PRODUTO(:id_usuario,:id_produto,:foto,:user) ;",nativeQuery = true)
     Boolean uploadFoto(@Param("id_usuario") String id_usuario ,@Param("id_produto") String id_produto, @Param("foto") byte[] foto, @Param("user") String user);
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
     @Query(value = "SELECT CAST(ID_CATEGORIA AS TEXT) ID_CATEGORIA, Descricao " +
             "FROM Categoria order by CAST(ID_CATEGORIA as integer);",nativeQuery = true)
     List<RetornaCategorias> retornaCategorias();

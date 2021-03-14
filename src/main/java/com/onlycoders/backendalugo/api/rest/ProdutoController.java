@@ -16,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.servlet.http.Part;
@@ -45,6 +47,7 @@ public class ProdutoController {
     @ApiOperation(value = "Retorna produtos do usuario logado.", response = RetornaProduto.class)
     @GetMapping("/lista-produto-logado")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public //ResponseEntity<?>//
     Page<ProdutoAluguel>
     retornaProdutosUsuarioLogado(@RequestParam(value = "page",required = false,defaultValue = "0") int page,
@@ -108,6 +111,7 @@ public class ProdutoController {
     @ApiOperation(value = "Retorna todos os produtos", response = RetornaProduto.class)
     @GetMapping("/lista-produto")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public //ResponseEntity<?>//
     Page<ProdutoAluguel>
     retornaProdutos(@RequestParam(value = "page",required = false,defaultValue = "0") int page,
@@ -146,6 +150,7 @@ public class ProdutoController {
     @ApiOperation(value = "Retorna um único produto", response = RetornaProduto.class)
     @GetMapping("/produto")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public ProdutoAluguel /*ResponseEntity<?>*/
     retornaProduto(@RequestParam String id_produto,
                    @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria){
@@ -177,6 +182,7 @@ public class ProdutoController {
     @ApiOperation(value = "Pesquisa de produto", response = RetornaProduto.class)
     @GetMapping("/produto-pesquisa")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public //ResponseEntity<?>//
     Page <ProdutoAluguel>
     retornaProdutoPesquisa(@RequestParam String produto,
@@ -210,6 +216,7 @@ public class ProdutoController {
     @ApiOperation(value = "Retorna produtos de um usuario, id ou login", response = RetornaProduto.class)
     @GetMapping("/produto-usuario")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Page<ProdutoAluguel>
     retornaProdutosUsuario(@RequestParam String id_usuario, @RequestParam(value = "page",required = false,defaultValue = "0") int page,
                            @RequestParam(value = "size",required = false,defaultValue = "10") int size,
@@ -235,6 +242,7 @@ public class ProdutoController {
     @ApiOperation(value = "Cadastra novo produto do usuario logado")
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public ProdutoAluguel cadastra(@RequestBody Produto produto){
         try {
             String[] usuario = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|");
@@ -265,6 +273,7 @@ public class ProdutoController {
     @ApiOperation(value = "Atualiza/cadastra foto de produto")
     @PutMapping("/upload-foto")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean atualizaCadastrafoto(@RequestParam Part capa_foto,
                                         @RequestParam String id_produto){
         String usuario = getIdUsuario(false);
@@ -288,6 +297,7 @@ public class ProdutoController {
     @ApiOperation(value = "Altera dados cadastrais do produto")
     @PutMapping("/altera")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean atualiza(@RequestBody Produto produto) {
         try {
             String categoria = trasnformaCategoriasToString(produto.getCategorias());
@@ -311,6 +321,7 @@ public class ProdutoController {
     @ApiOperation(value = "Ativa ou inativa produto.")
     @DeleteMapping("ativa-inativa")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean ativaInativa(@RequestParam String id_produto){
         try {
             return produtoRepository.ativaInativaProduto(id_produto,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
@@ -329,6 +340,7 @@ public class ProdutoController {
     @ApiOperation(value = "Retorna categorias", response = RetornaProduto.class)
     @GetMapping("/categorias")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public List<RetornaCategorias> retornaCategorias(){
         try {
             return produtoRepository.retornaCategorias();
@@ -357,6 +369,7 @@ public class ProdutoController {
         return categoria.toString();
     }
 
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public String getIdUsuario(boolean pesquisa){
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

@@ -135,6 +135,7 @@ public class AlugarController {
             Optional<List<RetornaAluguel>> aluguelEfeutuado = Optional.ofNullable(aluguelRepository
                     .retornaAluguel(id_locador, "0", "0", "0", 2, SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]));
             if (aluguelEfeutuado.isPresent() && !aluguelEfeutuado.get().isEmpty()) {
+                //TODO retirar este for
                 for (RetornaAluguel a : aluguelEfeutuado.get()) {
                     RetornaAluguelUsuarioProduto aluguel = new RetornaAluguelUsuarioProduto();
 
@@ -195,6 +196,7 @@ public class AlugarController {
             Optional<List<RetornaAluguel>> aluguelEfeutuado = Optional.ofNullable(aluguelRepository
                     .retornaAluguel("0", id_locatario, "0", "0", 3, SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]));
             if (aluguelEfeutuado.isPresent() && !aluguelEfeutuado.get().isEmpty()) {
+                //TODO retirar este for
                 for (RetornaAluguel a : aluguelEfeutuado.get()) {
                     RetornaAluguelUsuarioProduto aluguel = new RetornaAluguelUsuarioProduto();
                     id_locador = a.getId_locador();
@@ -857,6 +859,32 @@ public class AlugarController {
             return null;
         }
     }
+
+    //TODO
+    void salvaExtensaoAluguel(){
+
+    }
+    //TODO
+    void retornaExtensaoAluguel(){
+
+    }
+    //TODO
+    void aceitaRejeitaExtensao(){
+
+    }
+    //TODO
+    void cancelaAluguel(){
+
+    }
+    //TODO
+    void retornaChatAluguel(){
+
+    }
+    //TODO
+    void salvaChatAluguel(){
+
+    }
+
 
     //1x cada 5 minutos
     @Scheduled(cron = "0 */05 * * * ?")
