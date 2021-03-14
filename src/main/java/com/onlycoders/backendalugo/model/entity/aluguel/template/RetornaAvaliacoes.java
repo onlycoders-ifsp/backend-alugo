@@ -12,4 +12,10 @@ public interface RetornaAvaliacoes {
 
     @JsonAlias("nota")
     String getNota();
+
+    @JsonAlias("foto")
+    byte[] getFoto();
+
+    @JsonAlias("data_avaliacao")
+    String getData_Avaliacao();
 }

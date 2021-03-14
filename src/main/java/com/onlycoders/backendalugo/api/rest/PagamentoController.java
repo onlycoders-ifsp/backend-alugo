@@ -229,16 +229,24 @@ public class PagamentoController {
     @GetMapping("/saque-locador")
     @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public Boolean efetuaSaqueLocador(){
+    public Boolean efetuaSaqueLocador(@RequestParam("valor") Double valor, @RequestParam("lista_pagamento") List<String> lista_pagamento){
         try{
             String idLocador = usuarioController.getIdUsuario();
-            Optional<List<RetornoSaqueLocador>> produtos = Optional.ofNullable(aluguelRepository.retornaAlugueisSaque(idLocador));
-            if(!produtos.isPresent()){
-                throw new NotFoundException("14");
+            StringBuilder pagamentos = new StringBuilder();
+            for(String p:lista_pagamento){
+                pagamentos.append(p).append(";");
             }
+            if(valor > aluguelRepository.retornaResumoSaldo(idLocador)) {
+                throw new NotFoundException("15");
+            }
+            return aluguelRepository.efetuaSaque(idLocador,pagamentos.toString());
+            //Optional<List<RetornoSaqueLocador>> produtos = Optional.ofNullable(aluguelRepository.retornaAlugueisSaque(idLocador));
+            //if(!produtos.isPresent()){
+            //    throw new NotFoundException("14");
+            //}
 
-            String id_saque = produtos.get().get(0).getId_saque();
-            float valotTotal = 0.00f;
+            //String id_saque = produtos.get().get(0).getId_saque();
+            //float valotTotal = 0.00f;
             /*ArrayList<Item> listaProdutos = new ArrayList<>();
             MercadoPago.SDK.setAccessToken(accessToken);
 
@@ -249,20 +257,20 @@ public class PagamentoController {
             Payment pagamento = new Payment()
                     .setPayer(pagador)
                     .setExternalReference(id_saque)
-                    .setPaymentMethodId("account_money")
+                    .setPaymentMethodId("account_money");
                     .setNotificationUrl(backendUrl.concat("/retorno-pagamento-locador"))
                     .setCapture(true)
                     .setBinaryMode(false)
                     .setStatementDescriptor("Saque aluGo");
             */
-            for (RetornoSaqueLocador p : produtos.get()){/*
+            /*for (RetornoSaqueLocador p : produtos.get()){
                 Item produto = new Item()
                         .setId(p.getId_produto())
                         .setTitle(p.getNome_produto())
                         .setUnitPrice((float)(double) p.getValor())
                         .setDescription(p.getDescricao_curta())
                         .setQuantity(1);
-                listaProdutos.add(produto);*/
+                listaProdutos.add(produto);
                 valotTotal += (float)(double) p.getValor();
             }/*
             pagamento.setAdditionalInfo(new AdditionalInfo().setItems(listaProdutos));
@@ -278,7 +286,6 @@ public class PagamentoController {
             System.out.println(retornoMp.getStatusDetail());
             System.out.println(retornoMp.getId());
             */
-            return aluguelRepository.efetuaSaque(idLocador,((double) valotTotal),id_saque);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();

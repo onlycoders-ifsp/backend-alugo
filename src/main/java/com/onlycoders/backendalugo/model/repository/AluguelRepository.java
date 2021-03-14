@@ -151,17 +151,17 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
                            @Param("usuario") String usuario);
 
     @Query(value = "SELECT *FROM FN_RETORNA_AVALIACAO_PRODUTO(:id_produto,:usuario)" +
-            "AS (NOME_AVALIADOR TEXT, COMENTARIO TEXT, NOTA DECIMAL(2,1));",nativeQuery = true)
+            "AS (NOME_AVALIADOR TEXT, COMENTARIO TEXT, NOTA DECIMAL(2,1), FOTO BYTEA, DATA_AVALIACAO TEXT);",nativeQuery = true)
     List<RetornaAvaliacoes> retornaAvaliacaoProduto(@Param("id_produto") String id_aluguel,
                                                     @Param("usuario") String usuario);
 
     @Query(value = "SELECT *FROM FN_RETORNA_AVALIACAO_LOCATARIO(:id_usuario,:usuario)" +
-            "AS (NOME_AVALIADOR TEXT, COMENTARIO TEXT, NOTA DECIMAL(2,1));",nativeQuery = true)
+            "AS (NOME_AVALIADOR TEXT, COMENTARIO TEXT, NOTA DECIMAL(2,1), FOTO BYTEA, DATA_AVALIACAO TEXT);",nativeQuery = true)
     List<RetornaAvaliacoes> retornaAvaliacaoLocatario(@Param("id_usuario") String id_aluguel,
                                                       @Param("usuario") String usuario);
 
     @Query(value = "SELECT *FROM FN_RETORNA_AVALIACAO_LOCADOR(:id_usuario,:usuario)" +
-            "AS (NOME_AVALIADOR TEXT, COMENTARIO TEXT, NOTA DECIMAL(2,1));",nativeQuery = true)
+            "AS (NOME_AVALIADOR TEXT, COMENTARIO TEXT, NOTA DECIMAL(2,1), FOTO BYTEA, DATA_AVALIACAO TEXT);",nativeQuery = true)
     List<RetornaAvaliacoes> retornaAvaliacaoLocador(@Param("id_usuario") String id_aluguel,
                                                     @Param("usuario") String usuario);
 
@@ -184,14 +184,16 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
                                   @Param("usuario") String usuario);
 
     @Query(value = "SELECT *FROM FN_RETORNA_SALDO_LOCADOR(:id_usuario,:usuario)" +
-            "AS (VALOR DECIMAL (18,2),DESCRICAO TEXT, DATA_INCLUSAO TEXT);",nativeQuery = true)
+            "AS (ID_PAGAMENTO TEXT, VALOR DECIMAL (18,2),DESCRICAO TEXT, ID_ALUGUEL TEXT, DATA_INCLUSAO TEXT);",nativeQuery = true)
     List<ExtratoLocadorDetalhe> retornaExtratoLocador(@Param("id_usuario") String id_usuario,
                                                       @Param("usuario") String usuario);
 
-    @Query(value = "SELECT FN_EFETUA_SAQUE_LOCADOR(:id_usuario,:valor, :id_saque);",nativeQuery = true)
+    @Query(value = "SELECT FN_RETORNA_RESUMO_SALDO_LOCADOR(:id_usuario);",nativeQuery = true)
+    Double retornaResumoSaldo(@Param("id_usuario") String id_usuario);
+
+    @Query(value = "SELECT FN_EFETUA_SAQUE_LOCADOR(:id_usuario,:pagamentos);",nativeQuery = true)
     Boolean efetuaSaque(@Param("id_usuario") String id_usuario,
-                        @Param("valor") Double valor,
-                        @Param("id_saque") String id_pagamento_saque);
+                        @Param("pagamentos") String pagamentos);
 
     @Query(value = "SELECT ID_ALUGUEL, ID_PAGAMENTO_MP, VALOR, RETENCAO, STATUS " +
             "FROM FN_VERIFICAALUGUEIESTORNO(:usuario) " +
