@@ -1,12 +1,11 @@
 package com.onlycoders.backendalugo.model.repository;
+import com.onlycoders.backendalugo.model.entity.admin.RetornaTiposProblema;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.*;
 import com.onlycoders.backendalugo.model.entity.email.RetornoAlugueisNotificacao;
 import com.onlycoders.backendalugo.model.entity.produto.Produto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -200,11 +199,13 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
             "AS (ID INT, ID_ALUGUEL TEXT, ID_PAGAMENTO_MP TEXT, VALOR DECIMAL(18,2), RETENCAO DECIMAL(3,2), STATUS INT);",nativeQuery = true)
     List<RetornoAlugueisEstorno> retornaPagameentosEstorno(@Param("usuario") String usuario);
 
+    /*
     @Query(value = "SELECT * " +
             "FROM FN_SAQUE_LOCADOR(:id_usuario) " +
             "AS (ID_USUARIO TEXT, VALOR DECIMAL (18,2), ID_PRODUTO TEXT, NOME_PRODUTO TEXT, " +
             "DESCRICAO_CURTA TEXT, ID_PAGAMENTO TEXT, ID_SAQUE TEXT);",nativeQuery = true)
     List<RetornoSaqueLocador> retornaAlugueisSaque(@Param("id_usuario") String id_usuario);
+    */
 
     @Query(value = "SELECT FN_SALVA_RETORNO_PAGAMENTO_LOCADOR(:id_saque,:id_pagamento,:tipo_retorno,:status,:usuario);",nativeQuery = true)
     Boolean salvaRetornoPagamentoLocador(@Param("id_saque") String id_saque,
@@ -221,4 +222,18 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
             "where id_locador = uuid(:id_usuario) " +
             "group by id_locador;",nativeQuery = true)
     RetornoResumoExtrato retornaResumoExtrato(@Param("id_usuario")String id_usuario);
+
+
+    @Query(value = "select FN_INSERE_PROBLEMA(:id_aluguel,:id_usuario,:problema, :descricao);", nativeQuery = true)
+    Boolean cadastraProblema(@Param("id_aluguel") String id_aluguel,
+                             @Param("id_usuario") String id_usuario,
+                             @Param("problema") Integer problema,
+                             @Param("descricao") String descricao);
+
+    @Query(value = " SELECT TP.cod_tipo_problema, TP.descricao, TP.perc_locador, TP.perc_locatario, B.descricao descricao_calculo " +
+            " from tipo_problema TP " +
+            " inner join base_calculo_estorno B " +
+            " ON TP.BASE_CALCULO = B.id " +
+            " order by 1; ", nativeQuery = true)
+    List<RetornaTiposProblema> retornaTiposProblema();
 }

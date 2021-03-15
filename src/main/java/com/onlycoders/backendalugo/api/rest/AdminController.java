@@ -368,28 +368,6 @@ public class AdminController {
         }
     }
 
-    @ApiOperation(value = "Cadastra problema")
-    @GetMapping("/cadastra-problema")
-    @ResponseStatus(HttpStatus.OK)
-    @Transactional(isolation = Isolation.READ_COMMITTED)
-    public Boolean cadastraProbema(@RequestParam("id_aluguel")String id_aluguel,
-                                   @RequestParam("problema") Integer problema,
-                                   @RequestParam("descricao")String descricao){
-        try{
-            String usuario = usuarioController.getIdUsuario();
-            return adminRepository.cadastraProblema(id_aluguel,usuario,problema,descricao);
-        }
-        catch(Exception e) {
-            String className = this.getClass().getSimpleName();
-            String methodName = new Object() {
-            }.getClass().getEnclosingMethod().getName();
-            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = usuarioController.getIdUsuario();
-            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
-            return false;
-        }
-    }
-
     @ApiOperation(value = "Aprova problema")
     @GetMapping("/aprova-problema")
     @ResponseStatus(HttpStatus.OK)
@@ -439,25 +417,6 @@ public class AdminController {
     public List<RetornaGravidades> reprovaGravidades(){
         try{
             return adminRepository.retornaGravidades();
-        }
-        catch(Exception e) {
-            String className = this.getClass().getSimpleName();
-            String methodName = new Object() {
-            }.getClass().getEnclosingMethod().getName();
-            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
-            String user = usuarioController.getIdUsuario();
-            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
-            return null;
-        }
-    }
-
-    @ApiOperation(value = "Retorna tipos de problema")
-    @GetMapping("/tipo-problemas")
-    @ResponseStatus(HttpStatus.OK)
-    @Transactional(isolation = Isolation.READ_COMMITTED)
-    public List<RetornaTiposProblema> retornaTiposProblema(){
-        try{
-            return adminRepository.retornaTiposProblema();
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();

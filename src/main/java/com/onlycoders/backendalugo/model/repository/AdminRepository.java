@@ -81,12 +81,6 @@ public interface AdminRepository extends JpaRepository<LogErros,Integer> {
                                       @Param("data_inicio") String data_inicio,
                                       @Param("usuario") String usuario);
 
-    @Query(value = "select FN_INSERE_PROBLEMA(:id_aluguel,:id_usuario,:problema, :descricao);", nativeQuery = true)
-    Boolean cadastraProblema(@Param("id_aluguel") String id_aluguel,
-                              @Param("id_usuario") String id_usuario,
-                              @Param("problema") Integer problema,
-                              @Param("descricao") String descricao);
-
     @Query(value = "select FN_APROVA_PROBLEMA(:id_problema,:gravidade,:usuario);", nativeQuery = true)
     Boolean aprovaProblema(@Param("id_problema") String id_aluguel,
                              @Param("gravidade") Integer gravidade,
@@ -99,12 +93,4 @@ public interface AdminRepository extends JpaRepository<LogErros,Integer> {
     @Query(value = "SELECT COD_GRAVIDADE, DESCRICAO, DEVOLUCAO from gravidades " +
                    "order by 1;", nativeQuery = true)
     List<RetornaGravidades> retornaGravidades();
-
-    @Query(value = " SELECT TP.cod_tipo_problema, TP.descricao, TP.perc_locador, TP.perc_locatario, B.descricao descricao_calculo " +
-                   " from tipo_problema TP " +
-                   " inner join base_calculo_estorno B " +
-                   " ON TP.BASE_CALCULO = B.id " +
-                   " order by 1; ", nativeQuery = true)
-    List<RetornaTiposProblema> retornaTiposProblema();
-
 }
