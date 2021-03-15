@@ -236,4 +236,8 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
             " ON TP.BASE_CALCULO = B.id " +
             " order by 1; ", nativeQuery = true)
     List<RetornaTiposProblema> retornaTiposProblema();
+
+    @Query(value = "SELECT *FROM FN_RETORNA_PROBLEMAS_CONTESTAR(:id_usuario) " +
+            "AS(ID_PROBLEMA TEXT, TIPO_PROBLEMA INT, GRAVIDADE INT, DESCRICAO TEXT, SITUACAO TEXT, VALOR DECIMAL(18,2), FOTO bytea);",nativeQuery = true)
+    List<RetornaProblemasContestar> retornaProblemasContestar(@Param("id_usuario") String id_usuario);
 }

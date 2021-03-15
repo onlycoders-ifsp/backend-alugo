@@ -1,6 +1,7 @@
 package com.onlycoders.backendalugo.api.rest;
 
 import com.google.common.base.Throwables;
+import com.onlycoders.backendalugo.model.entity.admin.RetornaProblemas;
 import com.onlycoders.backendalugo.model.entity.admin.RetornaTiposProblema;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.AluguelEncontro;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.*;
@@ -944,6 +945,48 @@ public class AlugarController {
             String user = usuarioController.getIdUsuario();
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return null;
+        }
+    }
+
+    @ApiOperation(value = "Retorna problemas a contestar")
+    @GetMapping("/problemas/contestar")
+    @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public List<RetornaProblemasContestar> retornaProblemasContestar(){
+        try{
+            String usuario = usuarioController.getIdUsuario();
+            return aluguelRepository.retornaProblemasContestar(usuario);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = usuarioController.getIdUsuario();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
+    }
+
+    @ApiOperation(value = "Aprova ou recusa contestacao do problema")
+    @GetMapping("/problemas/aceite-contestacao")
+    @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public Boolean aprovaRecusaContestacao(@Param("id_problema") String id_problema){
+        try{
+            String usuario = usuarioController.getIdUsuario();
+            //RetornaProblemas problema =
+            //return aluguelRepository.retornaProblemasContestar(usuario);
+            return true;
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = usuarioController.getIdUsuario();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
         }
     }
 
