@@ -65,7 +65,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Efetua aluguel do usuario logado. Param id_produto")
     @PostMapping("/aluguel-efetua")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public String EfetuaAluguel(@RequestBody Aluguel aluguel){
         try {
@@ -113,7 +112,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Retorna todos alugueis do usuario logado como locador")
     @GetMapping("/locador")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public ResponseEntity<?>// Page<RetornaAluguelUsuarioProduto>
     retornaAluguelLocadorLogado(@RequestParam(value = "page",
@@ -174,7 +172,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Retorna todos alugueis do usuario logado como locatario")
     @GetMapping("/locatario")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public ResponseEntity<?>//Page<RetornaAluguelUsuarioProduto>
     retornaAluguelLocatarioLogado(@RequestParam(value = "page",
@@ -232,7 +229,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Retorna unico aluguel pelo id_aluguel")
     @GetMapping("/aluguel")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public RetornaAluguel retornaAluguelAluguel(@RequestParam("id_aluguel") String id_aluguel) {
         try {
@@ -251,7 +247,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Retorna alugueis do produto")
     @GetMapping("/produto")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public List<RetornaAluguel> retornaAluguelProduto(@RequestParam("id_produto") String id_produto) {
         try {
@@ -270,7 +265,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Confirma aluguel(Dono)")
     @GetMapping("/confirma-aluguel")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean confirmaAluguel(@RequestParam("id_aluguel") String id_aluguel,@RequestParam("ok") Boolean ok,@RequestParam(value = "motivoRecusa",required = false,defaultValue = "")String motivoRecusa) {
         try {
@@ -304,7 +298,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Retorna detalhes do aluguel")
     @GetMapping("/detalhe")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public Page<RetornaAluguelDetalhe> retornaAluguelProduto(@RequestParam("id_produto") String id_produto,
                                                              @RequestParam(value = "page",required = false,defaultValue = "0") int page,
@@ -332,7 +325,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Salva dados de entrega e devolução do produto")
     @PostMapping("/entrega-devolucao")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean inserirAluguelEncontro(@RequestBody AluguelEncontro aluguelEncontro){
         try {
@@ -385,7 +377,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Retorna checklist de devolucao")
     @GetMapping("/checklist/retorna-devolucao")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     RetornaChecklist retornaChecklistDevolucao(@Param("id_aluguel") String idAluguel){
         try{
@@ -405,7 +396,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Salva checklist entrega")
     @PostMapping("/checklist/salva-entrega")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     Boolean salvaChecklistEntrega(@RequestBody Checklist checklist){
         try{
@@ -432,7 +422,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Salva foto checklist entrega")
     @PutMapping("/checklist/salva-foto-entrega")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     Boolean salvaFotoChecklistEntrega(@RequestParam String id_aluguel, @RequestParam Part foto) {
         try {
@@ -456,7 +445,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Salva checklist devolucao")
     @PostMapping("/checklist/salva-devolucao")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     Boolean salvaChecklistDevolucao(@RequestBody Checklist checklist) {
 
@@ -484,7 +472,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Salva foto checklist devolucao")
     @PutMapping("/checklist/salva-foto-devolucao")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     Boolean salvaFotoChecklistDevolucao(@RequestParam String id_aluguel, @RequestParam Part foto) {
         try {
@@ -508,7 +495,6 @@ public class AlugarController {
 
     @ApiOperation(value = "retorna checklist de entrega")
     @GetMapping("/checklist/retorna-entrega")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     RetornaChecklist retornaChecklistEntrega(@Param("id_aluguel") String idAluguel){
         try{
@@ -528,7 +514,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Aprova/Reprova checklist de entrega")
     @GetMapping("/checklist/aceite-entrega")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     Boolean aceiteChecklistEntrega(@Param(value = "id_aluguel") String id_aluguel,@Param(value = "ok") Boolean ok, @Param(value = "motivoRecusa") String motivoRecusa){
         try{
@@ -564,7 +549,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Aprova/Reprova checklist de devolucao")
     @GetMapping("/checklist/aceite-devolucao")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     Boolean aceiteChecklistDevolucao(@Param(value = "id_aluguel") String id_aluguel,@Param(value = "ok") Boolean ok, @Param(value = "motivoRecusa") String motivoRecusa){
         try{
@@ -602,7 +586,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Retorna destalhes do encontro do aluguel")
     @GetMapping("/encontro")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     RetornaAluguelEncontro retornaAluguelEncontro(@RequestParam("id_aluguel") String idAluguel){
         try{
@@ -621,7 +604,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Confirma encontro do aluguel")
     @GetMapping("/confirma-encontro")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     Boolean confirmaAluguelEncontro(@RequestParam("id_aluguel") String id_aluguel, @RequestParam("ok") Boolean ok, @RequestParam(value = "motivo", required = false, defaultValue = "") String motivo){
         try{
@@ -658,7 +640,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Salva avaliação do produto")
     @PostMapping("/avaliacao/grava/produto")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     Boolean salvaAvaliacaoProduto(@RequestBody Avalicao avalicao){
         try{
@@ -678,7 +659,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Salva avaliação do locatário(Locador para locatario)")
     @PostMapping("/avaliacao/grava/locatario")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     Boolean salvaAvaliacaoLocatario(@RequestBody Avalicao avalicao){
         try{
@@ -698,7 +678,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Salva avaliação do locador(Locatario para locador)")
     @PostMapping("/avaliacao/grava/locador")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     Boolean salvaAvaliacaoLocador(@RequestBody Avalicao avalicao){
         try{
@@ -718,7 +697,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Retorna avaliacoes produto")
     @GetMapping("/avaliacao/retorna/produto")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     List<RetornaAvaliacoes> retornaAvaliacoesProduto(@RequestParam("id_produto") String id_produto){
         try{
@@ -738,7 +716,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Retorna avaliacoes locatario")
     @GetMapping("/avaliacao/retorna/locatario")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     List<RetornaAvaliacoes> retornaAvaliacoesLocatario(@RequestParam("id_usuario") String id_usuario){
         try{
@@ -758,7 +735,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Retorna avaliacoes locador")
     @GetMapping("/avaliacao/retorna/locador")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     List<RetornaAvaliacoes> retornaAvaliacoesLocador(@RequestParam("id_usuario") String id_usuario){
         try{
@@ -778,7 +754,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Envia notificacações manualmente")
     @GetMapping("/notificacoes")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     public String enviaNotificacaoAluguelManual() {
         try {
@@ -835,7 +810,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Retorna extrato de locador")
     @GetMapping("/extrato-locador")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public Page<ExtratoLocadorDetalhe> retornaExtratoLocador(@RequestParam(value = "page",required = false,defaultValue = "0") int page,
                                                              @RequestParam(value = "size",required = false,defaultValue = "10") int size,
@@ -864,7 +838,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Retorna resumo extrato")
     @GetMapping("/resumo-extrato")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public RetornoResumoExtrato retornoResumoExtrato(){
         try{
@@ -909,7 +882,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Cadastra problema")
     @GetMapping("/cadastra-problema")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean cadastraProbema(@RequestParam("id_aluguel")String id_aluguel,
                                    @RequestParam("problema") Integer problema,
@@ -931,7 +903,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Retorna tipos de problema")
     @GetMapping("/tipo-problemas")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public List<RetornaTiposProblema> retornaTiposProblema(){
         try{
@@ -950,7 +921,6 @@ public class AlugarController {
 
     @ApiOperation(value = "Retorna problemas a contestar")
     @GetMapping("/problemas/contestar")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public List<RetornaProblemasContestar> retornaProblemasContestar(){
         try{
@@ -970,11 +940,45 @@ public class AlugarController {
 
     @ApiOperation(value = "Aprova ou recusa contestacao do problema")
     @GetMapping("/problemas/aceite-contestacao")
-    @ResponseStatus(HttpStatus.OK)
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public Boolean aprovaRecusaContestacao(@Param("id_problema") String id_problema){
+    public Boolean aprovaRecusaContestacao(@RequestParam("id_problema") String id_problema, @RequestParam("ok") Boolean ok){
         try{
-            String usuario = usuarioController.getIdUsuario();
+            //String usuario = usuarioController.getIdUsuario();
+            if(!ok){
+                aluguelRepository.contestaProblema(id_problema, ok);
+                return true;
+            }
+            List<RetornaProblemaPagamento> prb = aluguelRepository.retornaProblemasPagamento(id_problema);
+            for (RetornaProblemaPagamento p: prb) {
+                switch (p.getPerfil()){
+                    case "L":
+                        if(p.getValor_problema() > 0){ //Valor a pagar pelo locatario
+                            //Double valorPagar = p.getValor_aluguel() - p.getValor_problema();
+                            String url = pagamentoController.geraCobranca(p.getValor_problema());
+                            aluguelRepository.salvaUrlPagamentoProblema(id_problema,url);
+                            //TODO Enviar email do valor
+                        }
+                        else{ //Valor a receber do locatario
+                            //Double valorPagar = p.getValor_aluguel() - (p.getValor_problema()*-1);
+                            //if (valorPagar > 0)
+                            pagamentoController.estornoPagmenento(p.getId_pagamento(), p.getValor_problema()*-1, 0.00);
+                            //TODO Enviar email do valor
+                        }
+                        break;
+                    case "D":
+                        if(p.getValor_problema() > 0){
+                            aluguelRepository.salvaRetornoPagamento(p.getId_aluguel(), "999999", "payment","approved", 0.00, "");
+                            //TODO Enviar email do valor
+                        }
+                        else{
+                            String url = pagamentoController.geraCobranca(p.getValor_problema()*-1);
+                            aluguelRepository.salvaUrlPagamentoProblema(id_problema,url);
+                            //TODO Enviar email do valor
+                        }
+                        break;
+                }
+            }
+            aluguelRepository.contestaProblema(id_problema, ok);
             //RetornaProblemas problema =
             //return aluguelRepository.retornaProblemasContestar(usuario);
             return true;

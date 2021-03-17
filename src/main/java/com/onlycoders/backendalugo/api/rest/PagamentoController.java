@@ -2,7 +2,14 @@ package com.onlycoders.backendalugo.api.rest;
 
 import com.google.common.base.Throwables;
 import com.mercadopago.MercadoPago;
+import com.mercadopago.exceptions.MPConfException;
+import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.Payment;
+import com.mercadopago.resources.Preference;
+import com.mercadopago.resources.Refund;
+import com.mercadopago.resources.datastructures.customer.card.PaymentMethod;
+import com.mercadopago.resources.datastructures.preference.Item;
+import com.mercadopago.resources.datastructures.preference.PaymentMethods;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornoSaqueLocador;
 import com.onlycoders.backendalugo.model.entity.email.RetornoAlugueisNotificacao;
 import com.onlycoders.backendalugo.model.entity.email.templatesEmails.TemplateEmails;
@@ -121,6 +128,7 @@ public class PagamentoController {
             String idPagamento = webHookPagamento.getData().getId();
             Payment pagamento = Payment.findById(idPagamento);
             String statusDetail = pagamento.getStatusDetail();
+            Optional<Double> valorEstorno = Optional.of(pagamento.getRefunds().stream().mapToDouble(Refund::getAmount).sum());
 
             /*
             final String uri = "https://api.mercadopago.com/v1/payments/"; //Exemplo
@@ -153,13 +161,13 @@ public class PagamentoController {
                     emailService.sendEmail(r.getLocadorEmail(), "Confirmação de pagamento", locadorMail);
                     emailService.sendEmail(r.getLocatarioEmail(), "Confirmação de pagamento", locatarioMail);
                     aluguelRepository.alteraStatusAluguel(idAluguel, StatusAluguel.PAGAMENTO_CONFIRMADO.getCod_status(), usuario);
-                    return aluguelRepository.salvaRetornoPagamento(idAluguel, idPagamento, tipoRetorno, status, SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
+                    return aluguelRepository.salvaRetornoPagamento(idAluguel, idPagamento, tipoRetorno, status, valorEstorno.orElse(0.00),"");
 
                     //todo
                 case "refunded":
                     locatarioMail = new TemplateEmails().locatarioPagamentoRecusado(r.getLocatarioNome());
                     emailService.sendEmail(r.getLocatarioEmail(),"Confirmação de pagamento", locatarioMail);
-                    return aluguelRepository.salvaRetornoPagamento(idAluguel, idPagamento, tipoRetorno, status, SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
+                    return aluguelRepository.salvaRetornoPagamento(idAluguel, idPagamento, tipoRetorno, status, valorEstorno.orElse(0.00),"");
 
                 case "rejected":
                     locatarioMail = new TemplateEmails().locatarioPagamentoRecusado(r.getLocatarioNome());
@@ -323,6 +331,32 @@ public class PagamentoController {
             logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage()==null) ? "" : e.getMessage(), Throwables.getStackTraceAsString(e));
             return false;
         }
+    }
+    public String geraCobranca(Double valor) {
+        try {
+            MercadoPago.SDK.setAccessToken(accessToken);
 
+            Item item = new Item();
+            item
+                    .setUnitPrice(valor.floatValue())
+                    .setDescription("Cobrança de ocorrencia de aluguel")
+                    .setQuantity(1)
+                    .setTitle("Cobrança");
+            Preference preferencia = new Preference();
+            preferencia
+                    .appendItem(item)
+                    .save();
+            return preferencia.getSandboxInitPoint();
+            //aluguelRepository.salvaUrlPagamentoProblema(id)
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage()==null) ? "" : e.getMessage(), Throwables.getStackTraceAsString(e));
+            return "";
+        }
     }
 }

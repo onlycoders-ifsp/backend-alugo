@@ -175,11 +175,12 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
                              @Param("motivo") String motivo,
                              @Param("usuario") String usuario);
 
-    @Query(value = "SELECT FN_SALVA_RETORNO_PAGAMENTO(:id_aluguel,:id_pagamento,:tipo_retorno,:status,:usuario);",nativeQuery = true)
+    @Query(value = "SELECT FN_SALVA_RETORNO_PAGAMENTO(:id_aluguel,:id_pagamento,:tipo_retorno,:status,:valor_estorno,:usuario);",nativeQuery = true)
     Boolean salvaRetornoPagamento(@Param("id_aluguel") String id_aluguel,
                                   @Param("id_pagamento") String id_pagamento,
                                   @Param("tipo_retorno") String tipo_retorno,
                                   @Param("status") String status,
+                                  @Param("valor_estorno")Double valor_estorno,
                                   @Param("usuario") String usuario);
 
     @Query(value = "SELECT *FROM FN_RETORNA_SALDO_LOCADOR(:id_usuario,:usuario)" +
@@ -240,4 +241,16 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
     @Query(value = "SELECT *FROM FN_RETORNA_PROBLEMAS_CONTESTAR(:id_usuario) " +
             "AS(ID_PROBLEMA TEXT, TIPO_PROBLEMA INT, GRAVIDADE INT, DESCRICAO TEXT, SITUACAO TEXT, VALOR DECIMAL(18,2), FOTO bytea);",nativeQuery = true)
     List<RetornaProblemasContestar> retornaProblemasContestar(@Param("id_usuario") String id_usuario);
+
+    @Query(value = "SELECT *FROM FN_RETORNA_PROBLEMA_ACAO(:id_problema) " +
+            "AS(PERFIL CHAR(1), ID_ALUGUEL TEXT, ID_USUARIO TEXT, ID_PAGAMENTO TEXT,TIPO_PROBLEMA INT, DESCRICAO TEXT, VALOR_PROBLEMA DECIMAL(18,2), VALOR_ALUGUEL DECIMAL(18,2));",nativeQuery = true)
+    List<RetornaProblemaPagamento> retornaProblemasPagamento(@Param("id_usuario") String id_usuario);
+
+    @Query(value = "SELECT FN_SALVA_LINK_PAGAMENTO_PROBLEMA(:id_problema, :url);",nativeQuery = true)
+    Boolean salvaUrlPagamentoProblema(@Param("id_problema")String id_problema, @Param("url")String url);
+
+
+    @Query(value = "UPDATE PROBLEMAS SET CONTESTADO = :ok" +
+            "where id_problema = :id_problema ;",nativeQuery = true)
+    void contestaProblema(@Param("id_problema")String id_problema, @Param("ok")Boolean ok);
 }
