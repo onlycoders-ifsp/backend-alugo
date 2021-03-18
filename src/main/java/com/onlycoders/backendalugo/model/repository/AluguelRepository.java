@@ -175,11 +175,12 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
                              @Param("motivo") String motivo,
                              @Param("usuario") String usuario);
 
-    @Query(value = "SELECT FN_SALVA_RETORNO_PAGAMENTO(:id_aluguel,:id_pagamento,:tipo_retorno,:status,:valor_estorno,:usuario);",nativeQuery = true)
+    @Query(value = "SELECT FN_SALVA_RETORNO_PAGAMENTO(:id_aluguel,:id_pagamento,:tipo_retorno,:status,:valor_pago,:valor_estorno,:usuario);",nativeQuery = true)
     Boolean salvaRetornoPagamento(@Param("id_aluguel") String id_aluguel,
                                   @Param("id_pagamento") String id_pagamento,
                                   @Param("tipo_retorno") String tipo_retorno,
                                   @Param("status") String status,
+                                  @Param("valor_pago") Double valor_pago,
                                   @Param("valor_estorno")Double valor_estorno,
                                   @Param("usuario") String usuario);
 
@@ -215,13 +216,8 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
                                          @Param("status") String status,
                                          @Param("usuario") String usuario);
 
-    @Query(value = "select " +
-            "cast(sum(case when (sacado or sacado is null) then valor else 0 end) as decimal(18,2)) Valor_Sacado, " +
-            "cast(sum(case sacado when false then valor else 0 end) as decimal(18,2)) Valor_A_Receber, " +
-            "cast(sum(valor)as decimal(18,2)) Total " +
-            "from saldo_locador " +
-            "where id_locador = uuid(:id_usuario) " +
-            "group by id_locador;",nativeQuery = true)
+    @Query(value = "select *from FN_RETORNA_RESUMO_EXTRATO(:id_usuario) " +
+                " AS (VALOR_SACADO DECIMAL (18,2), VALOR_A_RECEBER DECIMAL (18,2), TOTAL DECIMAL (18,2));",nativeQuery = true)
     RetornoResumoExtrato retornaResumoExtrato(@Param("id_usuario")String id_usuario);
 
 
@@ -244,13 +240,17 @@ public interface AluguelRepository extends JpaRepository<Produto, Integer> {
 
     @Query(value = "SELECT *FROM FN_RETORNA_PROBLEMA_ACAO(:id_problema) " +
             "AS(PERFIL CHAR(1), ID_ALUGUEL TEXT, ID_USUARIO TEXT, ID_PAGAMENTO TEXT,TIPO_PROBLEMA INT, DESCRICAO TEXT, VALOR_PROBLEMA DECIMAL(18,2), VALOR_ALUGUEL DECIMAL(18,2));",nativeQuery = true)
-    List<RetornaProblemaPagamento> retornaProblemasPagamento(@Param("id_usuario") String id_usuario);
+    List<RetornaProblemaPagamento> retornaProblemasPagamento(@Param("id_problema") String id_problema);
 
     @Query(value = "SELECT FN_SALVA_LINK_PAGAMENTO_PROBLEMA(:id_problema, :url);",nativeQuery = true)
     Boolean salvaUrlPagamentoProblema(@Param("id_problema")String id_problema, @Param("url")String url);
 
 
-    @Query(value = "UPDATE PROBLEMAS SET CONTESTADO = :ok" +
+    @Query(value = "UPDATE PROBLEMAS SET CONTESTADO = :ok " +
             "where id_problema = :id_problema ;",nativeQuery = true)
     void contestaProblema(@Param("id_problema")String id_problema, @Param("ok")Boolean ok);
+
+    @Query(value = "SELECT FN_INSERIR_EXTENSAO_ALUGUEL(:id_aluguel, :data_fim, :usuario) " +
+            "where id_problema = :id_problema ;",nativeQuery = true)
+    void contestaProblema(@Param("id_aluguel")String id_aluguel, @Param("data_fim")String data_fim, @Param("usuario") String usuario);
 }

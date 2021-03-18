@@ -2,7 +2,6 @@ package com.onlycoders.backendalugo.api.rest;
 import com.google.common.base.Throwables;
 import com.onlycoders.backendalugo.model.entity.admin.RetornaGravidades;
 import com.onlycoders.backendalugo.model.entity.admin.RetornaProblemas;
-import com.onlycoders.backendalugo.model.entity.admin.RetornaTiposProblema;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.Meses;
 import com.onlycoders.backendalugo.model.entity.admin.LogErros;
 import com.onlycoders.backendalugo.model.entity.email.RetornoUsuarioProdutoNoficacao;
@@ -41,15 +40,17 @@ public class AdminController {
     private final EmailService emailService;
     private final ProdutoController produtoController;
     private final UsuarioController usuarioController;
+    private final AlugarController alugarController;
 
     @Autowired
-    public AdminController(AdminRepository adminRepository, ProdutoRepository produtoRepository, LogRepository logRepository, EmailService emailService, ProdutoController produtoController, UsuarioController usuarioController) {
+    public AdminController(AdminRepository adminRepository, ProdutoRepository produtoRepository, LogRepository logRepository, EmailService emailService, ProdutoController produtoController, UsuarioController usuarioController, AlugarController alugarController) {
         this.adminRepository = adminRepository;
         this.produtoRepository = produtoRepository;
         this.logRepository = logRepository;
         this.emailService = emailService;
         this.produtoController = produtoController;
         this.usuarioController = usuarioController;
+        this.alugarController = alugarController;
     }
 
     @ApiOperation(value = "Desativa e ativa usuário")
@@ -376,8 +377,10 @@ public class AdminController {
                                    @RequestParam("gravidade") Integer gravidade){
         try{
             String usuario = usuarioController.getIdUsuario();
-            //TODO realzar estorno/pagamento do problema
-            return adminRepository.aprovaProblema(id_problema,gravidade,usuario);
+            if(adminRepository.aprovaProblema(id_problema,gravidade,usuario)) {
+                return alugarController.trataProblema(id_problema);
+            }
+            return false;
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();

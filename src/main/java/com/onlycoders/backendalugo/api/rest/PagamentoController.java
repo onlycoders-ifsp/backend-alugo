@@ -161,13 +161,13 @@ public class PagamentoController {
                     emailService.sendEmail(r.getLocadorEmail(), "Confirmação de pagamento", locadorMail);
                     emailService.sendEmail(r.getLocatarioEmail(), "Confirmação de pagamento", locatarioMail);
                     aluguelRepository.alteraStatusAluguel(idAluguel, StatusAluguel.PAGAMENTO_CONFIRMADO.getCod_status(), usuario);
-                    return aluguelRepository.salvaRetornoPagamento(idAluguel, idPagamento, tipoRetorno, status, valorEstorno.orElse(0.00),"");
+                    return aluguelRepository.salvaRetornoPagamento(idAluguel, idPagamento, tipoRetorno, status, 0.00,valorEstorno.orElse(0.00),"");
 
                     //todo
                 case "refunded":
                     locatarioMail = new TemplateEmails().locatarioPagamentoRecusado(r.getLocatarioNome());
                     emailService.sendEmail(r.getLocatarioEmail(),"Confirmação de pagamento", locatarioMail);
-                    return aluguelRepository.salvaRetornoPagamento(idAluguel, idPagamento, tipoRetorno, status, valorEstorno.orElse(0.00),"");
+                    return aluguelRepository.salvaRetornoPagamento(idAluguel, idPagamento, tipoRetorno, status, 0.00,valorEstorno.orElse(0.00),"");
 
                 case "rejected":
                     locatarioMail = new TemplateEmails().locatarioPagamentoRecusado(r.getLocatarioNome());

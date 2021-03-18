@@ -1,7 +1,6 @@
 package com.onlycoders.backendalugo.api.rest;
 
 import com.google.common.base.Throwables;
-import com.onlycoders.backendalugo.model.entity.admin.RetornaProblemas;
 import com.onlycoders.backendalugo.model.entity.admin.RetornaTiposProblema;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.AluguelEncontro;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.*;
@@ -941,47 +940,16 @@ public class AlugarController {
     @ApiOperation(value = "Aprova ou recusa contestacao do problema")
     @GetMapping("/problemas/aceite-contestacao")
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public Boolean aprovaRecusaContestacao(@RequestParam("id_problema") String id_problema, @RequestParam("ok") Boolean ok){
+    public Boolean aprovaRecusaContestacao(@RequestParam("id_problema") String id_problema, @RequestParam("ok") Boolean ok, @RequestParam(value = "motivo",required = false, defaultValue = "") String motivo){
         try{
             //String usuario = usuarioController.getIdUsuario();
-            if(!ok){
-                aluguelRepository.contestaProblema(id_problema, ok);
+            aluguelRepository.contestaProblema(id_problema, ok);
+            if(!ok){ //Se não aprovar, não tratar
                 return true;
             }
-            List<RetornaProblemaPagamento> prb = aluguelRepository.retornaProblemasPagamento(id_problema);
-            for (RetornaProblemaPagamento p: prb) {
-                switch (p.getPerfil()){
-                    case "L":
-                        if(p.getValor_problema() > 0){ //Valor a pagar pelo locatario
-                            //Double valorPagar = p.getValor_aluguel() - p.getValor_problema();
-                            String url = pagamentoController.geraCobranca(p.getValor_problema());
-                            aluguelRepository.salvaUrlPagamentoProblema(id_problema,url);
-                            //TODO Enviar email do valor
-                        }
-                        else{ //Valor a receber do locatario
-                            //Double valorPagar = p.getValor_aluguel() - (p.getValor_problema()*-1);
-                            //if (valorPagar > 0)
-                            pagamentoController.estornoPagmenento(p.getId_pagamento(), p.getValor_problema()*-1, 0.00);
-                            //TODO Enviar email do valor
-                        }
-                        break;
-                    case "D":
-                        if(p.getValor_problema() > 0){
-                            aluguelRepository.salvaRetornoPagamento(p.getId_aluguel(), "999999", "payment","approved", 0.00, "");
-                            //TODO Enviar email do valor
-                        }
-                        else{
-                            String url = pagamentoController.geraCobranca(p.getValor_problema()*-1);
-                            aluguelRepository.salvaUrlPagamentoProblema(id_problema,url);
-                            //TODO Enviar email do valor
-                        }
-                        break;
-                }
-            }
-            aluguelRepository.contestaProblema(id_problema, ok);
+            return trataProblema(id_problema);
             //RetornaProblemas problema =
             //return aluguelRepository.retornaProblemasContestar(usuario);
-            return true;
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -992,6 +960,49 @@ public class AlugarController {
             logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
             return false;
         }
+    }
+
+    public Boolean trataProblema(String id_problema){
+        try {
+            List<RetornaProblemaPagamento> prb = aluguelRepository.retornaProblemasPagamento(id_problema);
+            for (RetornaProblemaPagamento p : prb) {
+                switch (p.getPerfil()) {
+                    case "L":
+                        if (p.getValor_problema() > 0) { //Valor a pagar pelo locatario
+                            //Double valorPagar = p.getValor_aluguel() - p.getValor_problema();
+                            String url = pagamentoController.geraCobranca(p.getValor_problema());
+                            aluguelRepository.salvaUrlPagamentoProblema(id_problema, url);
+                            //TODO Enviar email do valor
+                        } else { //Valor a receber do locatario
+                            //Double valorPagar = p.getValor_aluguel() - (p.getValor_problema()*-1);
+                            //if (valorPagar > 0)
+                            pagamentoController.estornoPagmenento(p.getId_pagamento(), p.getValor_problema() * -1, 0.00);
+                            //TODO Enviar email do valor
+                        }
+                        break;
+                    case "D":
+                        if (p.getValor_problema() > 0) {
+                            aluguelRepository.salvaRetornoPagamento(p.getId_aluguel(), "999999", "payment", "approved", p.getValor_problema(), 0.00, "");
+                            //TODO Enviar email do valor
+                        } else {
+                            String url = pagamentoController.geraCobranca(p.getValor_problema() * -1);
+                            aluguelRepository.salvaUrlPagamentoProblema(id_problema, url);
+                            //TODO Enviar email do valor
+                        }
+                        break;
+                }
+            }
+            return true;
+        }
+        catch(Exception e) {
+                String className = this.getClass().getSimpleName();
+                String methodName = new Object() {
+                }.getClass().getEnclosingMethod().getName();
+                String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+                String user = usuarioController.getIdUsuario();
+                logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+                return false;
+            }
     }
 
     //1x cada 5 minutos
