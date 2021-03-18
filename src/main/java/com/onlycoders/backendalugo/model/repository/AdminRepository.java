@@ -1,6 +1,9 @@
 package com.onlycoders.backendalugo.model.repository;
 
 import com.onlycoders.backendalugo.model.entity.admin.LogErros;
+import com.onlycoders.backendalugo.model.entity.admin.RetornaGravidades;
+import com.onlycoders.backendalugo.model.entity.admin.RetornaProblemas;
+import com.onlycoders.backendalugo.model.entity.admin.RetornaTiposProblema;
 import com.onlycoders.backendalugo.model.entity.email.RetornoUsuarioProdutoNoficacao;
 import com.onlycoders.backendalugo.model.entity.logs.RetornaErrosProcedureAgrupado;
 import com.onlycoders.backendalugo.model.entity.logs.RetornaLogBackendDetalhe;
@@ -20,20 +23,17 @@ import java.util.List;
 @Secured("ROLE_ADMIN")
 public interface AdminRepository extends JpaRepository<LogErros,Integer> {
 
-    @Transactional()
     @Query(value = "SELECT FN_ATIVA_INATIVA_USUARIO(:id,:user,:motivo);",nativeQuery = true)
-    //@Type(type = "com.onlycoders.backendalugo.configuracao.GenericArrayUserType")
+        //@Type(type = "com.onlycoders.backendalugo.configuracao.GenericArrayUserType")
     Boolean activateDesactivateUserById(@Param("id") String id,
                                         @Param("user") String user,
                                         @Param("motivo") String motivo);
 
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "SELECT *FROM FN_RETORNA_LOG_ERROS(:user) " +
-                   "AS T(ID INTEGER, PROCEDURE TEXT, TABELA TEXT, " +
-                   "USUARIO TEXT ,ERRO TEXT, QUERY TEXT, DATA_ERRO TEXT);",nativeQuery = true)
+            "AS T(ID INTEGER, PROCEDURE TEXT, TABELA TEXT, " +
+            "USUARIO TEXT ,ERRO TEXT, QUERY TEXT, DATA_ERRO TEXT);",nativeQuery = true)
     List<LogErros> retornaErros(@Param("user") String user);
 
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "Select *From FN_RETORNA_USUARIO(:id,:user) " +
             "AS T(IDUSUARIO TEXT, NOME TEXT, EMAIL TEXT, LOGIN TEXT, CPF TEXT, CELULAR TEXT," +
             "            DATANASCIMENTO TEXT, CEP TEXT, ENDERECO TEXT, " +
@@ -44,36 +44,53 @@ public interface AdminRepository extends JpaRepository<LogErros,Integer> {
             nativeQuery = true)
     List<RetornaUsuario> findUsuario(@Param("id") String id,@Param("user") String user);
 
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "select *from FN_RETORNA_LOG_BACKEND_CONTROLLER_MES(:usuario)" +
             "as (controller text, quantidade int, mes text);",nativeQuery = true)
     List<RetornoErrosBackendController> retornaErrosController(@Param("usuario") String usuario);
 
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "select *from FN_RETORNA_LOG_BACKEND_METODOS_MES(:controller,:usuario)" +
             "as (metodo text, endpoint text, quantidade int, mes text);",nativeQuery = true)
     List<RetornoErrosBackendMetodos> retornaErrosMetodo(@Param("controller") String controller,
                                                         @Param("usuario") String usuario);
 
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "select *from FN_RETORNA_LOG_MES(:usuario)" +
             "as (procedure text, quantidade int, mes text);",nativeQuery = true)
     List<RetornaErrosProcedureAgrupado> retornaErrosProcedureAgrupado(@Param("usuario") String usuario);
 
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "select * FROM FN_RETORNA_LOG_BACKEND_DETALHE()" +
-                    "AS (CONTROLLER TEXT, METODO TEXT, ENDPOINT TEXT, USUARIO TEXT, MESSAGE TEXT, STACKTRACE TEXT);",nativeQuery = true)
+            "AS (CONTROLLER TEXT, METODO TEXT, ENDPOINT TEXT, USUARIO TEXT, MESSAGE TEXT, STACKTRACE TEXT);",nativeQuery = true)
     List<RetornaLogBackendDetalhe> retornaLogBackendDetalhe(@Param("usuario") String usuario);
 
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "select FN_REJEITA_PRODUTO(:id_produto,:motivo,:usuario);", nativeQuery = true)
     RetornoUsuarioProdutoNoficacao rejeitaProduto(@Param("id_produto") String id_produto,
                                                   @Param("motivo") String motivo,
                                                   @Param("usuario") String usuario);
 
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     @Query(value = "select FN_APROVA_PRODUTO(:id_produto,:motivo,:usuario);", nativeQuery = true)
     RetornoUsuarioProdutoNoficacao aprovaProduto(@Param("id_produto") String id_produto,
-                                                  @Param("motivo") String motivo,
-                                                  @Param("usuario") String usuario);
+                                                 @Param("motivo") String motivo,
+                                                 @Param("usuario") String usuario);
+
+    @Query(value = "select *FROM FN_RETORNA_PROBLEMAS(:tipo_problema,:gravidade,:status, :data_inicio, :usuario)" +
+                   " as (DESCRICAO TEXT, VALOR_LOCADOR DECIMAL(18,2),VALOR_LOCATARIO DECIMAL(18,2)," +
+                   " TIPO_PROBLEMa integer, gravidade integer, status_problema integer, id_solicitante text," +
+                   " solicitante char(1), data_inclusao text, usuario_operacao text);", nativeQuery = true)
+    List<RetornaProblemas> retornaProblemas(@Param("tipo_problema") Integer tipo_problema,
+                                      @Param("gravidade") Integer gravidade,
+                                      @Param("status") Integer status,
+                                      @Param("data_inicio") String data_inicio,
+                                      @Param("usuario") String usuario);
+
+    @Query(value = "select FN_APROVA_PROBLEMA(:id_problema,:gravidade,:usuario);", nativeQuery = true)
+    Boolean aprovaProblema(@Param("id_problema") String id_aluguel,
+                             @Param("gravidade") Integer gravidade,
+                             @Param("usuario") String usuario);
+
+    @Query(value = "select FN_REPROVA_PROBLEMA(:id_problema,:usuario);", nativeQuery = true)
+    Boolean reprovaProblema(@Param("id_problema") String id_aluguel,
+                            @Param("usuario") String usuario);
+
+    @Query(value = "SELECT COD_GRAVIDADE, DESCRICAO, DEVOLUCAO from gravidades " +
+                   "order by 1;", nativeQuery = true)
+    List<RetornaGravidades> retornaGravidades();
 }

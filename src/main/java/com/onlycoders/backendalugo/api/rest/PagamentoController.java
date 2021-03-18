@@ -1,20 +1,21 @@
 package com.onlycoders.backendalugo.api.rest;
 
 import com.google.common.base.Throwables;
-import com.google.gson.Gson;
 import com.mercadopago.MercadoPago;
+import com.mercadopago.exceptions.MPConfException;
+import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.Payment;
-import com.mercadopago.resources.datastructures.payment.AdditionalInfo;
-import com.mercadopago.resources.datastructures.payment.Item;
-import com.mercadopago.resources.datastructures.payment.Payer;
+import com.mercadopago.resources.Preference;
+import com.mercadopago.resources.Refund;
+import com.mercadopago.resources.datastructures.customer.card.PaymentMethod;
+import com.mercadopago.resources.datastructures.preference.Item;
+import com.mercadopago.resources.datastructures.preference.PaymentMethods;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.RetornoSaqueLocador;
 import com.onlycoders.backendalugo.model.entity.email.RetornoAlugueisNotificacao;
 import com.onlycoders.backendalugo.model.entity.email.templatesEmails.TemplateEmails;
 import com.onlycoders.backendalugo.model.entity.pagamento.WebHookPagamento;
 import com.onlycoders.backendalugo.model.repository.AluguelRepository;
 import com.onlycoders.backendalugo.model.repository.LogRepository;
-import com.onlycoders.backendalugo.model.repository.ProdutoRepository;
-import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import com.onlycoders.backendalugo.service.EmailService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -24,14 +25,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.onlycoders.backendalugo.model.entity.aluguel.StatusInterfaceEnum.StatusAluguel;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,26 +41,24 @@ import java.util.Optional;
 //@Secured("ROLE_USER")
 public class PagamentoController {
 
-    @Autowired
-    UsuarioRepository usuarioRepository;
-
-    @Autowired
-    ProdutoRepository produtoRepository;
-
-    @Autowired
-    AluguelRepository aluguelRepository;
-
-    @Autowired
-    private LogRepository logRepository;
-
-    @Autowired
-    private EmailService emailService;
+    private final AluguelRepository aluguelRepository;
+    private final LogRepository logRepository;
+    private final EmailService emailService;
+    private final UsuarioController usuarioController;
 
     @Value("${mercado.pago.access.token}")
     String accessToken;// = "TEST-3839591210769699-020717-920ee176862d215166e271d66e8432f7-132870722";
 
     @Value("${backend.url}")
     String backendUrl;
+
+    @Autowired
+    public PagamentoController(AluguelRepository aluguelRepository, LogRepository logRepository, EmailService emailService, UsuarioController usuarioController) {
+        this.aluguelRepository = aluguelRepository;
+        this.logRepository = logRepository;
+        this.emailService = emailService;
+        this.usuarioController = usuarioController;
+    }
 
     /*
     @ApiOperation(value = "Realiza a baixa do pagamento no sistema e envia os emails.")
@@ -93,6 +90,7 @@ public class PagamentoController {
     @ApiOperation(value = "Salva url para pagamento")
     @GetMapping("/url-pagamento")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean salvaUrl(@Param(value = "id_aluguel") String id_aluguel, @Param(value = "url_pagamento") String url_pagamento) {
         try {
             return aluguelRepository.salvaUrlPagamento(id_aluguel, url_pagamento,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
@@ -111,6 +109,7 @@ public class PagamentoController {
     @ApiOperation(value = "Recebe notificacao de pagamento do Mercado Pago")
     @PostMapping("/retorno-pagamento")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean retornoPagamento(@RequestBody(required = false) WebHookPagamento webHookPagamento,
                                     @RequestParam(value = "data.id",required = false) String DataId,
                                     @RequestParam(value = "id",required = false) String id,
@@ -129,6 +128,7 @@ public class PagamentoController {
             String idPagamento = webHookPagamento.getData().getId();
             Payment pagamento = Payment.findById(idPagamento);
             String statusDetail = pagamento.getStatusDetail();
+            Optional<Double> valorEstorno = Optional.of(pagamento.getRefunds().stream().mapToDouble(Refund::getAmount).sum());
 
             /*
             final String uri = "https://api.mercadopago.com/v1/payments/"; //Exemplo
@@ -161,13 +161,13 @@ public class PagamentoController {
                     emailService.sendEmail(r.getLocadorEmail(), "Confirmação de pagamento", locadorMail);
                     emailService.sendEmail(r.getLocatarioEmail(), "Confirmação de pagamento", locatarioMail);
                     aluguelRepository.alteraStatusAluguel(idAluguel, StatusAluguel.PAGAMENTO_CONFIRMADO.getCod_status(), usuario);
-                    return aluguelRepository.salvaRetornoPagamento(idAluguel, idPagamento, tipoRetorno, status, SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
+                    return aluguelRepository.salvaRetornoPagamento(idAluguel, idPagamento, tipoRetorno, status, 0.00,valorEstorno.orElse(0.00),"");
 
                     //todo
                 case "refunded":
                     locatarioMail = new TemplateEmails().locatarioPagamentoRecusado(r.getLocatarioNome());
                     emailService.sendEmail(r.getLocatarioEmail(),"Confirmação de pagamento", locatarioMail);
-                    return aluguelRepository.salvaRetornoPagamento(idAluguel, idPagamento, tipoRetorno, status, SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
+                    return aluguelRepository.salvaRetornoPagamento(idAluguel, idPagamento, tipoRetorno, status, 0.00,valorEstorno.orElse(0.00),"");
 
                 case "rejected":
                     locatarioMail = new TemplateEmails().locatarioPagamentoRecusado(r.getLocatarioNome());
@@ -192,6 +192,7 @@ public class PagamentoController {
     @ApiOperation(value = "Recebe notificacao de pagamento do Mercado Pago")
     @PostMapping("/retorno-pagamento-locador")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean retornoPagamentoLocador(@RequestBody(required = false) WebHookPagamento webHookPagamento,
                                         @RequestParam(value = "data.id",required = false) String DataId,
                                         @RequestParam(value = "id",required = false) String id,
@@ -235,18 +236,27 @@ public class PagamentoController {
     @ApiOperation(value = "Efetua saque do saldo do locador")
     @GetMapping("/saque-locador")
     @ResponseStatus(HttpStatus.OK)
-    public Boolean efetuaSaqueLocador(){
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public Boolean efetuaSaqueLocador(@RequestParam("valor") Double valor, @RequestParam("lista_pagamento") List<String> lista_pagamento){
         try{
-            String idLocador = getIdUsuario();
-            Optional<List<RetornoSaqueLocador>> produtos = Optional.ofNullable(aluguelRepository.retornaAlugueisSaque(idLocador));
-            if(!produtos.isPresent()){
-                throw new NotFoundException("14");
+            String idLocador = usuarioController.getIdUsuario();
+            StringBuilder pagamentos = new StringBuilder();
+            for(String p:lista_pagamento){
+                pagamentos.append(p).append(";");
             }
+            if(valor > aluguelRepository.retornaResumoSaldo(idLocador)) {
+                throw new NotFoundException("15");
+            }
+            return aluguelRepository.efetuaSaque(idLocador,pagamentos.toString());
+            //Optional<List<RetornoSaqueLocador>> produtos = Optional.ofNullable(aluguelRepository.retornaAlugueisSaque(idLocador));
+            //if(!produtos.isPresent()){
+            //    throw new NotFoundException("14");
+            //}
 
-            String id_saque = produtos.get().get(0).getId_saque();
-            float valotTotal = 0.00f;
-            ArrayList<Item> listaProdutos = new ArrayList<>();
-            /*MercadoPago.SDK.setAccessToken(accessToken);
+            //String id_saque = produtos.get().get(0).getId_saque();
+            //float valotTotal = 0.00f;
+            /*ArrayList<Item> listaProdutos = new ArrayList<>();
+            MercadoPago.SDK.setAccessToken(accessToken);
 
             Gson json = new Gson();
 
@@ -255,20 +265,20 @@ public class PagamentoController {
             Payment pagamento = new Payment()
                     .setPayer(pagador)
                     .setExternalReference(id_saque)
-                    .setPaymentMethodId("account_money")
+                    .setPaymentMethodId("account_money");
                     .setNotificationUrl(backendUrl.concat("/retorno-pagamento-locador"))
                     .setCapture(true)
                     .setBinaryMode(false)
                     .setStatementDescriptor("Saque aluGo");
             */
-            for (RetornoSaqueLocador p : produtos.get()){/*
+            /*for (RetornoSaqueLocador p : produtos.get()){
                 Item produto = new Item()
                         .setId(p.getId_produto())
                         .setTitle(p.getNome_produto())
                         .setUnitPrice((float)(double) p.getValor())
                         .setDescription(p.getDescricao_curta())
                         .setQuantity(1);
-                listaProdutos.add(produto);*/
+                listaProdutos.add(produto);
                 valotTotal += (float)(double) p.getValor();
             }/*
             pagamento.setAdditionalInfo(new AdditionalInfo().setItems(listaProdutos));
@@ -284,7 +294,6 @@ public class PagamentoController {
             System.out.println(retornoMp.getStatusDetail());
             System.out.println(retornoMp.getId());
             */
-            return aluguelRepository.efetuaSaque(idLocador,((double) valotTotal),id_saque);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -293,13 +302,14 @@ public class PagamentoController {
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
             logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage()==null) ? "" : e.getMessage(), Throwables.getStackTraceAsString(e));
-            return null;
+            return false;
         }
     }
 
     @ApiOperation(value = "Efetua estorno do pagamento")
     @PostMapping("/estorno")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean estornoPagmenento(@RequestParam("id_pagamento")String id_pagamento, @RequestParam(value = "valor") double valor, @RequestParam Double retencao){
         try {
             MercadoPago.SDK.setAccessToken(accessToken);
@@ -321,21 +331,32 @@ public class PagamentoController {
             logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage()==null) ? "" : e.getMessage(), Throwables.getStackTraceAsString(e));
             return false;
         }
-
     }
-    public String getIdUsuario(){
+    public String geraCobranca(Double valor) {
+        try {
+            MercadoPago.SDK.setAccessToken(accessToken);
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String login;
-
-        if(!auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken){
-            throw new NullPointerException("Usuario não logado");
+            Item item = new Item();
+            item
+                    .setUnitPrice(valor.floatValue())
+                    .setDescription("Cobrança de ocorrencia de aluguel")
+                    .setQuantity(1)
+                    .setTitle("Cobrança");
+            Preference preferencia = new Preference();
+            preferencia
+                    .appendItem(item)
+                    .save();
+            return preferencia.getSandboxInitPoint();
+            //aluguelRepository.salvaUrlPagamentoProblema(id)
         }
-
-        login = usuarioRepository.retornaIdUsuario(auth.getName().split("\\|")[0]);
-        if (login.isEmpty() || login == null) {
-            throw new NullPointerException("Usuario não encontrado");
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, (e.getMessage()==null) ? "" : e.getMessage(), Throwables.getStackTraceAsString(e));
+            return "";
         }
-        return login;
     }
 }

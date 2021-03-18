@@ -9,8 +9,6 @@ import com.onlycoders.backendalugo.model.repository.UsuarioRepository;
 import com.onlycoders.backendalugo.service.EmailService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import javassist.NotFoundException;
-import lombok.RequiredArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
@@ -18,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.servlet.http.Part;
@@ -28,36 +28,37 @@ import java.util.*;
 @RestController
 @Api(value = "Produtos")
 @RequestMapping("/produtos")
-@RequiredArgsConstructor
 @CrossOrigin("*")
 public class ProdutoController {
 
-    @Autowired
-    private ProdutoRepository repository;
+    private final ProdutoRepository produtoRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final LogRepository logRepository;
+    private final EmailService emailService;
 
     @Autowired
-    private UsuarioRepository repositoryUsuario;
-
-    @Autowired
-    private LogRepository logRepository;
-
-    @Autowired
-    private EmailService emailService;
+    public ProdutoController(ProdutoRepository produtoRepository, UsuarioRepository usuarioRepository, LogRepository logRepository, EmailService emailService) {
+        this.produtoRepository = produtoRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.logRepository = logRepository;
+        this.emailService = emailService;
+    }
 
     @ApiOperation(value = "Retorna produtos do usuario logado.", response = RetornaProduto.class)
     @GetMapping("/lista-produto-logado")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public //ResponseEntity<?>//
     Page<ProdutoAluguel>
     retornaProdutosUsuarioLogado(@RequestParam(value = "page",required = false,defaultValue = "0") int page,
                                  @RequestParam(value = "size",required = false,defaultValue = "10") int size,
                                  @RequestParam(value = "sort",required = false,defaultValue = "qtd_alugueis") String sortBy,
                                  @RequestParam(value = "order",required = false,defaultValue = "desc") String order,
-                                 @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
+                                 @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria){
 
         try {
             Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
-            Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(transformaRetornoProdutoToPage(repository
+            Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(transformaRetornoProdutoToPage(produtoRepository
                     .findProduto(getIdUsuario(false), "0", 1, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging));
         /*if (!produtos.get().getContent().isEmpty()) {
             //return new ResponseEntity<>(produtos.get(), HttpStatus.OK);
@@ -65,7 +66,7 @@ public class ProdutoController {
         }*/
             //return new ResponseEntity<>("Nenhum produto disponível", HttpStatus.OK);
             //throw new NotFoundException("Nenhum produto disponível");
-            return produtos.get();
+            return produtos.orElse(null);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -73,7 +74,7 @@ public class ProdutoController {
             }.getClass().getEnclosingMethod().getName();
             String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
             String[] user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|");
-            logRepository.gravaLogBackend(className, methodName, endpoint, user[0], e.getMessage(), Throwables.getStackTraceAsString(e));
+            logRepository.gravaLogBackend(className, methodName, endpoint, user[0], (e.getMessage()==null) ? "":e.getMessage(), Throwables.getStackTraceAsString(e));
             return new PageImpl<>(new ArrayList<>(),PageRequest.of(1,1),0);
         }
     }
@@ -83,18 +84,18 @@ public class ProdutoController {
     @ResponseStatus(HttpStatus.OK)
     public ProdutoAluguel /*ResponseEntity<?>*/
     retornaProdutoUsuarioLogado(@RequestParam String id_produto,
-                                @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
+                                @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria){
         try{
             Pageable paging = PageRequest.of(0, 1);
             Optional<ProdutoAluguel> produtos = Optional.ofNullable(transformaRetornoProdutoToPage(
-                    repository.findProduto(getIdUsuario(false), id_produto, 2, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging)
+                    produtoRepository.findProduto(getIdUsuario(false), id_produto, 2, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging)
                     .getContent().get(0));
         /*if (produtos.isPresent()) {
             return new ResponseEntity<>(produtos.get(), HttpStatus.OK);
         }*/
             //return new ResponseEntity<>("Nenhum produto disponível", HttpStatus.OK);
             //throw new NotFoundException("Nenhum produto disponível");
-            return produtos.get();
+            return produtos.orElse(null);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -110,27 +111,28 @@ public class ProdutoController {
     @ApiOperation(value = "Retorna todos os produtos", response = RetornaProduto.class)
     @GetMapping("/lista-produto")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public //ResponseEntity<?>//
     Page<ProdutoAluguel>
     retornaProdutos(@RequestParam(value = "page",required = false,defaultValue = "0") int page,
                     @RequestParam(value = "size",required = false,defaultValue = "10") int size,
                     @RequestParam(value = "sort",required = false,defaultValue = "qtd_alugueis") String sortBy,
                     @RequestParam(value = "order",required = false,defaultValue = "desc") String order,
-                    @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
+                    @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria){
         try{
             //System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().build().toUri().toString().replace("/lista-usuario","/retorno-pagamento"));
 
             Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
             //System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().build().getPath());
-            Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(
-                    transformaRetornoProdutoToPage(repository.findProduto("0", "0", 4, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging));
+            Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(transformaRetornoProdutoToPage(produtoRepository
+                    .findProduto("0", "0", 4, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging));
 
         /*if (!produtos.get().isEmpty()) {
             return new ResponseEntity<>(produtos.get(), HttpStatus.OK);
         }*/
             //throw new NotFoundException("Nenhum produto localizado");
 
-            return produtos.get();
+            return produtos.orElse(null);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -148,19 +150,20 @@ public class ProdutoController {
     @ApiOperation(value = "Retorna um único produto", response = RetornaProduto.class)
     @GetMapping("/produto")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public ProdutoAluguel /*ResponseEntity<?>*/
     retornaProduto(@RequestParam String id_produto,
-                   @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
+                   @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria){
         try {
             Pageable paging = PageRequest.of(0, 1);
             Optional<ProdutoAluguel> produtos = Optional.ofNullable(transformaRetornoProdutoToPage(
-                    repository.findProduto("0", id_produto, 7, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging)
+                    produtoRepository.findProduto("0", id_produto, 7, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging)
                     .getContent()
                     .get(0));
         /*if (produtos.isPresent()) {
             return new ResponseEntity<>(produtos.get(), HttpStatus.OK);
         }*/
-            return produtos.get();
+            return produtos.orElse(null);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -179,6 +182,7 @@ public class ProdutoController {
     @ApiOperation(value = "Pesquisa de produto", response = RetornaProduto.class)
     @GetMapping("/produto-pesquisa")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public //ResponseEntity<?>//
     Page <ProdutoAluguel>
     retornaProdutoPesquisa(@RequestParam String produto,
@@ -186,15 +190,15 @@ public class ProdutoController {
                            @RequestParam(value = "size",required = false,defaultValue = "10") int size,
                            @RequestParam(value = "sort",required = false,defaultValue = "qtd_alugueis") String sortBy,
                            @RequestParam(value = "order",required = false,defaultValue = "desc") String order,
-                           @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria) throws NotFoundException {
+                           @RequestParam(value = "categoria",required = false,defaultValue = "0") int categoria){
         try {
             Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
             Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(
-                    transformaRetornoProdutoToPage(repository.findProduto("0", produto, 3, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging));
+                    transformaRetornoProdutoToPage(produtoRepository.findProduto("0", produto, 3, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging));
         /*if (!produtos.get().getContent().isEmpty()) {
             return new ResponseEntity<>(produtos.get(), HttpStatus.OK);
         }*/
-            return produtos.get();
+            return produtos.orElse(null);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -212,6 +216,7 @@ public class ProdutoController {
     @ApiOperation(value = "Retorna produtos de um usuario, id ou login", response = RetornaProduto.class)
     @GetMapping("/produto-usuario")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Page<ProdutoAluguel>
     retornaProdutosUsuario(@RequestParam String id_usuario, @RequestParam(value = "page",required = false,defaultValue = "0") int page,
                            @RequestParam(value = "size",required = false,defaultValue = "10") int size,
@@ -221,7 +226,7 @@ public class ProdutoController {
         try {
             Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
             return transformaRetornoProdutoToPage(
-            repository.findProduto(id_usuario, "0", 1, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging);
+                    produtoRepository.findProduto(id_usuario, "0", 1, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -237,16 +242,17 @@ public class ProdutoController {
     @ApiOperation(value = "Cadastra novo produto do usuario logado")
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public ProdutoAluguel cadastra(@RequestBody Produto produto){
         try {
             String[] usuario = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|");
             Pageable paging = PageRequest.of(0, 1);
             String categoria = trasnformaCategoriasToString(produto.getCategorias());
-            String idProduto =  repository.createProduto(getIdUsuario(false),
+            String idProduto =  produtoRepository.createProduto(getIdUsuario(false),
                     produto.getNome(), produto.getDescricao_curta(), produto.getDescricao(),
                     produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
                     produto.getData_compra(), categoria, usuario[0]);
-            List<RetornaProduto> ret = repository.findProduto("0", idProduto, 7, 0,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
+            List<RetornaProduto> ret = produtoRepository.findProduto("0", idProduto, 7, 0,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
             ProdutoAluguel r = transformaRetornoProdutoToPage(ret,paging).getContent().get(0);
             //ProdutoAluguel p = transformaRetornoProdutoToPage(r, paging).getContent().get(0);
             String mailBody = new TemplateEmails().cadastroProduto(usuario[0],r.getNome());
@@ -267,15 +273,16 @@ public class ProdutoController {
     @ApiOperation(value = "Atualiza/cadastra foto de produto")
     @PutMapping("/upload-foto")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean atualizaCadastrafoto(@RequestParam Part capa_foto,
-                                        @RequestParam String id_produto) throws NotFoundException {
+                                        @RequestParam String id_produto){
         String usuario = getIdUsuario(false);
         try{
             InputStream is = capa_foto.getInputStream();
             byte[] bytes = new byte[(int) capa_foto.getSize()];
             IOUtils.readFully(is,bytes);
             is.close();
-            return repository.uploadFoto(usuario, id_produto, bytes,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
+            return produtoRepository.uploadFoto(usuario, id_produto, bytes,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
 
         } catch(IOException e) {
             String className = this.getClass().getSimpleName();
@@ -290,12 +297,13 @@ public class ProdutoController {
     @ApiOperation(value = "Altera dados cadastrais do produto")
     @PutMapping("/altera")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean atualiza(@RequestBody Produto produto) {
         try {
             String categoria = trasnformaCategoriasToString(produto.getCategorias());
             //String idUsuario = getIdUsuario(false);
             //System.out.println(produto);
-            return repository.updateProduto(produto.getId_produto(), produto.getNome(), produto.getDescricao_curta(),
+            return produtoRepository.updateProduto(produto.getId_produto(), produto.getNome(), produto.getDescricao_curta(),
                     produto.getDescricao(), produto.getValor_base_diaria(), produto.getValor_base_mensal(), produto.getValor_produto(),
                     produto.getData_compra(), produto.getAtivo(), categoria, SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
         }
@@ -313,9 +321,10 @@ public class ProdutoController {
     @ApiOperation(value = "Ativa ou inativa produto.")
     @DeleteMapping("ativa-inativa")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean ativaInativa(@RequestParam String id_produto){
         try {
-            return repository.ativaInativaProduto(id_produto,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
+            return produtoRepository.ativaInativaProduto(id_produto,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -331,9 +340,10 @@ public class ProdutoController {
     @ApiOperation(value = "Retorna categorias", response = RetornaProduto.class)
     @GetMapping("/categorias")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public List<RetornaCategorias> retornaCategorias(){
         try {
-            return repository.retornaCategorias();
+            return produtoRepository.retornaCategorias();
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -348,17 +358,18 @@ public class ProdutoController {
 
 
     public String trasnformaCategoriasToString(List<Categorias> listCategorias){
-        String categoria = "";
+        StringBuilder categoria = new StringBuilder();
         for(Categorias c : listCategorias) {
-            if (categoria.isEmpty()){
-                categoria = c.getIdCategoria();
+            if (categoria.length() == 0){
+                categoria = new StringBuilder(c.getIdCategoria());
             }else {
-                categoria = categoria + ',' + c.getIdCategoria();
+                categoria.append(',').append(c.getIdCategoria());
             }
         }
-        return categoria;
+        return categoria.toString();
     }
 
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public String getIdUsuario(boolean pesquisa){
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -369,8 +380,8 @@ public class ProdutoController {
             else
                 return "0";
         }
-        login = repositoryUsuario.retornaIdUsuario(auth.getName().split("\\|")[0]);
-        if (login.isEmpty() || login == null) {
+        login = usuarioRepository.retornaIdUsuario(auth.getName().split("\\|")[0]);
+        if (login.isEmpty()) {
             if(!pesquisa)
                 throw new NullPointerException("Usuario não encontrado");
             else
@@ -389,7 +400,7 @@ public class ProdutoController {
         String[] nomeCategoria;
 
         for(RetornaProduto r : ret){
-            List<DtAlugadas> dt = new ArrayList<DtAlugadas>();// = repository.dtAlugadas(r.getId_produto());
+            List<DtAlugadas> dt = new ArrayList<>();// = produtoRepository.dtAlugadas(r.getId_produto());
             List<Categorias> categorias = new ArrayList<>();
 
             if (r.getDt_Aluguel().contains(";")) {
@@ -439,14 +450,14 @@ public class ProdutoController {
         //paging.setPageSize(page.getPageSize());
         //return paging;//
         int start =(int) page.getOffset();
-        int end = (start + page.getPageSize()) > listPa.size() ? listPa.size() : (start + page.getPageSize());
+        int end = Math.min((start + page.getPageSize()), listPa.size());
         return new PageImpl<>(listPa.subList(start,end),page,listPa.size());//listPa;
     }
 
     /*public List<ProdutoAluguel> transformaRetornoProduto(List<RetornaProduto> ret){
         List<ProdutoAluguel> listPa = new ArrayList<>();
         for(RetornaProduto r : ret){
-            List<DatasAlugadas> dt = repository.dtAlugadas(r.getId_produto());
+            List<DatasAlugadas> dt = produtoRepository.dtAlugadas(r.getId_produto());
             ProdutoAluguel pa = new ProdutoAluguel();
             pa.setAtivo(r.getAtivo());
             pa.setCapa_foto(r.getCapa_foto());

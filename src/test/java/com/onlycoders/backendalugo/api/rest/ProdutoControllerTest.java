@@ -22,13 +22,13 @@ public class ProdutoControllerTest {
     private ProdutoController controllerProduto;
 
     @Test
-    public void retornaProdutosTest() throws NotFoundException {
+    public void retornaProdutosTest(){
         Page<ProdutoAluguel> produtos = controllerProduto.retornaProdutos(0,10,"qtd_alugueis","desc",0);
         assertTrue(produtos.hasContent());
     }
 
     @Test
-    public void retornaProdutoTest() throws NotFoundException {
+    public void retornaProdutoTest(){
         Page<ProdutoAluguel> produtos = controllerProduto.retornaProdutos(0,10,"qtd_alugueis","desc",0);
 
         ProdutoAluguel produto = controllerProduto.retornaProduto(produtos.get().findFirst().get().getId_produto(),0);
@@ -36,7 +36,7 @@ public class ProdutoControllerTest {
     }
 
     @Test
-    public void retornaProdutoPesquisaTest() throws NotFoundException {
+    public void retornaProdutoPesquisaTest(){
         String palavraPesquisada = "livro";
         Page<ProdutoAluguel> produtos = controllerProduto.retornaProdutoPesquisa(palavraPesquisada,0,10,"qtd_alugueis","desc",0);
 
@@ -44,7 +44,7 @@ public class ProdutoControllerTest {
     }
 
     @Test
-    public void retornaProdutosUsuarioTest() throws NotFoundException {
+    public void retornaProdutosUsuarioTest(){
         String id_usuario = controllerProduto.retornaProdutos(0,10,"qtd_alugueis","desc",0).get().findFirst().get().getId_usuario();
         Page<ProdutoAluguel> produtos = controllerProduto.retornaProdutosUsuario(id_usuario,0,10,"qtd_alugueis","desc",0);
 

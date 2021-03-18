@@ -1,14 +1,13 @@
 package com.onlycoders.backendalugo.api.rest;
 import com.google.common.base.Throwables;
+import com.onlycoders.backendalugo.model.entity.admin.RetornaGravidades;
+import com.onlycoders.backendalugo.model.entity.admin.RetornaProblemas;
 import com.onlycoders.backendalugo.model.entity.aluguel.template.Meses;
 import com.onlycoders.backendalugo.model.entity.admin.LogErros;
 import com.onlycoders.backendalugo.model.entity.email.RetornoUsuarioProdutoNoficacao;
 import com.onlycoders.backendalugo.model.entity.email.templatesEmails.TemplateEmails;
 import com.onlycoders.backendalugo.model.entity.logs.*;
-import com.onlycoders.backendalugo.model.entity.produto.templates.Categorias;
-import com.onlycoders.backendalugo.model.entity.produto.templates.DtAlugadas;
 import com.onlycoders.backendalugo.model.entity.produto.templates.ProdutoAluguel;
-import com.onlycoders.backendalugo.model.entity.produto.templates.RetornaProduto;
 import com.onlycoders.backendalugo.model.entity.usuario.templates.RetornaUsuario;
 import com.onlycoders.backendalugo.model.repository.AdminRepository;
 import com.onlycoders.backendalugo.model.repository.LogRepository;
@@ -21,11 +20,12 @@ import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+
+import java.util.*;
 
 @RestController
 @Api(value = "Admin")
@@ -34,22 +34,28 @@ import java.util.Optional;
 @Secured("ROLE_ADMIN")
 public class AdminController {
 
-    @Autowired PagamentoController pagamentoController;
+    private final AdminRepository adminRepository;
+    private final ProdutoRepository produtoRepository;
+    private final LogRepository logRepository;
+    private final EmailService emailService;
+    private final ProdutoController produtoController;
+    private final UsuarioController usuarioController;
+    private final AlugarController alugarController;
 
     @Autowired
-    private AdminRepository adminRepository;
-
-    @Autowired
-    private ProdutoRepository produtoRepository;
-
-    @Autowired
-    private LogRepository logRepository;
-
-    @Autowired
-    private EmailService emailService;
+    public AdminController(AdminRepository adminRepository, ProdutoRepository produtoRepository, LogRepository logRepository, EmailService emailService, ProdutoController produtoController, UsuarioController usuarioController, AlugarController alugarController) {
+        this.adminRepository = adminRepository;
+        this.produtoRepository = produtoRepository;
+        this.logRepository = logRepository;
+        this.emailService = emailService;
+        this.produtoController = produtoController;
+        this.usuarioController = usuarioController;
+        this.alugarController = alugarController;
+    }
 
     @ApiOperation(value = "Desativa e ativa usuário")
     @DeleteMapping("inativa-usuario")
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean activateDesactivateUserById(@RequestParam String id_usuario, @RequestParam(value = "motivo",defaultValue = "",required = false) String motivo) {
         try{
             String usuario = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
@@ -75,19 +81,20 @@ public class AdminController {
     @ApiOperation(value = "Retorna dados de todos os usuarios", response = RetornaUsuario.class)
     @GetMapping("/lista-usuario")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Page<RetornaUsuario>
     retornaUsuario(@RequestParam(value = "page",
-            required = false,
-            defaultValue = "0") int page,
+                                 required = false,
+                                 defaultValue = "0") int page,
                    @RequestParam(value = "size",
-                           required = false,
-                           defaultValue = "10") int size) {
+                                 required = false,
+                                 defaultValue = "10") int size) {
         try {
             Pageable paging = PageRequest.of(page, size);
             List<RetornaUsuario> listUsuarios = adminRepository.findUsuario("0",SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
 
             int start = (int) paging.getOffset();
-            int end = (start + paging.getPageSize()) > listUsuarios.size() ? listUsuarios.size() : (start + paging.getPageSize());
+            int end = Math.min((start + paging.getPageSize()), listUsuarios.size());
             return new PageImpl<>(listUsuarios.subList(start, end), paging, listUsuarios.size());
         }
         catch(Exception e) {
@@ -104,6 +111,7 @@ public class AdminController {
     @ApiOperation(value = "Retorna log erros", response = LogErros.class)
     @GetMapping("/log-erros")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Page<LogErros>
     retornaLogErros(@RequestParam(value = "page",required = false,defaultValue = "0") int page,
                     @RequestParam(value = "size",required = false,defaultValue = "10") int size,
@@ -114,7 +122,7 @@ public class AdminController {
         try {
             List<LogErros> listErros = adminRepository.retornaErros(SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]);
             int start = (int) paging.getOffset();
-            int end = (start + paging.getPageSize()) > listErros.size() ? listErros.size() : (start + paging.getPageSize());
+            int end = Math.min((start + paging.getPageSize()), listErros.size());
             return new PageImpl<>(listErros.subList(start, end), paging, listErros.size());
         }
         catch(Exception e) {
@@ -131,6 +139,7 @@ public class AdminController {
     @ApiOperation(value = "Retorna produtos não publicados", response = ProdutoAluguel.class)
     @GetMapping("/publicar-produtos")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Page<ProdutoAluguel>
     retornaProdutosNaoPublicados(@RequestParam(value = "page",required = false,defaultValue = "0") int page,
                                  @RequestParam(value = "size",required = false,defaultValue = "10") int size,
@@ -140,8 +149,8 @@ public class AdminController {
         Pageable paging = PageRequest.of(page, size, (order.equalsIgnoreCase("desc")) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
         try {
             Optional<Page<ProdutoAluguel>> produtos = Optional.ofNullable(
-                    transformaRetornoProdutoToPage(produtoRepository.findProduto("0", "0", 2, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging));
-            return produtos.get();
+                    produtoController.transformaRetornoProdutoToPage(produtoRepository.findProduto("0", "0", 2, categoria,SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0]), paging));
+            return produtos.orElse(null);
         }
         catch(Exception e) {
             String className = this.getClass().getSimpleName();
@@ -157,6 +166,7 @@ public class AdminController {
     @ApiOperation(value = "Reprovar produtos")
     @GetMapping("/reprovar-produto")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean rejeitaProduto(@RequestParam("id_produto")String idProduto,
                                   @RequestParam("motivo") String motivo){
         try{
@@ -180,6 +190,7 @@ public class AdminController {
     @ApiOperation(value = "Aprovar produtos")
     @GetMapping("/aprovar-produto")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Boolean aprovaProduto(@RequestParam("id_produto")String idProduto,
                                  @RequestParam("motivo") String motivo){
         try{
@@ -203,6 +214,7 @@ public class AdminController {
     @ApiOperation(value = "Retorna log backend", response = LogErros.class)
     @GetMapping("/log-erros-backend")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public List<ErrosControllerMetodos> retornaLogsBackend(){
         String usuario = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
         try{
@@ -210,7 +222,7 @@ public class AdminController {
             String[] mesDescricao;
             String[] mesQuantidade;
             List<RetornoErrosBackendController> retornoErrosBackendController = adminRepository.retornaErrosController(usuario);
-            List<ErrosBackendMetodo> errosBackendMetodos = null;
+            List<ErrosBackendMetodo> errosBackendMetodos;
             List<ErrosControllerMetodos> errosControllerMetodos = new ArrayList<>();
             List<Meses> mesesMetodos = null;
             List<Meses> mesesController = null;
@@ -224,7 +236,7 @@ public class AdminController {
                         mesQuantidade = mes[1].split(",");
                         mesesMetodos = new ArrayList<>();
                         for (int i = 0; i < mesDescricao.length; i++) {
-                            mesesMetodos.add(new Meses(mesDescricao[i], Integer.valueOf(mesQuantidade[i])));
+                            mesesMetodos.add(new Meses(mesDescricao[i], Integer.parseInt(mesQuantidade[i])));
                         }
                     }
                     errosBackendMetodos.add(new ErrosBackendMetodo(retMetodos.getMetodo(), retMetodos.getEndpoint(), retMetodos.getQuantidade(), mesesMetodos));
@@ -235,7 +247,7 @@ public class AdminController {
                     mesQuantidade = mes[1].split(",");
                     mesesController = new ArrayList<>();
                     for(int i = 0;i<mesDescricao.length;i++) {
-                        mesesController.add(new Meses(mesDescricao[i], Integer.valueOf(mesQuantidade[i])));
+                        mesesController.add(new Meses(mesDescricao[i], Integer.parseInt(mesQuantidade[i])));
                     }
                 }
                 errosControllerMetodos.add(new ErrosControllerMetodos(retController.getController(),retController.getQuantidade(),mesesController,errosBackendMetodos));
@@ -256,6 +268,7 @@ public class AdminController {
     @ApiOperation(value = "Retorna erros procedure agrupados", response = ErrosProcedureAgrupado.class)
     @GetMapping("/log-erros-banco")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public List<ErrosProcedureAgrupado> retornaErrosProcedureAgurapado(){
         try{
             String usuario = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
@@ -272,7 +285,7 @@ public class AdminController {
                     mesQuantidade = mes[1].split(",");
                     meses = new ArrayList<>();
                     for (int i = 0; i < mesDescricao.length; i++) {
-                        meses.add(new Meses(mesDescricao[i], Integer.valueOf(mesQuantidade[i])));
+                        meses.add(new Meses(mesDescricao[i], Integer.parseInt(mesQuantidade[i])));
                     }
                 }
                 errosProcedureAgrupados.add(new ErrosProcedureAgrupado(retProcedure.getProcedure(),retProcedure.getQuantidade(),meses));
@@ -290,9 +303,10 @@ public class AdminController {
         }
     }
 
-    @ApiOperation(value = "Retorna erros backend detalhado", response = ErrosProcedureAgrupado.class)
+    @ApiOperation(value = "Retorna erros backend detalhado")
     @GetMapping("/log-erros-backend-detalhe")
     @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Page<RetornaLogBackendDetalhe> retornaLogsBackendDetalhe(@RequestParam(value = "page",required = false,defaultValue = "0") int page,
                                                                     @RequestParam(value = "size",required = false,defaultValue = "10") int size,
                                                                     @RequestParam(value = "sort",required = false,defaultValue = "usuario") String sortBy,
@@ -305,7 +319,7 @@ public class AdminController {
             //retornaLogBackendDetalhes.sort(Comparator.comparing(RetornaLogBackendDetalhe::getUsuario));
 
             int start = (int) paging.getOffset();
-            int end = (start + paging.getPageSize()) > retornaLogBackendDetalhes.size() ? retornaLogBackendDetalhes.size() : (start + paging.getPageSize());
+            int end = Math.min((start + paging.getPageSize()), retornaLogBackendDetalhes.size());
             return new PageImpl<>(retornaLogBackendDetalhes.subList(start, end), paging, retornaLogBackendDetalhes.size());//listPa;
         }
         catch(Exception e) {
@@ -323,68 +337,98 @@ public class AdminController {
     //@ApiOperation(value = "Acata problema e efetua devolução de acordo com a gravidade", response = ErrosProcedureAgrupado.class)
     //@GetMapping("/estorno-aluguel")
     //@ResponseStatus(HttpStatus.OK)
+    @ApiOperation(value = "Retorna problemas")
+    @GetMapping("/problemas")
+    @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public Page<RetornaProblemas> retornaProblemas(@RequestParam(value = "page",required = false,defaultValue = "0") int page,
+                                                   @RequestParam(value = "size",required = false,defaultValue = "10") int size,
+                                                   @RequestParam(value = "sort",required = false,defaultValue = "usuario") String sortBy,
+                                                   @RequestParam(value = "order",required = false,defaultValue = "desc") String order,
+                                                   @RequestParam(value = "tipo_problema",required = false,defaultValue = "0") int tipo_problema,
+                                                   @RequestParam(value = "gravidade",required = false,defaultValue = "0")int gravidade,
+                                                   @RequestParam(value = "status",required = false,defaultValue = "0")int status,
+                                                   @RequestParam(value = "data_inicio", required = false, defaultValue = "")String data_inicio){
+        try{
+            String usuario = usuarioController.getIdUsuario();
+            Pageable paging = PageRequest.of(page, size, Sort.by((order.equalsIgnoreCase("desc")) ? Sort.Order.by(sortBy) : Sort.Order.desc(sortBy)));
+            List<RetornaProblemas> lista = adminRepository.retornaProblemas(tipo_problema,gravidade,status,data_inicio,usuario);
+            int start = (int) paging.getOffset();
+            int end = Math.min((start + paging.getPageSize()), lista.size());
+            return new PageImpl<>(lista.subList(start, end), paging, lista.size());//listPa;
 
-    public Page <ProdutoAluguel> transformaRetornoProdutoToPage(List<RetornaProduto> ret, Pageable page){
-        List<ProdutoAluguel> listPa = new ArrayList<>();
-        String[] dtAluguel;
-        String[] dtAluguelInicio;
-        String[] dtAluguelFim;
-        String[] categoria;
-        String[] idCategoria;
-        String[] nomeCategoria;
-
-        for(RetornaProduto r : ret){
-            List<DtAlugadas> dt = new ArrayList<DtAlugadas>();// = repository.dtAlugadas(r.getId_produto());
-            List<Categorias> categorias = new ArrayList<>();
-
-            if (r.getDt_Aluguel().contains(";")) {
-                dtAluguel = r.getDt_Aluguel().split(";");
-                dtAluguelInicio = dtAluguel[0].split(",");
-                dtAluguelFim = dtAluguel[1].split(",");
-                for (int i = 0; i < dtAluguelInicio.length; i++) {
-                    DtAlugadas dtAlugadas = new DtAlugadas(dtAluguelInicio[i],dtAluguelFim[i]);
-                    dt.add(dtAlugadas);
-                }
-            }
-            if(r.getCategorias().contains(";")){
-                categoria = r.getCategorias().split(";");
-                idCategoria = categoria[0].split(",");
-                nomeCategoria = categoria[1].split(",");
-
-                for(int i = 0;i<idCategoria.length;i++){
-                    Categorias cat = new Categorias();
-                    cat.setIdCategoria(idCategoria[i]);
-                    cat.setNomeCategoria(nomeCategoria[i]);
-                    categorias.add(cat);
-                }
-            }
-            ProdutoAluguel pa = new ProdutoAluguel();
-            pa.setAtivo(r.getAtivo());
-            pa.setCapa_foto(r.getCapa_foto());
-            pa.setData_compra(r.getData_compra());
-            pa.setDescricao(r.getDescricao());
-            pa.setDescricao_curta(r.getDescricao_curta());
-            pa.setDt_alugadas(dt);
-            pa.setCategorias(categorias);
-            pa.setId_produto(r.getId_produto());
-            pa.setId_usuario(r.getId_usuario());
-            pa.setMedia_avaliacao(r.getMedia_avaliacao());
-            pa.setNome(r.getNome());
-            pa.setQtd_alugueis(r.getQtd_alugueis());
-            pa.setTotal_ganhos(r.getTotal_ganhos());
-            pa.setValor_base_diaria(r.getValor_base_diaria());
-            pa.setValor_base_mensal(r.getValor_base_mensal());
-            pa.setValor_produto(r.getValor_produto());
-            pa.setPublicado(r.getPublicado());
-            listPa.add(pa);
         }
-        //Page<ProdutoAluguel> produtos = new PageImpl<>(listPa,page, listPa.size());
-        //PagedListHolder paging = new PagedListHolder(listPa);
-        //paging.setPage(page.getPageNumber());
-        //paging.setPageSize(page.getPageSize());
-        //return paging;//
-        int start =(int) page.getOffset();
-        int end = (start + page.getPageSize()) > listPa.size() ? listPa.size() : (start + page.getPageSize());
-        return new PageImpl<>(listPa.subList(start,end),page,listPa.size());//listPa;
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = SecurityContextHolder.getContext().getAuthentication().getName().split("\\|")[0];
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return new PageImpl<>(new ArrayList<>(),PageRequest.of(1,1),0);
+        }
+    }
+
+    @ApiOperation(value = "Aprova problema")
+    @GetMapping("/aprova-problema")
+    @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public Boolean aprovaProblema(@RequestParam("id_problema")String id_problema,
+                                   @RequestParam("gravidade") Integer gravidade){
+        try{
+            String usuario = usuarioController.getIdUsuario();
+            if(adminRepository.aprovaProblema(id_problema,gravidade,usuario)) {
+                return alugarController.trataProblema(id_problema);
+            }
+            return false;
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = usuarioController.getIdUsuario();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
+    @ApiOperation(value = "Reprova problema")
+    @GetMapping("/reprova-problema")
+    @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public Boolean reprovaProblema(@RequestParam("id_problema")String id_problema){
+        try{
+            String usuario = usuarioController.getIdUsuario();
+            return adminRepository.reprovaProblema(id_problema,usuario);
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = usuarioController.getIdUsuario();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
+    @ApiOperation(value = "Retorna gravidade")
+    @GetMapping("/gravidades")
+    @ResponseStatus(HttpStatus.OK)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public List<RetornaGravidades> reprovaGravidades(){
+        try{
+            return adminRepository.retornaGravidades();
+        }
+        catch(Exception e) {
+            String className = this.getClass().getSimpleName();
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            String endpoint = ServletUriComponentsBuilder.fromCurrentRequest().build().getPath();
+            String user = usuarioController.getIdUsuario();
+            logRepository.gravaLogBackend(className, methodName, endpoint, user, e.getMessage(), Throwables.getStackTraceAsString(e));
+            return null;
+        }
     }
 }

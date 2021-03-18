@@ -1,5 +1,6 @@
 package com.onlycoders.backendalugo.model.entity.produto.templates;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class ProdutoAluguel {
@@ -155,7 +156,7 @@ public class ProdutoAluguel {
     }
 
     public void setCapa_foto(byte[] capa_foto) {
-        Capa_foto = capa_foto;
+        this.Capa_foto = capa_foto;
     }
 
     public Boolean getAtivo() {

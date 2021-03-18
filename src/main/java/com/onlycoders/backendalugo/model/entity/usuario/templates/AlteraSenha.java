@@ -19,15 +19,8 @@ public class AlteraSenha {
         return senha_antiga;
     }
 
-    public void setSenha_antiga(String senha_antiga) {
-        this.senha_antiga = senha_antiga;
-    }
-
     public String getSenha_nova() {
         return senha_nova;
     }
 
-    public void setSenha_nova(String senha_nova) {
-        this.senha_nova = senha_nova;
-    }
 }
